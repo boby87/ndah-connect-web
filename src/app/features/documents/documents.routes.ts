@@ -12,6 +12,16 @@ export const DOCUMENT_ROUTES: Routes = [
       import('./pages/document-upload/document-upload.component').then(m => m.DocumentUploadComponent),
   },
   {
+    path: 'archives',
+    loadComponent: () =>
+      import('./pages/archives/archives.component').then(m => m.ArchivesComponent),
+  },
+  {
+    path: 'reports',
+    loadComponent: () =>
+      import('./pages/reports/reports.component').then(m => m.ReportsComponent),
+  },
+  {
     path: ':id',
     loadComponent: () =>
       import('./pages/document-viewer/document-viewer.component').then(m => m.DocumentViewerComponent),

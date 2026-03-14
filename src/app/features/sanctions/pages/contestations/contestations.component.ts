@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { PageHeaderComponent } from '../../../../shared/components/layout/page-header/page-header.component';
 import { CardComponent } from '../../../../shared/components/ui/card/card.component';
-import { BadgeComponent } from '../../../../shared/components/ui/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/ui/button/button.component';
 import { MockDataService } from '../../../../core/services/mock-data.service';
 import { CurrencyXafPipe } from '../../../../shared/pipes/currency-xaf.pipe';
@@ -10,7 +9,7 @@ import { CurrencyXafPipe } from '../../../../shared/pipes/currency-xaf.pipe';
 @Component({
   selector: 'app-contestations',
   standalone: true,
-  imports: [PageHeaderComponent, CardComponent, BadgeComponent, ButtonComponent, CurrencyXafPipe],
+  imports: [PageHeaderComponent, CardComponent, ButtonComponent, CurrencyXafPipe],
   template: `
     <app-page-header title="Contestations en attente" backLink="/sanctions" />
 

@@ -1,4 +1,249 @@
-<!-- Header -->
+@if (isSecretary) {
+  <!-- ═══════ SECRETARY DASHBOARD ═══════ -->
+  <div class="dashboard-header">
+    <div>
+      <h1 class="greeting">Bonjour, {{ authStore.userFullName() }} 📋</h1>
+      <p class="subtitle">Secrétaire de <strong>{{ mock.tontine.name }}</strong></p>
+    </div>
+    <div class="header-badges">
+      <app-badge variant="danger" [dot]="true">{{ mock.unreadSecretaryNotifications().length }} notifications</app-badge>
+      <app-badge variant="info" [dot]="true">{{ mock.secretaryStats().pvPending }} PV en attente</app-badge>
+    </div>
+  </div>
+
+  <!-- Secretary Alerts -->
+  @if (mock.activeSecretaryAlerts().length > 0) {
+    <div class="alerts-section">
+      <h2 class="section-title">🚨 Alertes & Tâches urgentes</h2>
+      @for (alert of mock.activeSecretaryAlerts(); track alert.id) {
+        <div [class]="'alert-item alert-' + alert.type">
+          <span class="alert-icon">
+            @switch (alert.type) {
+              @case ('critical') { ❗ }
+              @case ('warning') { ⚠️ }
+              @case ('info') { ℹ️ }
+            }
+          </span>
+          <span class="alert-message">{{ alert.message }}</span>
+          <div class="alert-actions">
+            @if (alert.actionLabel && alert.actionRoute) {
+              <button class="alert-btn" (click)="navigate(alert.actionRoute)" type="button">{{ alert.actionLabel }}</button>
+            }
+            <button class="alert-dismiss" (click)="dismissSecretaryAlert(alert.id)" type="button">✕</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Secretary Stats -->
+  <div class="stats-grid">
+    <app-card class="stat-card">
+      <div class="stat-content">
+        <span class="stat-icon">👥</span>
+        <div class="stat-info">
+          <span class="stat-label">Membres actifs</span>
+          <span class="stat-value">{{ mock.secretaryStats().activeMembers }}</span>
+        </div>
+      </div>
+    </app-card>
+    <app-card class="stat-card">
+      <div class="stat-content">
+        <span class="stat-icon">📅</span>
+        <div class="stat-info">
+          <span class="stat-label">Séances du cycle</span>
+          <span class="stat-value">{{ mock.secretaryStats().sessionsInCycle }}</span>
+        </div>
+      </div>
+    </app-card>
+    <app-card class="stat-card">
+      <div class="stat-content">
+        <span class="stat-icon">📝</span>
+        <div class="stat-info">
+          <span class="stat-label">PV en attente</span>
+          <span class="stat-value">{{ mock.secretaryStats().pvPending }}</span>
+        </div>
+      </div>
+    </app-card>
+    <app-card class="stat-card">
+      <div class="stat-content">
+        <span class="stat-icon">📊</span>
+        <div class="stat-info">
+          <span class="stat-label">Taux de présence</span>
+          <span class="stat-value">{{ mock.secretaryStats().attendanceRate }}%</span>
+        </div>
+      </div>
+    </app-card>
+    <app-card class="stat-card">
+      <div class="stat-content">
+        <span class="stat-icon">📥</span>
+        <div class="stat-info">
+          <span class="stat-label">Adhésions en cours</span>
+          <span class="stat-value">{{ mock.secretaryStats().adhesionsInProgress }}</span>
+        </div>
+      </div>
+    </app-card>
+    <app-card class="stat-card">
+      <div class="stat-content">
+        <span class="stat-icon">🚪</span>
+        <div class="stat-info">
+          <span class="stat-label">Démissions</span>
+          <span class="stat-value">{{ mock.secretaryStats().resignationsInProgress }}</span>
+        </div>
+      </div>
+    </app-card>
+    <app-card class="stat-card">
+      <div class="stat-content">
+        <span class="stat-icon">📂</span>
+        <div class="stat-info">
+          <span class="stat-label">Documents archivés</span>
+          <span class="stat-value">{{ mock.secretaryStats().documentsArchived }}</span>
+        </div>
+      </div>
+    </app-card>
+    <app-card class="stat-card">
+      <div class="stat-content">
+        <span class="stat-icon">⚠️</span>
+        <div class="stat-info">
+          <span class="stat-label">Absences signalées</span>
+          <span class="stat-value">{{ mock.secretaryStats().absencesReported }}</span>
+        </div>
+      </div>
+    </app-card>
+  </div>
+
+  <!-- Secretary Main Content -->
+  <div class="dashboard-grid">
+    <div class="dashboard-main">
+      <!-- Quick Actions -->
+      <app-card>
+        <div class="card-section">
+          <h2 class="section-title">⚡ Actions rapides</h2>
+          <div class="actions-grid">
+            <app-button variant="primary" (clicked)="navigate('/sessions/odj/sess-009')">📋 Préparer ODJ</app-button>
+            <app-button variant="outline" (clicked)="navigate('/sessions/convocations/sess-009')">📨 Convocations</app-button>
+            <app-button variant="outline" (clicked)="navigate('/sessions/confirmations/sess-009')">✅ Confirmations</app-button>
+            <app-button variant="outline" (clicked)="navigate('/sessions/pv-editor/sess-008')">📝 Rédiger PV</app-button>
+            <app-button variant="outline" (clicked)="navigate('/members/adhesion-requests')">📥 Adhésions</app-button>
+            <app-button variant="outline" (clicked)="navigate('/members/resignations')">🚪 Démissions</app-button>
+            <app-button variant="outline" (clicked)="navigate('/documents/archives')">📂 Archives</app-button>
+            <app-button variant="outline" (clicked)="navigate('/notifications/announcements')">📢 Annonces</app-button>
+            <app-button variant="outline" (clicked)="navigate('/documents/reports')">📊 Rapports</app-button>
+          </div>
+        </div>
+      </app-card>
+
+      <!-- Confirmations Summary -->
+      <app-card>
+        <div class="card-section">
+          <div class="card-header">
+            <h2 class="section-title">✅ Confirmations Séance #9</h2>
+            <app-button variant="outline" size="sm" (clicked)="navigate('/sessions/confirmations/sess-009')">Détails</app-button>
+          </div>
+          <div class="confirmation-summary">
+            <div class="conf-stat conf-confirmed">
+              <span class="conf-count">{{ mock.confirmedCount() }}</span>
+              <span class="conf-label">Confirmés</span>
+            </div>
+            <div class="conf-stat conf-declined">
+              <span class="conf-count">{{ mock.declinedCount() }}</span>
+              <span class="conf-label">Déclinés</span>
+            </div>
+            <div class="conf-stat conf-pending">
+              <span class="conf-count">{{ mock.noResponseCount() }}</span>
+              <span class="conf-label">Sans réponse</span>
+            </div>
+            <div class="conf-stat conf-quorum">
+              <span class="conf-count">{{ mock.quorumRequired() }}</span>
+              <span class="conf-label">Quorum requis</span>
+            </div>
+          </div>
+          <div class="quorum-bar">
+            <div class="quorum-fill" [style.width.%]="(mock.confirmedCount() / mock.quorumRequired()) * 100"></div>
+          </div>
+          <p class="quorum-text">{{ mock.confirmedCount() >= mock.quorumRequired() ? '✅ Quorum atteint' : '⚠️ Quorum pas encore atteint' }}</p>
+        </div>
+      </app-card>
+
+      <!-- Recent Activity -->
+      <app-card>
+        <div class="card-section">
+          <h2 class="section-title">📜 Activité récente</h2>
+          @for (act of mock.secretaryActivity(); track act.date + act.text) {
+            <div class="activity-item">
+              <span class="activity-date">{{ act.date }}</span>
+              <span class="activity-text">{{ act.text }}</span>
+            </div>
+          }
+        </div>
+      </app-card>
+    </div>
+
+    <!-- Secretary Sidebar -->
+    <div class="dashboard-sidebar">
+      <!-- Calendar / Upcoming Tasks -->
+      <app-card>
+        <div class="card-section">
+          <h2 class="section-title">📅 Agenda à venir</h2>
+          @for (cal of mock.secretaryCalendar(); track cal.date) {
+            <div class="calendar-block">
+              <span class="calendar-date">{{ cal.date }}</span>
+              @for (task of cal.tasks; track task) {
+                <span class="calendar-task">• {{ task }}</span>
+              }
+            </div>
+          }
+        </div>
+      </app-card>
+
+      <!-- Next Session Info -->
+      <app-card>
+        <div class="card-section">
+          <h2 class="section-title">📅 Prochaine séance (#9)</h2>
+          @if (mock.stats().nextSession; as ns) {
+            <div class="next-session-info">
+              <div class="ns-row"><span class="ns-label">Date :</span><span>{{ ns.scheduledDate }}</span></div>
+              <div class="ns-row"><span class="ns-label">Heure :</span><span>{{ ns.scheduledTime }}</span></div>
+              <div class="ns-row"><span class="ns-label">Lieu :</span><span>{{ ns.location }}</span></div>
+              @if (ns.beneficiary) {
+                <div class="ns-row"><span class="ns-label">Bénéficiaire :</span><span>{{ ns.beneficiary.user.firstName }} {{ ns.beneficiary.user.lastName }}</span></div>
+              }
+              <div class="ns-row">
+                <span class="ns-label">ODJ :</span>
+                <app-badge [variant]="mock.odjStatus() === 'validated' ? 'success' : mock.odjStatus() === 'submitted' ? 'info' : 'warning'" size="sm">
+                  {{ mock.odjStatus() === 'validated' ? 'Validé' : mock.odjStatus() === 'submitted' ? 'Soumis' : 'Brouillon' }}
+                </app-badge>
+              </div>
+              <div class="ns-row">
+                <span class="ns-label">Convocations :</span>
+                <app-badge [variant]="mock.convocationsSent() ? 'success' : 'warning'" size="sm">
+                  {{ mock.convocationsSent() ? 'Envoyées' : 'Non envoyées' }}
+                </app-badge>
+              </div>
+            </div>
+          }
+        </div>
+      </app-card>
+
+      <!-- Secretary Notifications -->
+      <app-card>
+        <div class="card-section">
+          <div class="card-header">
+            <h2 class="section-title">🔔 Notifications</h2>
+            <app-badge variant="danger" size="sm">{{ mock.unreadSecretaryNotifications().length }}</app-badge>
+          </div>
+          @for (notif of mock.secretaryNotifications().slice(0, 5); track notif.id) {
+            <div [class]="'notif-item' + (notif.isRead ? '' : ' notif-unread')">
+              <span class="notif-title">{{ notif.title }}</span>
+              <span class="notif-body">{{ notif.body }}</span>
+            </div>
+          }
+        </div>
+      </app-card>
+    </div>
+  </div>
+} @else {
+<!-- ═══════ PRESIDENT DASHBOARD ═══════ -->
 <div class="dashboard-header">
   <div>
     <h1 class="greeting">Bonjour, {{ authStore.userFullName() }} 👋</h1>
@@ -265,3 +510,4 @@
     </app-card>
   </div>
 </div>
+}

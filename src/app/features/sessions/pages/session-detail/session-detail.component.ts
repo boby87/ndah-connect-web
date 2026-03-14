@@ -5,12 +5,11 @@ import { CardComponent } from '../../../../shared/components/ui/card/card.compon
 import { BadgeComponent } from '../../../../shared/components/ui/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/ui/button/button.component';
 import { MockDataService } from '../../../../core/services/mock-data.service';
-import { CurrencyXafPipe } from '../../../../shared/pipes/currency-xaf.pipe';
 
 @Component({
   selector: 'app-session-detail',
   standalone: true,
-  imports: [PageHeaderComponent, CardComponent, BadgeComponent, ButtonComponent, CurrencyXafPipe],
+  imports: [PageHeaderComponent, CardComponent, BadgeComponent, ButtonComponent],
   template: `
     <app-page-header title="Détail de la séance" backLink="/sessions" />
 

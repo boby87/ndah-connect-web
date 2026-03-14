@@ -5,12 +5,11 @@ import { ButtonComponent } from '../../../../shared/components/ui/button/button.
 import { CardComponent } from '../../../../shared/components/ui/card/card.component';
 import { BadgeComponent } from '../../../../shared/components/ui/badge/badge.component';
 import { MockDataService } from '../../../../core/services/mock-data.service';
-import { CurrencyXafPipe } from '../../../../shared/pipes/currency-xaf.pipe';
 
 @Component({
   selector: 'app-session-list',
   standalone: true,
-  imports: [PageHeaderComponent, ButtonComponent, CardComponent, BadgeComponent, CurrencyXafPipe],
+  imports: [PageHeaderComponent, ButtonComponent, CardComponent, BadgeComponent],
   template: `
     <app-page-header title="Séances" subtitle="Gestion des séances de la tontine">
       <app-button variant="primary" (clicked)="navigateToCreate()">+ Nouvelle séance</app-button>

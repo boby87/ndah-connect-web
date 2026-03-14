@@ -12,6 +12,11 @@ export const MEMBER_ROUTES: Routes = [
       import('./pages/adhesion-requests/adhesion-requests.component').then(m => m.AdhesionRequestsComponent),
   },
   {
+    path: 'resignations',
+    loadComponent: () =>
+      import('./pages/resignation-requests/resignation-requests.component').then(m => m.ResignationRequestsComponent),
+  },
+  {
     path: 'profile',
     loadComponent: () =>
       import('./pages/member-profile/member-profile.component').then(m => m.MemberProfileComponent),

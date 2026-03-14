@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, inject, computed, signal } from '@a
 import { ActivatedRoute, Router } from '@angular/router';
 import { PageHeaderComponent } from '../../../../shared/components/layout/page-header/page-header.component';
 import { CardComponent } from '../../../../shared/components/ui/card/card.component';
-import { BadgeComponent } from '../../../../shared/components/ui/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/ui/button/button.component';
 import { MockDataService } from '../../../../core/services/mock-data.service';
 import { FormsModule } from '@angular/forms';
@@ -10,7 +9,7 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-vote-results',
   standalone: true,
-  imports: [PageHeaderComponent, CardComponent, BadgeComponent, ButtonComponent, FormsModule],
+  imports: [PageHeaderComponent, CardComponent, ButtonComponent, FormsModule],
   template: `
     <app-page-header title="Résultats du vote" backLink="/votes" />
 

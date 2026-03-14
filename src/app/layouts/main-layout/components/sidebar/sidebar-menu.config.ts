@@ -25,6 +25,24 @@ export const SIDEBAR_MENU: SidebarMenuItem[] = [
   { label: 'Sanctions', icon: '⚖️', route: '/sanctions' },
   { label: 'Votes', icon: '🗳️', route: '/votes' },
   { label: 'Documents', icon: '📄', route: '/documents' },
+  {
+    label: 'Archives',
+    icon: '📂',
+    route: '/documents/archives',
+    roles: [UserRole.SECRETARY, UserRole.PRESIDENT],
+  },
+  {
+    label: 'Rapports',
+    icon: '📊',
+    route: '/documents/reports',
+    roles: [UserRole.SECRETARY],
+  },
+  {
+    label: 'Annonces',
+    icon: '📢',
+    route: '/notifications/announcements',
+    roles: [UserRole.SECRETARY],
+  },
   { label: 'Aide sociale', icon: '🤝', route: '/social-aid' },
   {
     label: 'Audit',

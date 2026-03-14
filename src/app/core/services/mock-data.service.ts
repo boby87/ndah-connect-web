@@ -63,6 +63,97 @@ export interface AgendaItem {
   status: 'completed' | 'in-progress' | 'pending';
 }
 
+// ── Secretary-specific interfaces ──
+
+export interface SecretaryOdjItem {
+  id: string;
+  order: number;
+  title: string;
+  isStandard: boolean;
+  isEnabled: boolean;
+  details?: string;
+}
+
+export interface SecretaryOdjSuggestion {
+  id: string;
+  title: string;
+  reason: string;
+  added: boolean;
+}
+
+export interface MemberConfirmation {
+  memberId: string;
+  memberName: string;
+  memberRole: string;
+  status: 'confirmed' | 'declined' | 'no_response';
+  respondedAt?: string;
+  declineReason?: string;
+}
+
+export interface AttendanceRecord {
+  memberId: string;
+  memberName: string;
+  status: 'present' | 'late' | 'absent_excused' | 'absent_unexcused' | 'left_early';
+  confirmedPresence: boolean;
+  arrivalTime?: string;
+  lateMinutes?: number;
+  absenceReason?: string;
+  hasJustification: boolean;
+}
+
+export interface PvSection {
+  id: string;
+  order: number;
+  title: string;
+  content: string;
+  isAuto: boolean;
+}
+
+export interface PvAttachment {
+  id: string;
+  name: string;
+  isAuto: boolean;
+  attached: boolean;
+}
+
+export interface ResignationRequest {
+  id: string;
+  memberId: string;
+  member: Member;
+  requestDate: string;
+  reason: string;
+  effectDesired: 'immediate' | 'end_of_cycle';
+  arrearsAmount: number;
+  unpaidSanctions: number;
+  activeLoans: number;
+  totalDue: number;
+  status: 'pending' | 'regularization_required' | 'transmitted' | 'accepted' | 'rejected';
+  secretaryObservations?: string;
+  conditions?: string[];
+}
+
+export interface SecretaryAnnouncement {
+  id: string;
+  type: 'info' | 'reminder' | 'document' | 'alert' | 'celebration';
+  title: string;
+  message: string;
+  recipients: 'all' | 'bureau' | 'custom';
+  channels: string[];
+  sentAt?: string;
+  status: 'draft' | 'sent';
+}
+
+export interface GeneratedReport {
+  id: string;
+  type: string;
+  title: string;
+  period: string;
+  format: string;
+  generatedAt: string;
+  status: 'generating' | 'ready' | 'error';
+  options?: { charts: boolean; stats: boolean; nominal: boolean };
+}
+
 @Injectable({ providedIn: 'root' })
 export class MockDataService {
 
@@ -82,7 +173,7 @@ export class MockDataService {
 
   readonly presidentUser = this.makeUser('u-001', 'Alain', 'NKOMO', '677100100', { gender: 'male', profession: 'Ingénieur Informatique', address: 'Douala, Bonanjo' });
   readonly vicePresidentUser = this.makeUser('u-002', 'Sylvie', 'MBARGA', '677200200', { gender: 'female', profession: 'Comptable' });
-  readonly secretaryUser = this.makeUser('u-003', 'Carine', 'ATANGANA', '677300300', { gender: 'female', profession: 'Juriste' });
+  readonly secretaryUser = this.makeUser('u-003', 'Marie', 'NGUEMO', '677300300', { gender: 'female', profession: 'Juriste', address: 'Douala, Akwa' });
   readonly treasurerUser = this.makeUser('u-004', 'Patrice', 'ONDOUA', '677400400', { gender: 'male', profession: 'Banquier' });
   readonly censorUser = this.makeUser('u-005', 'Berthe', 'EYENGA', '677500500', { gender: 'female', profession: 'Enseignante' });
   readonly auditorUser = this.makeUser('u-006', 'Samuel', 'TABI', '677600600', { gender: 'male', profession: 'Expert-Comptable' });
@@ -854,4 +945,392 @@ export class MockDataService {
     pendingValidations: this._pendingValidations().filter(v => v.status === 'pending').length,
     unreadNotifications: this.unreadNotifications().length,
   }));
+
+  // ═══════════════════════════════════════════
+  // SECRETARY-SPECIFIC DATA
+  // ═══════════════════════════════════════════
+
+  // ── ODJ (Ordre du Jour) ──
+
+  readonly _odjItems = signal<SecretaryOdjItem[]>([
+    { id: 'odj-01', order: 1, title: 'Ouverture de la séance', isStandard: true, isEnabled: true },
+    { id: 'odj-02', order: 2, title: 'Appel des membres', isStandard: true, isEnabled: true },
+    { id: 'odj-03', order: 3, title: 'Lecture et adoption du PV #8', isStandard: true, isEnabled: true },
+    { id: 'odj-04', order: 4, title: 'Rapport du Trésorier', isStandard: true, isEnabled: true },
+    { id: 'odj-05', order: 5, title: 'Rapport du Censeur', isStandard: true, isEnabled: true },
+    { id: 'odj-06', order: 6, title: 'Rapport du Commissaire aux Comptes', isStandard: true, isEnabled: true },
+    { id: 'odj-07', order: 7, title: 'Collecte des cotisations', isStandard: true, isEnabled: true },
+    { id: 'odj-08', order: 8, title: 'Distribution de la cagnotte à Thierry ESSAMA', isStandard: true, isEnabled: true },
+    { id: 'odj-09', order: 9, title: 'Présentation candidats adhésion (2)', isStandard: false, isEnabled: true, details: 'Victor TCHOUMI, Mireille BIYICK' },
+    { id: 'odj-10', order: 10, title: 'Vote adhésion Victor TCHOUMI', isStandard: false, isEnabled: true },
+    { id: 'odj-11', order: 11, title: 'Vote adhésion Mireille BIYICK', isStandard: false, isEnabled: true },
+    { id: 'odj-12', order: 12, title: 'Questions diverses', isStandard: true, isEnabled: true },
+    { id: 'odj-13', order: 13, title: 'Clôture de la séance', isStandard: true, isEnabled: true },
+  ]);
+
+  readonly _odjSuggestions = signal<SecretaryOdjSuggestion[]>([
+    { id: 'sug-01', title: 'Demande de démission de Gaston MBIANDA', reason: '1 demande de démission en attente (reçue le 08/03)', added: false },
+    { id: 'sug-02', title: 'Information: Cotisation extraordinaire en cours', reason: 'Collecte en cours pour décès père de Mme BELL – état de la collecte', added: false },
+  ]);
+
+  readonly _odjStatus = signal<'draft' | 'submitted' | 'revision_requested' | 'validated'>('draft');
+  readonly _odjPresidentComment = signal<string>('');
+
+  readonly odjItems = this._odjItems.asReadonly();
+  readonly odjSuggestions = this._odjSuggestions.asReadonly();
+  readonly odjStatus = this._odjStatus.asReadonly();
+
+  // ── Confirmations ──
+
+  readonly _confirmations = signal<MemberConfirmation[]>([
+    ...this._members().slice(0, 12).map((m, i) => ({
+      memberId: m.id, memberName: `${m.user.firstName} ${m.user.lastName}`,
+      memberRole: m.role, status: 'confirmed' as const,
+      respondedAt: `2026-03-${15 + (i % 5)}T10:00:00Z`,
+    })),
+    { memberId: 'm-013', memberName: 'Landry MVOUMA', memberRole: 'member', status: 'declined' as const, respondedAt: '2026-03-18T11:00:00Z', declineReason: 'Déplacement professionnel' },
+    { memberId: 'm-014', memberName: 'Aline BELL', memberRole: 'member', status: 'declined' as const, respondedAt: '2026-03-17T09:00:00Z', declineReason: 'Raison médicale' },
+    { memberId: 'm-017', memberName: 'Gaston MBIANDA', memberRole: 'member', status: 'declined' as const, respondedAt: '2026-03-19T14:00:00Z', declineReason: 'Travail' },
+    { memberId: 'm-015', memberName: 'Didier NGOUMOU', memberRole: 'member', status: 'no_response' as const },
+    { memberId: 'm-016', memberName: 'Brigitte TCHAMBA', memberRole: 'member', status: 'no_response' as const },
+    { memberId: 'm-018', memberName: 'Pauline EBOGO', memberRole: 'member', status: 'no_response' as const },
+  ]);
+
+  readonly confirmations = this._confirmations.asReadonly();
+  readonly confirmedCount = computed(() => this._confirmations().filter(c => c.status === 'confirmed').length);
+  readonly declinedCount = computed(() => this._confirmations().filter(c => c.status === 'declined').length);
+  readonly noResponseCount = computed(() => this._confirmations().filter(c => c.status === 'no_response').length);
+  readonly quorumRequired = computed(() => Math.ceil(this._members().filter(m => m.status === MemberStatus.ACTIVE).length * 0.67));
+
+  // ── Attendance ──
+
+  readonly _attendance = signal<AttendanceRecord[]>([
+    ...this._members().slice(0, 10).map((m, i) => ({
+      memberId: m.id, memberName: `${m.user.firstName} ${m.user.lastName}`,
+      status: 'present' as const, confirmedPresence: true,
+      arrivalTime: `14:${50 + i}`, lateMinutes: 0, absenceReason: '', hasJustification: false,
+    })),
+    { memberId: 'm-011', memberName: 'Hervé NOAH', status: 'present' as const, confirmedPresence: true, arrivalTime: '15:02', lateMinutes: 2, absenceReason: '', hasJustification: false },
+    { memberId: 'm-012', memberName: 'Françoise EKOTTO', status: 'late' as const, confirmedPresence: false, arrivalTime: '15:20', lateMinutes: 20, absenceReason: '', hasJustification: false },
+    { memberId: 'm-013', memberName: 'Landry MVOUMA', status: 'absent_excused' as const, confirmedPresence: false, absenceReason: 'Déplacement professionnel', hasJustification: true },
+    { memberId: 'm-014', memberName: 'Aline BELL', status: 'absent_excused' as const, confirmedPresence: false, absenceReason: 'Raison médicale', hasJustification: true },
+    { memberId: 'm-015', memberName: 'Didier NGOUMOU', status: 'absent_unexcused' as const, confirmedPresence: false, absenceReason: '', hasJustification: false },
+    { memberId: 'm-016', memberName: 'Brigitte TCHAMBA', status: 'present' as const, confirmedPresence: true, arrivalTime: '15:00', lateMinutes: 0, absenceReason: '', hasJustification: false },
+    { memberId: 'm-017', memberName: 'Gaston MBIANDA', status: 'absent_unexcused' as const, confirmedPresence: false, absenceReason: '', hasJustification: false },
+    { memberId: 'm-018', memberName: 'Pauline EBOGO', status: 'late' as const, confirmedPresence: false, arrivalTime: '15:18', lateMinutes: 18, absenceReason: '', hasJustification: false },
+  ]);
+
+  readonly attendance = this._attendance.asReadonly();
+  readonly _attendanceFinalized = signal(false);
+  readonly attendanceFinalized = this._attendanceFinalized.asReadonly();
+  readonly attendanceSummary = computed(() => {
+    const records = this._attendance();
+    return {
+      present: records.filter(r => r.status === 'present').length,
+      late: records.filter(r => r.status === 'late').length,
+      absentExcused: records.filter(r => r.status === 'absent_excused').length,
+      absentUnexcused: records.filter(r => r.status === 'absent_unexcused').length,
+      total: records.length,
+      quorumReached: records.filter(r => r.status === 'present' || r.status === 'late').length >= this.quorumRequired(),
+    };
+  });
+
+  // ── PV (Procès-verbal) ──
+
+  readonly _pvSections = signal<PvSection[]>([
+    { id: 'pv-01', order: 1, title: 'Ouverture de la séance', content: 'Le Président Alain NKOMO a ouvert la séance à 15h05 en souhaitant la bienvenue à tous les membres présents.', isAuto: false },
+    { id: 'pv-02', order: 2, title: 'Appel des membres', content: '14 membres présents sur 18. Le quorum étant atteint, la séance peut valablement délibérer.', isAuto: true },
+    { id: 'pv-03', order: 3, title: 'Lecture et adoption du PV #8', content: 'Le PV de la séance #8 a été lu et adopté à l\'unanimité sans modification.', isAuto: false },
+    { id: 'pv-04', order: 4, title: 'Rapport du Trésorier', content: 'Le Trésorier Patrice ONDOUA a présenté le bilan financier :\n• Cotisations collectées : 400 000 XAF\n• Solde caisses : 2 975 000 XAF\nLe rapport a été approuvé sans observation.', isAuto: false },
+    { id: 'pv-05', order: 5, title: 'Rapport du Censeur', content: 'Le Censeur Berthe EYENGA a présenté son rapport :\n• Sanctions appliquées ce mois : 3\n• Contestations traitées : 1\nRAS.', isAuto: false },
+    { id: 'pv-06', order: 6, title: 'Rapport du Commissaire aux Comptes', content: 'Le Commissaire Samuel TABI a présenté son rapport. Les comptes sont certifiés conformes. Recommandation de renforcer le suivi des remboursements de prêts.', isAuto: false },
+    { id: 'pv-07', order: 7, title: 'Collecte des cotisations', content: 'Cotisations collectées : 350 000 XAF\nMembres ayant cotisé : 14/14 présents\nArriérés collectés : 50 000 XAF', isAuto: true },
+    { id: 'pv-08', order: 8, title: 'Distribution de la cagnotte', content: 'Bénéficiaire : Thierry ESSAMA (Tour #9)\nMontant brut : 400 000 XAF\nPrélèvements : 20 000 XAF (5%)\nMontant net distribué : 380 000 XAF\nMode : Espèces\nSigné par : Trésorier ✅, Président ✅, Bénéficiaire ✅', isAuto: true },
+    { id: 'pv-09', order: 9, title: 'Questions diverses', content: '', isAuto: false },
+    { id: 'pv-10', order: 10, title: 'Clôture de la séance', content: 'L\'ordre du jour étant épuisé, le Président a clôturé la séance à 17h45.', isAuto: false },
+  ]);
+
+  readonly _pvAttachments = signal<PvAttachment[]>([
+    { id: 'att-01', name: 'Feuille de présence', isAuto: true, attached: true },
+    { id: 'att-02', name: 'Bilan financier du Trésorier', isAuto: true, attached: true },
+    { id: 'att-03', name: 'Rapport du Censeur', isAuto: false, attached: true },
+    { id: 'att-04', name: 'Rapport du Commissaire aux Comptes', isAuto: false, attached: true },
+    { id: 'att-05', name: 'Reçu de distribution cagnotte', isAuto: true, attached: true },
+  ]);
+
+  readonly _pvStatus = signal<'pending' | 'draft' | 'submitted' | 'secretary_signed' | 'president_signed' | 'archived'>('draft');
+  readonly pvSections = this._pvSections.asReadonly();
+  readonly pvAttachments = this._pvAttachments.asReadonly();
+  readonly pvStatus = this._pvStatus.asReadonly();
+
+  // ── Resignations ──
+
+  readonly _resignations = signal<ResignationRequest[]>([
+    {
+      id: 'resign-001', memberId: 'm-017',
+      member: this._members()[16],
+      requestDate: '2026-03-08', reason: 'Pour des raisons personnelles et professionnelles, je ne suis plus en mesure de continuer dans cette tontine. Je demande à être libéré de mes engagements.',
+      effectDesired: 'immediate', arrearsAmount: 75_000, unpaidSanctions: 2_000, activeLoans: 0, totalDue: 77_000,
+      status: 'pending',
+    },
+  ]);
+
+  readonly resignations = this._resignations.asReadonly();
+
+  // ── Convocations ──
+
+  readonly _convocationsSent = signal(false);
+  readonly _convocationSummary = signal({
+    pushSent: 0, smsSent: 0, emailSent: 0, emailFailed: 0, candidatesSent: 0,
+    reminders: [
+      { type: 'J-2 (membres sans réponse)', scheduledDate: '2026-03-20', sent: false },
+      { type: 'J-1 (tous les membres)', scheduledDate: '2026-03-21', sent: false },
+      { type: 'Jour J (matin)', scheduledDate: '2026-03-22', sent: false },
+    ],
+  });
+  readonly convocationsSent = this._convocationsSent.asReadonly();
+  readonly convocationSummary = this._convocationSummary.asReadonly();
+
+  // ── Announcements ──
+
+  readonly _announcements = signal<SecretaryAnnouncement[]>([
+    { id: 'ann-001', type: 'reminder', title: 'Rappel: Séance #9 ce samedi 22 mars', message: 'Chers membres, je vous rappelle que notre prochaine séance (#9) se tiendra ce samedi à 15h00 au Restaurant Le Foyer. Bénéficiaire : Thierry ESSAMA. Préparez vos cotisations. À samedi !', recipients: 'all', channels: ['push', 'sms'], sentAt: '2026-03-19T09:00:00Z', status: 'sent' },
+    { id: 'ann-002', type: 'document', title: 'PV Séance #8 disponible', message: 'Le procès-verbal de la séance #8 a été validé et archivé. Vous pouvez le consulter dans l\'espace Documents.', recipients: 'all', channels: ['push'], sentAt: '2026-03-05T10:00:00Z', status: 'sent' },
+  ]);
+  readonly announcements = this._announcements.asReadonly();
+
+  // ── Secretary Alerts ──
+
+  readonly _secretaryAlerts = signal<DashboardAlert[]>([
+    { id: 'sa-001', type: 'critical', message: 'PV Séance #8 à finaliser (J+13)', actionLabel: 'Rédiger', actionRoute: '/sessions/pv-editor/sess-008', dismissed: false },
+    { id: 'sa-002', type: 'warning', message: '2 demandes d\'adhésion en attente de traitement', actionLabel: 'Traiter', actionRoute: '/members/adhesion-requests', dismissed: false },
+    { id: 'sa-003', type: 'warning', message: '1 demande de démission reçue', actionLabel: 'Traiter', actionRoute: '/members/resignations', dismissed: false },
+    { id: 'sa-004', type: 'info', message: 'ODJ Séance #9 à préparer (séance le 22/03)', actionLabel: 'Préparer', actionRoute: '/sessions/odj/sess-009', dismissed: false },
+    { id: 'sa-005', type: 'info', message: 'Convocations séance #9 à envoyer', actionLabel: 'Envoyer', actionRoute: '/sessions/convocations/sess-009', dismissed: false },
+  ]);
+
+  readonly secretaryAlerts = this._secretaryAlerts.asReadonly();
+  readonly activeSecretaryAlerts = computed(() => this._secretaryAlerts().filter(a => !a.dismissed));
+
+  // ── Secretary Notifications ──
+
+  readonly _secretaryNotifications = signal<Notification[]>([
+    { id: 'sn-001', userId: 'u-003', tontineId: 'tontine-001', type: 'session', title: 'Rappel préparation ODJ', body: 'N\'oubliez pas de préparer l\'ODJ de la séance #9 (J-5)', isRead: false, createdAt: '2026-03-14T08:00:00Z' },
+    { id: 'sn-002', userId: 'u-003', tontineId: 'tontine-001', type: 'adhesion', title: 'Nouvelle demande d\'adhésion', body: 'Victor TCHOUMI souhaite rejoindre la tontine', isRead: false, createdAt: '2026-03-10T10:00:00Z' },
+    { id: 'sn-003', userId: 'u-003', tontineId: 'tontine-001', type: 'adhesion', title: 'Nouvelle demande d\'adhésion', body: 'Mireille BIYICK souhaite rejoindre la tontine', isRead: false, createdAt: '2026-03-12T14:00:00Z' },
+    { id: 'sn-004', userId: 'u-003', tontineId: 'tontine-001', type: 'resignation', title: 'Demande de démission', body: 'Gaston MBIANDA a demandé sa démission', isRead: false, createdAt: '2026-03-08T16:00:00Z' },
+    { id: 'sn-005', userId: 'u-003', tontineId: 'tontine-001', type: 'document', title: 'ODJ #8 validé par le Président', body: 'Le Président a validé l\'ordre du jour de la séance #8', isRead: true, createdAt: '2026-02-25T14:00:00Z' },
+    { id: 'sn-006', userId: 'u-003', tontineId: 'tontine-001', type: 'document', title: 'PV #7 signé et archivé', body: 'Le PV de la séance #7 a été signé par le Président et archivé', isRead: true, createdAt: '2026-02-05T10:00:00Z' },
+    { id: 'sn-007', userId: 'u-003', tontineId: 'tontine-001', type: 'absence', title: 'Signalement d\'absence', body: 'Gaston MBIANDA a signalé son absence pour la séance #9', isRead: true, createdAt: '2026-03-19T14:00:00Z' },
+  ]);
+  readonly secretaryNotifications = this._secretaryNotifications.asReadonly();
+  readonly unreadSecretaryNotifications = computed(() => this._secretaryNotifications().filter(n => !n.isRead));
+
+  // ── Secretary Activity History ──
+
+  readonly _secretaryActivity = signal<{ date: string; text: string }[]>([
+    { date: '2026-03-13', text: 'Convocations séance #8 envoyées (18 membres)' },
+    { date: '2026-03-10', text: 'Demande adhésion Victor TCHOUMI reçue' },
+    { date: '2026-03-08', text: 'Demande de démission Gaston MBIANDA reçue' },
+    { date: '2026-03-05', text: 'PV #7 signé et archivé' },
+    { date: '2026-03-03', text: 'PV #8 soumis pour signature' },
+    { date: '2026-02-28', text: 'ODJ #8 validé par le Président' },
+    { date: '2026-02-25', text: 'ODJ #8 soumis au Président' },
+    { date: '2026-02-22', text: 'Pointage séance #8 finalisé' },
+  ]);
+  readonly secretaryActivity = this._secretaryActivity.asReadonly();
+
+  // ── Secretary Calendar ──
+
+  readonly secretaryCalendar = computed(() => [
+    { date: 'Aujourd\'hui (14/03)', tasks: ['Finaliser PV #8', 'Préparer ODJ #9'] },
+    { date: 'Cette semaine', tasks: ['17/03 - Envoyer convocations séance #9', '19/03 - Relancer confirmations'] },
+    { date: 'Semaine prochaine', tasks: ['22/03 - Séance #9 (Pointage à effectuer)', '23/03 - Rédiger PV #9'] },
+  ]);
+
+  // ── Secretary Stats ──
+
+  readonly secretaryStats = computed(() => ({
+    activeMembers: this.activeMembers().length,
+    sessionsInCycle: '8/12',
+    pvPending: 1,
+    attendanceRate: 85,
+    adhesionsInProgress: this._adhesionRequests().length,
+    resignationsInProgress: this._resignations().filter(r => r.status === 'pending' || r.status === 'regularization_required').length,
+    documentsArchived: this._documents().length + 12,
+    absencesReported: this._attendance().filter(a => a.status === 'absent_unexcused').length,
+  }));
+
+  // ═══════════════════════════════════════════
+  // SECRETARY ACTIONS
+  // ═══════════════════════════════════════════
+
+  addOdjItem(title: string): void {
+    const items = this._odjItems();
+    const lastItems = items.filter(i => i.title === 'Questions diverses' || i.title === 'Clôture de la séance');
+    const others = items.filter(i => i.title !== 'Questions diverses' && i.title !== 'Clôture de la séance');
+    const newItem: SecretaryOdjItem = { id: `odj-${Date.now()}`, order: others.length + 1, title, isStandard: false, isEnabled: true };
+    this._odjItems.set([...others, newItem, ...lastItems].map((item, i) => ({ ...item, order: i + 1 })));
+  }
+
+  removeOdjItem(id: string): void {
+    this._odjItems.update(items => items.filter(i => i.id !== id).map((item, i) => ({ ...item, order: i + 1 })));
+  }
+
+  addOdjSuggestion(id: string): void {
+    const sug = this._odjSuggestions().find(s => s.id === id);
+    if (sug && !sug.added) {
+      this.addOdjItem(sug.title);
+      this._odjSuggestions.update(list => list.map(s => s.id === id ? { ...s, added: true } : s));
+    }
+  }
+
+  submitOdj(): void {
+    this._odjStatus.set('submitted');
+    this._secretaryActivity.update(list => [{ date: new Date().toISOString().split('T')[0], text: 'ODJ #9 soumis au Président' }, ...list]);
+  }
+
+  validateOdj(): void {
+    this._odjStatus.set('validated');
+    this._sessions.update(list => list.map(s => s.id === 'sess-009' ? { ...s, agendaValidated: true } : s));
+    this._secretaryAlerts.update(list => list.map(a => a.id === 'sa-004' ? { ...a, dismissed: true } : a));
+  }
+
+  requestOdjRevision(comment: string): void {
+    this._odjStatus.set('revision_requested');
+    this._odjPresidentComment.set(comment);
+  }
+
+  sendConvocations(): void {
+    const memberCount = this.activeMembers().length;
+    this._convocationsSent.set(true);
+    this._convocationSummary.set({
+      pushSent: memberCount, smsSent: memberCount, emailSent: memberCount - 1, emailFailed: 1, candidatesSent: this._adhesionRequests().length,
+      reminders: [
+        { type: 'J-2 (membres sans réponse)', scheduledDate: '2026-03-20', sent: false },
+        { type: 'J-1 (tous les membres)', scheduledDate: '2026-03-21', sent: false },
+        { type: 'Jour J (matin)', scheduledDate: '2026-03-22', sent: false },
+      ],
+    });
+    this._secretaryAlerts.update(list => list.map(a => a.id === 'sa-005' ? { ...a, dismissed: true } : a));
+    this._secretaryActivity.update(list => [{ date: new Date().toISOString().split('T')[0], text: `Convocations séance #9 envoyées (${memberCount} membres)` }, ...list]);
+  }
+
+  relanceConfirmation(memberId: string): void {
+    this._confirmations.update(list => list.map(c => c.memberId === memberId && c.status === 'no_response' ? { ...c, status: 'confirmed' as const, respondedAt: new Date().toISOString() } : c));
+  }
+
+  relanceAllNoResponse(): void {
+    this._confirmations.update(list => list.map(c => c.status === 'no_response' ? { ...c, status: 'confirmed' as const, respondedAt: new Date().toISOString() } : c));
+  }
+
+  updateAttendance(memberId: string, status: AttendanceRecord['status']): void {
+    this._attendance.update(list => list.map(a => a.memberId === memberId ? { ...a, status } : a));
+  }
+
+  finalizeAttendance(): void {
+    this._attendanceFinalized.set(true);
+    this._secretaryActivity.update(list => [{ date: new Date().toISOString().split('T')[0], text: 'Pointage séance #9 finalisé' }, ...list]);
+  }
+
+  updatePvSection(id: string, content: string): void {
+    this._pvSections.update(list => list.map(s => s.id === id ? { ...s, content } : s));
+  }
+
+  submitPv(): void {
+    this._pvStatus.set('submitted');
+    this._secretaryActivity.update(list => [{ date: new Date().toISOString().split('T')[0], text: 'PV #9 soumis pour signature' }, ...list]);
+  }
+
+  signPvAsSecretary(): void {
+    this._pvStatus.set('secretary_signed');
+  }
+
+  signPvAsPresident(): void {
+    this._pvStatus.set('archived');
+    this._secretaryAlerts.update(list => list.map(a => a.id === 'sa-001' ? { ...a, dismissed: true } : a));
+  }
+
+  validateAdhesionDossier(id: string, decision: 'validate' | 'request_complement' | 'reject', observations: string): void {
+    if (decision === 'validate') {
+      this._adhesionRequests.update(list => list.map(a => a.id === id ? { ...a, status: MemberStatus.PENDING } : a));
+      this._secretaryActivity.update(list => [{ date: new Date().toISOString().split('T')[0], text: `Dossier adhésion ${id} validé et inscrit à l'ODJ` }, ...list]);
+    } else if (decision === 'reject') {
+      this._adhesionRequests.update(list => list.filter(a => a.id !== id));
+    }
+  }
+
+  processResignation(id: string, decision: 'transmit' | 'regularization' | 'agenda', observations: string): void {
+    this._resignations.update(list => list.map(r => {
+      if (r.id !== id) return r;
+      if (decision === 'transmit') return { ...r, status: 'transmitted' as const, secretaryObservations: observations };
+      if (decision === 'regularization') return { ...r, status: 'regularization_required' as const, secretaryObservations: observations };
+      return { ...r, secretaryObservations: observations };
+    }));
+    this._secretaryActivity.update(list => [{ date: new Date().toISOString().split('T')[0], text: `Demande démission ${id} traitée (${decision})` }, ...list]);
+  }
+
+  sendAnnouncement(title: string, message: string, type: SecretaryAnnouncement['type'], recipients: string, channels: string[]): void {
+    const ann: SecretaryAnnouncement = {
+      id: `ann-${Date.now()}`, type, title, message, recipients: recipients as SecretaryAnnouncement['recipients'], channels, sentAt: new Date().toISOString(), status: 'sent',
+    };
+    this._announcements.update(list => [ann, ...list]);
+    this._secretaryActivity.update(list => [{ date: new Date().toISOString().split('T')[0], text: `Annonce envoyée: ${title}` }, ...list]);
+  }
+
+  dismissSecretaryAlert(id: string): void {
+    this._secretaryAlerts.update(list => list.map(a => a.id === id ? { ...a, dismissed: true } : a));
+  }
+
+  archiveDocument(title: string, type: string, description: string): void {
+    const doc: TontineDocument = {
+      id: `doc-${Date.now()}`, tontineId: 'tontine-001', type: type as TontineDocument['type'],
+      title, description, fileUrl: '/assets/mock/doc.pdf', fileName: `${title.replace(/\s+/g, '_')}.pdf`,
+      fileSize: 100_000, mimeType: 'application/pdf', uploadedBy: 'u-003', createdAt: new Date().toISOString(),
+    };
+    this._documents.update(list => [doc, ...list]);
+    this._secretaryActivity.update(list => [{ date: new Date().toISOString().split('T')[0], text: `Document archivé: ${title}` }, ...list]);
+  }
+
+  // --- Report generation (Flow 12) ---
+  readonly _generatedReports = signal<GeneratedReport[]>([
+    { id: 'rpt-1', type: 'attendance', title: 'Rapport de présences - Cycle #1', period: 'Sept 2025 - Déc 2025', format: 'pdf', generatedAt: '2025-12-20', status: 'ready' },
+    { id: 'rpt-2', type: 'members', title: 'Liste des membres actifs', period: 'Année 2025', format: 'excel', generatedAt: '2025-12-15', status: 'ready' },
+  ]);
+
+  readonly reportStats = computed(() => ({
+    attendanceRate: 85,
+    alwaysPresent: 12,
+    withAbsences: 6,
+    sessionsAnalyzed: 11,
+    topPresent: [
+      { name: 'Alain NKOMO', role: 'Président', rate: 100 },
+      { name: 'Marie NGUEMO', role: 'Secrétaire', rate: 100 },
+      { name: 'Paul BIYA', role: 'Trésorier', rate: 100 },
+      { name: 'Claire ESSOMBA', role: 'Membre', rate: 100 },
+      { name: 'Jean KAMGA', role: 'Membre', rate: 95 },
+    ],
+    frequentAbsences: [
+      { name: 'Gaston MBIANDA', absences: 3, rate: 27 },
+      { name: 'Marthe ONANA', absences: 2, rate: 18 },
+    ],
+  }));
+
+  generateReport(type: string, period: string, format: string, options: { charts: boolean; stats: boolean; nominal: boolean }): GeneratedReport {
+    const titles: Record<string, string> = {
+      attendance: 'Rapport de présences',
+      members: 'Liste des membres',
+      sessions: 'Historique des séances',
+      adhesions: 'Registre des adhésions/démissions',
+      pv_summary: 'Récapitulatif des PV',
+    };
+    const report: GeneratedReport = {
+      id: `rpt-${Date.now()}`, type, title: `${titles[type] || 'Rapport'} - ${period}`,
+      period, format, generatedAt: new Date().toISOString().split('T')[0], status: 'ready',
+      options,
+    };
+    this._generatedReports.update(list => [report, ...list]);
+    this._secretaryActivity.update(list => [{ date: report.generatedAt, text: `Rapport généré: ${report.title}` }, ...list]);
+    return report;
+  }
 }
