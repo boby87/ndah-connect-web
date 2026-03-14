@@ -1,0 +1,55 @@
+<app-page-header title="Préférences de notifications" subtitle="Gérez comment vous souhaitez être notifié" />
+
+<div class="settings-container">
+  <app-card>
+    <div card-header>
+      <h3 class="section-title">Canaux de notification</h3>
+      <p class="section-desc">Activez ou désactivez les notifications par catégorie.</p>
+    </div>
+
+    <!-- Column headers -->
+    <div class="notif-header">
+      <span class="notif-header-label">Catégorie</span>
+      <span class="notif-header-toggle">Push</span>
+      <span class="notif-header-toggle">Email</span>
+    </div>
+
+    <!-- Category rows -->
+    <div class="notif-list">
+      @for (cat of categories; track cat.key) {
+        <div class="notif-row">
+          <div class="notif-info">
+            <span class="notif-label">{{ cat.label }}</span>
+            <span class="notif-desc">{{ cat.description }}</span>
+          </div>
+          <div class="notif-toggles">
+            <button
+              type="button"
+              class="toggle-btn"
+              [class.toggle-btn--on]="getPref(cat.key).push"
+              (click)="togglePush(cat.key)"
+              [attr.aria-label]="'Push ' + cat.label"
+            >
+              <span class="toggle-slider"></span>
+            </button>
+            <button
+              type="button"
+              class="toggle-btn"
+              [class.toggle-btn--on]="getPref(cat.key).email"
+              (click)="toggleEmail(cat.key)"
+              [attr.aria-label]="'Email ' + cat.label"
+            >
+              <span class="toggle-slider"></span>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </app-card>
+
+  <div class="actions">
+    <app-button variant="primary" [loading]="isSubmitting()" (clicked)="save()">
+      Enregistrer les préférences
+    </app-button>
+  </div>
+</div>

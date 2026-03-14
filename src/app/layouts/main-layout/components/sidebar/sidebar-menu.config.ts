@@ -1,55 +1,103 @@
 import { UserRole } from '../../../../core/enums/user-role.enum';
 
 export interface SidebarMenuItem {
+  id: string;
   label: string;
   icon: string;
-  route: string;
+  route?: string;
   roles?: UserRole[];
   children?: SidebarMenuItem[];
 }
 
 export const SIDEBAR_MENU: SidebarMenuItem[] = [
-  { label: 'Tableau de bord', icon: '📊', route: '/dashboard' },
-  { label: 'Tontines', icon: '🏦', route: '/tontines' },
-  { label: 'Membres', icon: '👥', route: '/members' },
-  { label: 'Séances', icon: '📅', route: '/sessions' },
-  { label: 'Cotisations', icon: '💰', route: '/contributions' },
-  { label: 'Distributions', icon: '🎯', route: '/distributions' },
-  { label: 'Prêts', icon: '🏧', route: '/loans' },
+  { id: 'dashboard', label: 'Tableau de bord', icon: '📊', route: '/dashboard' },
   {
-    label: 'Trésorerie',
-    icon: '💼',
-    route: '/treasury',
-    roles: [UserRole.TREASURER, UserRole.PRESIDENT, UserRole.AUDITOR],
-  },
-  { label: 'Sanctions', icon: '⚖️', route: '/sanctions' },
-  { label: 'Votes', icon: '🗳️', route: '/votes' },
-  { label: 'Documents', icon: '📄', route: '/documents' },
-  {
-    label: 'Archives',
-    icon: '📂',
-    route: '/documents/archives',
-    roles: [UserRole.SECRETARY, UserRole.PRESIDENT],
+    id: 'tontines',
+    label: 'Tontines',
+    icon: '🏦',
+    children: [
+      { id: 'tontines-list', label: 'Mes tontines', icon: '🏦', route: '/tontines' },
+      { id: 'members', label: 'Membres', icon: '👥', route: '/members' },
+    ],
   },
   {
-    label: 'Rapports',
-    icon: '📊',
-    route: '/documents/reports',
-    roles: [UserRole.SECRETARY],
+    id: 'finances',
+    label: 'Finances',
+    icon: '💰',
+    children: [
+      { id: 'contributions', label: 'Cotisations', icon: '💰', route: '/contributions' },
+      { id: 'distributions', label: 'Distributions', icon: '🎯', route: '/distributions' },
+      { id: 'loans', label: 'Prêts', icon: '🏧', route: '/loans' },
+      {
+        id: 'treasury',
+        label: 'Trésorerie',
+        icon: '💼',
+        route: '/treasury',
+        roles: [UserRole.TREASURER, UserRole.PRESIDENT, UserRole.AUDITOR],
+      },
+    ],
   },
   {
-    label: 'Annonces',
-    icon: '📢',
-    route: '/notifications/announcements',
-    roles: [UserRole.SECRETARY],
+    id: 'activities',
+    label: 'Activités',
+    icon: '📅',
+    children: [
+      { id: 'sessions', label: 'Séances', icon: '📅', route: '/sessions' },
+      { id: 'votes', label: 'Votes', icon: '🗳️', route: '/votes' },
+      { id: 'social-aid', label: 'Aide sociale', icon: '🤝', route: '/social-aid' },
+    ],
   },
-  { label: 'Aide sociale', icon: '🤝', route: '/social-aid' },
   {
-    label: 'Audit',
-    icon: '🔍',
-    route: '/audit',
-    roles: [UserRole.AUDITOR, UserRole.PRESIDENT],
+    id: 'compliance',
+    label: 'Conformité',
+    icon: '⚖️',
+    children: [
+      { id: 'sanctions', label: 'Sanctions', icon: '⚖️', route: '/sanctions' },
+      {
+        id: 'audit',
+        label: 'Audit',
+        icon: '🔍',
+        route: '/audit',
+        roles: [UserRole.AUDITOR, UserRole.PRESIDENT],
+      },
+    ],
   },
-  { label: 'Notifications', icon: '🔔', route: '/notifications' },
-  { label: 'Paramètres', icon: '⚙️', route: '/settings' },
+  {
+    id: 'documents',
+    label: 'Documents',
+    icon: '📄',
+    children: [
+      { id: 'documents-list', label: 'Documents', icon: '📄', route: '/documents' },
+      {
+        id: 'archives',
+        label: 'Archives',
+        icon: '📂',
+        route: '/documents/archives',
+        roles: [UserRole.SECRETARY, UserRole.PRESIDENT],
+      },
+      {
+        id: 'reports',
+        label: 'Rapports',
+        icon: '📊',
+        route: '/documents/reports',
+        roles: [UserRole.SECRETARY],
+      },
+    ],
+  },
+  {
+    id: 'communication',
+    label: 'Communication',
+    icon: '🔔',
+    children: [
+      { id: 'notifications', label: 'Notifications', icon: '🔔', route: '/notifications' },
+      {
+        id: 'announcements',
+        label: 'Annonces',
+        icon: '📢',
+        route: '/notifications/announcements',
+        roles: [UserRole.SECRETARY],
+      },
+    ],
+  },
+  { id: 'settings', label: 'Paramètres', icon: '⚙️', route: '/settings' },
 ];

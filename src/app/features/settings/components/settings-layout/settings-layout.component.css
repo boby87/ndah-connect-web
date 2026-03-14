@@ -1,0 +1,69 @@
+@reference "tailwindcss";
+
+.settings-layout {
+  @apply flex flex-col lg:flex-row min-h-full;
+}
+
+/* Desktop sidebar nav */
+.settings-nav {
+  @apply hidden lg:flex flex-col w-64 shrink-0 border-r border-slate-200 dark:border-slate-700
+         bg-white dark:bg-slate-900 p-4;
+}
+
+.settings-nav-title {
+  @apply text-lg font-bold text-slate-900 dark:text-white px-3 py-2 mb-2;
+}
+
+.nav-item {
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
+         text-slate-600 dark:text-slate-400 transition-colors cursor-pointer
+         hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white;
+}
+
+.nav-item--active {
+  @apply bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400
+         hover:bg-blue-50 dark:hover:bg-blue-950;
+}
+
+.nav-icon {
+  @apply text-base;
+}
+
+.nav-label {
+  @apply truncate;
+}
+
+/* Mobile horizontal tabs */
+.settings-mobile-tabs {
+  @apply flex lg:hidden overflow-x-auto border-b border-slate-200 dark:border-slate-700
+         bg-white dark:bg-slate-900 px-2 gap-1;
+  scrollbar-width: none;
+}
+
+.settings-mobile-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-tab {
+  @apply flex items-center gap-1.5 px-3 py-3 text-xs font-medium whitespace-nowrap
+         text-slate-500 dark:text-slate-400 border-b-2 border-transparent
+         transition-colors cursor-pointer
+         hover:text-slate-700 dark:hover:text-slate-300;
+}
+
+.mobile-tab--active {
+  @apply text-blue-600 dark:text-blue-400 border-blue-500;
+}
+
+.mobile-tab-icon {
+  @apply text-sm;
+}
+
+.mobile-tab-label {
+  @apply truncate;
+}
+
+/* Content area */
+.settings-content {
+  @apply flex-1 min-w-0;
+}

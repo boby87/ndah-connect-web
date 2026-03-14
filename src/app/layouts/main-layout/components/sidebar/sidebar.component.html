@@ -7,18 +7,51 @@
   </div>
 
   <nav class="sidebar-nav">
-    @for (item of menuItems; track item.route) {
-      <a
-        class="nav-item"
-        [routerLink]="item.route"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
-      >
-        <span class="nav-icon">{{ item.icon }}</span>
-        @if (uiStore.sidebarOpen()) {
-          <span class="nav-label">{{ item.label }}</span>
-        }
-      </a>
+    @for (item of menuItems; track item.id) {
+      @if (item.children && item.children.length > 0) {
+        <!-- Group with children -->
+        <div class="nav-group" [class.expanded]="isExpanded(item.id)">
+          <button
+            class="nav-item nav-group-toggle"
+            type="button"
+            (click)="toggleGroup(item.id)"
+          >
+            <span class="nav-icon">{{ item.icon }}</span>
+            @if (uiStore.sidebarOpen()) {
+              <span class="nav-label">{{ item.label }}</span>
+              <span class="nav-chevron">›</span>
+            }
+          </button>
+
+          @if (uiStore.sidebarOpen() && isExpanded(item.id)) {
+            <div class="nav-children">
+              @for (child of item.children; track child.id) {
+                <a
+                  class="nav-item nav-child"
+                  [routerLink]="child.route"
+                  routerLinkActive="active"
+                >
+                  <span class="nav-icon child-icon">{{ child.icon }}</span>
+                  <span class="nav-label">{{ child.label }}</span>
+                </a>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <!-- Single item (no children) -->
+        <a
+          class="nav-item"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+        >
+          <span class="nav-icon">{{ item.icon }}</span>
+          @if (uiStore.sidebarOpen()) {
+            <span class="nav-label">{{ item.label }}</span>
+          }
+        </a>
+      }
     }
   </nav>
 </aside>

@@ -24,11 +24,15 @@
 }
 
 .nav-item {
-  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors no-underline mb-0.5;
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors no-underline mb-0.5 w-full text-left cursor-pointer;
 
   &.active {
     @apply bg-blue-50 text-blue-700 font-medium;
   }
+}
+
+.nav-group-toggle {
+  @apply border-none bg-transparent;
 }
 
 .nav-icon {
@@ -36,5 +40,29 @@
 }
 
 .nav-label {
-  @apply truncate;
+  @apply truncate flex-1;
+}
+
+.nav-chevron {
+  @apply text-slate-400 text-xs transition-transform duration-200 flex-shrink-0;
+
+  .expanded & {
+    @apply rotate-90;
+  }
+}
+
+.nav-group {
+  @apply mb-0.5;
+}
+
+.nav-children {
+  @apply ml-3 pl-3 border-l border-slate-200;
+}
+
+.nav-child {
+  @apply py-2;
+}
+
+.child-icon {
+  @apply text-xs w-4;
 }

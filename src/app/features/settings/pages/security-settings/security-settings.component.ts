@@ -10,7 +10,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
   standalone: true,
   imports: [PageHeaderComponent, CardComponent, PasswordChangeFormComponent],
   template: `
-    <app-page-header title="Sécurité" subtitle="Gérez votre mot de passe et la sécurité de votre compte" backLink="/settings" />
+    <app-page-header title="Sécurité" subtitle="Gérez votre mot de passe et la sécurité de votre compte" />
     <div class="security-container">
       <app-password-change-form
         [isLoading]="isSubmitting()"

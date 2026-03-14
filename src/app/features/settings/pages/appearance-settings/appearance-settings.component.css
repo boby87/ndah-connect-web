@@ -1,0 +1,70 @@
+@reference "tailwindcss";
+
+.settings-container {
+  @apply p-6 max-w-4xl flex flex-col gap-6;
+}
+
+.section-title {
+  @apply text-lg font-semibold text-slate-900 dark:text-white;
+}
+
+.section-desc {
+  @apply text-sm text-slate-500 dark:text-slate-400 mt-1;
+}
+
+/* Theme cards */
+.theme-grid {
+  @apply grid grid-cols-1 sm:grid-cols-3 gap-4 p-4;
+}
+
+.theme-card {
+  @apply relative flex flex-col items-center gap-2 p-6 rounded-xl border-2 border-slate-200 dark:border-slate-700
+         bg-white dark:bg-slate-800 cursor-pointer transition-all duration-200
+         hover:border-blue-300 dark:hover:border-blue-600;
+}
+
+.theme-card--active {
+  @apply border-blue-500 dark:border-blue-500 bg-blue-50 dark:bg-blue-950;
+}
+
+.theme-icon {
+  @apply text-3xl;
+}
+
+.theme-label {
+  @apply text-sm font-semibold text-slate-900 dark:text-white;
+}
+
+.theme-desc {
+  @apply text-xs text-slate-500 dark:text-slate-400 text-center;
+}
+
+.theme-check {
+  @apply absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full bg-blue-500 text-white text-xs font-bold;
+}
+
+/* Language list */
+.language-list {
+  @apply flex flex-col divide-y divide-slate-100 dark:divide-slate-700;
+}
+
+.language-item {
+  @apply flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors
+         hover:bg-slate-50 dark:hover:bg-slate-800;
+}
+
+.language-item--active {
+  @apply bg-blue-50 dark:bg-blue-950;
+}
+
+.language-flag {
+  @apply text-xl;
+}
+
+.language-label {
+  @apply text-sm font-medium text-slate-700 dark:text-slate-300 flex-1 text-left;
+}
+
+.language-check {
+  @apply w-5 h-5 flex items-center justify-center rounded-full bg-blue-500 text-white text-xs font-bold;
+}
