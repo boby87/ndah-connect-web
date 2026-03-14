@@ -8,6 +8,8 @@ import { ModalComponent } from '../../../../shared/components/ui/modal/modal.com
 import { MockDataService } from '../../../../core/services/mock-data.service';
 import { CurrencyXafPipe } from '../../../../shared/pipes/currency-xaf.pipe';
 import { FormsModule } from '@angular/forms';
+import { TontineStore } from '../../../../store/tontine/tontine.store';
+import { UserRole } from '../../../../core/enums/user-role.enum';
 
 @Component({
   selector: 'app-sanction-detail',
@@ -56,10 +58,19 @@ import { FormsModule } from '@angular/forms';
                   <p class="contest-text">{{ s.contestReason }}</p>
                 </div>
                 @if (!s.contestResult) {
-                  <div class="contest-actions">
-                    <app-button variant="primary" (clicked)="resolveContestation(s.id, true)">✅ Accepter la contestation (annuler sanction)</app-button>
-                    <app-button variant="danger" (clicked)="resolveContestation(s.id, false)">❌ Rejeter la contestation (maintenir sanction)</app-button>
-                  </div>
+                  @if (isCensor) {
+                    <!-- Censor contestation handling (Flow 5) -->
+                    <div class="contest-actions">
+                      <app-button variant="success" (clicked)="censorResolve(s.id, 'accept')">✅ Accepter (annuler sanction)</app-button>
+                      <app-button variant="danger" (clicked)="censorResolve(s.id, 'reject')">❌ Rejeter (maintenir sanction)</app-button>
+                      <app-button variant="outline" (clicked)="censorResolve(s.id, 'transfer')">🔄 Transférer au président</app-button>
+                    </div>
+                  } @else {
+                    <div class="contest-actions">
+                      <app-button variant="primary" (clicked)="resolveContestation(s.id, true)">✅ Accepter la contestation</app-button>
+                      <app-button variant="danger" (clicked)="resolveContestation(s.id, false)">❌ Rejeter la contestation</app-button>
+                    </div>
+                  }
                 } @else {
                   <app-badge [variant]="s.contestResult === 'accepted' ? 'success' : 'danger'">
                     Contestation {{ s.contestResult === 'accepted' ? 'acceptée' : 'rejetée' }}
@@ -72,10 +83,17 @@ import { FormsModule } from '@angular/forms';
           @if (s.status === 'pending' && !s.contested) {
             <app-card>
               <div class="section">
-                <h3 class="section-title">⚖️ Actions du Président</h3>
-                <div class="president-actions">
-                  <app-button variant="danger" (clicked)="showCancelModal.set(true)">🚫 Annuler cette sanction</app-button>
-                </div>
+                @if (isCensor) {
+                  <h3 class="section-title">⚖️ Actions du Censeur</h3>
+                  <div class="president-actions">
+                    <app-button variant="danger" (clicked)="showCancelModal.set(true)">🚫 Annuler cette sanction</app-button>
+                  </div>
+                } @else {
+                  <h3 class="section-title">⚖️ Actions du Président</h3>
+                  <div class="president-actions">
+                    <app-button variant="danger" (clicked)="showCancelModal.set(true)">🚫 Annuler cette sanction</app-button>
+                  </div>
+                }
               </div>
             </app-card>
           }
@@ -125,9 +143,14 @@ export class SanctionDetailComponent {
   private readonly route = inject(ActivatedRoute);
   protected readonly router = inject(Router);
   protected readonly mock = inject(MockDataService);
+  private readonly tontineStore = inject(TontineStore);
 
   showCancelModal = signal(false);
   cancelReason = '';
+
+  get isCensor(): boolean {
+    return this.tontineStore.currentMemberRole() === UserRole.CENSOR;
+  }
 
   readonly sanction = computed(() => {
     const id = this.route.snapshot.paramMap.get('id');
@@ -143,8 +166,16 @@ export class SanctionDetailComponent {
     this.mock.resolveContestation(sanctionId, accept, accept ? 'Contestation acceptée' : 'Contestation rejetée');
   }
 
+  censorResolve(sanctionId: string, decision: 'accept' | 'reject' | 'transfer'): void {
+    this.mock.censorResolveContestation(sanctionId, decision, decision === 'accept' ? 'Acceptée par le censeur' : decision === 'reject' ? 'Rejetée par le censeur' : 'Transférée au président');
+  }
+
   cancelSanction(sanctionId: string): void {
-    this.mock.cancelSanction(sanctionId, this.cancelReason);
+    if (this.isCensor) {
+      this.mock.censorCancelSanction(sanctionId, this.cancelReason);
+    } else {
+      this.mock.cancelSanction(sanctionId, this.cancelReason);
+    }
     this.showCancelModal.set(false);
     this.router.navigate(['/sanctions']);
   }

@@ -1,0 +1,87 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="profile-form">
+  <app-card>
+    <div card-header>
+      <h3 class="section-title">Informations personnelles</h3>
+      <p class="section-desc">Mettez à jour vos informations de base.</p>
+    </div>
+
+    <div class="form-grid">
+      <div class="col-span-1">
+        <app-input
+          label="Prénom"
+          placeholder="Votre prénom"
+          formControlName="firstName"
+          [error]="getError('firstName')"
+        />
+      </div>
+
+      <div class="col-span-1">
+        <app-input
+          label="Nom"
+          placeholder="Votre nom"
+          formControlName="lastName"
+          [error]="getError('lastName')"
+        />
+      </div>
+
+      <div class="col-span-1">
+        <app-phone-input
+          label="Téléphone"
+          formControlName="phoneNumber"
+          [error]="getError('phoneNumber')"
+        />
+      </div>
+
+      <div class="col-span-1">
+        <app-input
+          type="email"
+          label="Email"
+          placeholder="votre@email.cm"
+          formControlName="email"
+          [error]="getError('email')"
+        />
+      </div>
+
+      <div class="col-span-1">
+        <app-input
+          type="date"
+          label="Date de naissance"
+          formControlName="dateOfBirth"
+        />
+      </div>
+
+      <div class="col-span-1">
+        <app-select
+          label="Genre"
+          placeholder="Sélectionner..."
+          formControlName="gender"
+          [options]="genderOptions"
+        />
+      </div>
+
+      <div class="col-span-1">
+        <app-input
+          label="Profession"
+          placeholder="Votre profession"
+          formControlName="profession"
+          [error]="getError('profession')"
+        />
+      </div>
+
+      <div class="col-span-1">
+        <app-input
+          label="Adresse"
+          placeholder="Votre adresse"
+          formControlName="address"
+          [error]="getError('address')"
+        />
+      </div>
+    </div>
+  </app-card>
+
+  <div class="form-actions">
+    <app-button variant="primary" type="submit" [loading]="isLoading()">
+      Enregistrer les modifications
+    </app-button>
+  </div>
+</form>

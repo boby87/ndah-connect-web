@@ -7,42 +7,26 @@ import { CurrencyXafPipe } from '../../../../shared/pipes/currency-xaf.pipe';
 import { CardComponent } from '../../../../shared/components/ui/card/card.component';
 import { BadgeComponent } from '../../../../shared/components/ui/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/ui/button/button.component';
-import { UserRole } from '../../../../core/enums/user-role.enum';
-import { DashboardCensorComponent } from '../dashboard-censor/dashboard-censor.component';
 
 @Component({
-  selector: 'app-dashboard-home',
+  selector: 'app-dashboard-censor',
   standalone: true,
-  imports: [CurrencyXafPipe, CardComponent, BadgeComponent, ButtonComponent, DashboardCensorComponent],
-  templateUrl: './dashboard-home.component.html',
-  styleUrl: './dashboard-home.component.css',
+  imports: [CurrencyXafPipe, CardComponent, BadgeComponent, ButtonComponent],
+  templateUrl: './dashboard-censor.component.html',
+  styleUrl: './dashboard-censor.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DashboardHomeComponent {
+export class DashboardCensorComponent {
   protected readonly authStore = inject(AuthStore);
   protected readonly tontineStore = inject(TontineStore);
   protected readonly mock = inject(MockDataService);
   private readonly router = inject(Router);
 
-  protected readonly UserRole = UserRole;
-
-  get isSecretary(): boolean {
-    return this.tontineStore.currentMemberRole() === UserRole.SECRETARY;
-  }
-
-  get isCensor(): boolean {
-    return this.tontineStore.currentMemberRole() === UserRole.CENSOR;
-  }
-
   navigate(path: string): void {
     this.router.navigate([path]);
   }
 
-  dismissAlert(id: string): void {
-    this.mock.dismissAlert(id);
-  }
-
-  dismissSecretaryAlert(id: string): void {
-    this.mock.dismissSecretaryAlert(id);
+  dismissCensorAlert(id: string): void {
+    this.mock.dismissCensorAlert(id);
   }
 }

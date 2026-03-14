@@ -1,0 +1,256 @@
+<!-- ═══════ CENSOR DASHBOARD ═══════ -->
+<div class="dashboard-header">
+  <div>
+    <h1 class="greeting">Bonjour, {{ authStore.userFullName() }} ⚖️</h1>
+    <p class="subtitle">Censeur de <strong>{{ mock.tontine.name }}</strong></p>
+  </div>
+  <div class="header-badges">
+    <app-badge variant="danger" [dot]="true">{{ mock.unreadCensorNotifications().length }} notifications</app-badge>
+    <app-badge variant="warning" [dot]="true">{{ mock.censorStats().pendingJustifications }} justificatifs</app-badge>
+  </div>
+</div>
+
+<!-- Censor Alerts -->
+@if (mock.activeCensorAlerts().length > 0) {
+  <div class="alerts-section">
+    <h2 class="section-title">🚨 Alertes & Tâches urgentes</h2>
+    @for (alert of mock.activeCensorAlerts(); track alert.id) {
+      <div [class]="'alert-item alert-' + alert.type">
+        <span class="alert-icon">
+          @switch (alert.type) {
+            @case ('critical') { ❗ }
+            @case ('warning') { ⚠️ }
+            @case ('info') { ℹ️ }
+          }
+        </span>
+        <span class="alert-message">{{ alert.message }}</span>
+        <div class="alert-actions">
+          @if (alert.actionLabel && alert.actionRoute) {
+            <button class="alert-btn" (click)="navigate(alert.actionRoute)" type="button">{{ alert.actionLabel }}</button>
+          }
+          <button class="alert-dismiss" (click)="dismissCensorAlert(alert.id)" type="button">✕</button>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+<!-- Censor Stats -->
+<div class="stats-grid">
+  <app-card class="stat-card">
+    <div class="stat-content">
+      <span class="stat-icon">⚖️</span>
+      <div class="stat-info">
+        <span class="stat-label">Sanctions ce mois</span>
+        <span class="stat-value">{{ mock.censorStats().sanctionsThisMonth }}</span>
+      </div>
+    </div>
+  </app-card>
+  <app-card class="stat-card">
+    <div class="stat-content">
+      <span class="stat-icon">💰</span>
+      <div class="stat-info">
+        <span class="stat-label">Montant total</span>
+        <span class="stat-value">{{ mock.censorStats().totalAmount | currencyXaf }}</span>
+      </div>
+    </div>
+  </app-card>
+  <app-card class="stat-card">
+    <div class="stat-content">
+      <span class="stat-icon">💸</span>
+      <div class="stat-info">
+        <span class="stat-label">Collecté</span>
+        <span class="stat-value">{{ mock.censorStats().collectedAmount | currencyXaf }}</span>
+        <span class="stat-sub">{{ mock.censorStats().paymentRate }}% recouvrement</span>
+      </div>
+    </div>
+  </app-card>
+  <app-card class="stat-card">
+    <div class="stat-content">
+      <span class="stat-icon">🚫</span>
+      <div class="stat-info">
+        <span class="stat-label">Impayées</span>
+        <span class="stat-value">{{ mock.censorStats().unpaidCount }}</span>
+        <span class="stat-sub">{{ mock.censorStats().unpaidAmount | currencyXaf }}</span>
+      </div>
+    </div>
+  </app-card>
+  <app-card class="stat-card">
+    <div class="stat-content">
+      <span class="stat-icon">📝</span>
+      <div class="stat-info">
+        <span class="stat-label">Justificatifs</span>
+        <span class="stat-value">{{ mock.censorStats().pendingJustifications }}</span>
+        <span class="stat-sub">en attente</span>
+      </div>
+    </div>
+  </app-card>
+  <app-card class="stat-card">
+    <div class="stat-content">
+      <span class="stat-icon">🔄</span>
+      <div class="stat-info">
+        <span class="stat-label">Modifications</span>
+        <span class="stat-value">{{ mock.censorStats().pendingModifications }}</span>
+        <span class="stat-sub">en attente</span>
+      </div>
+    </div>
+  </app-card>
+  <app-card class="stat-card">
+    <div class="stat-content">
+      <span class="stat-icon">❗</span>
+      <div class="stat-info">
+        <span class="stat-label">Contestations</span>
+        <span class="stat-value">{{ mock.censorStats().contestedCount }}</span>
+        <span class="stat-sub">à traiter</span>
+      </div>
+    </div>
+  </app-card>
+  <app-card class="stat-card">
+    <div class="stat-content">
+      <span class="stat-icon">📊</span>
+      <div class="stat-info">
+        <span class="stat-label">Par type</span>
+        <span class="stat-value stat-value-sm">
+          R:{{ mock.censorStats().byType.late }} A:{{ mock.censorStats().byType.absence }}
+        </span>
+        <span class="stat-sub">
+          C:{{ mock.censorStats().byType.contributionLate }} Aut:{{ mock.censorStats().byType.other }}
+        </span>
+      </div>
+    </div>
+  </app-card>
+</div>
+
+<!-- Main content -->
+<div class="dashboard-grid">
+  <div class="dashboard-main">
+    <!-- Quick Actions -->
+    <app-card>
+      <div class="card-section">
+        <h2 class="section-title">⚡ Actions rapides</h2>
+        <div class="actions-grid">
+          <app-button variant="primary" (clicked)="navigate('/sanctions/apply')">⚖️ Appliquer sanction</app-button>
+          <app-button variant="outline" (clicked)="navigate('/sanctions/auto-confirm')">🤖 Sanctions auto</app-button>
+          <app-button variant="outline" (clicked)="navigate('/sanctions/justify-absence')">📝 Justificatifs</app-button>
+          <app-button variant="outline" (clicked)="navigate('/sanctions/attendance-modifications')">🔄 Modif. présence</app-button>
+          <app-button variant="outline" (clicked)="navigate('/sanctions/contestations')">❗ Contestations</app-button>
+          <app-button variant="outline" (clicked)="navigate('/sanctions/unpaid')">💸 Impayées</app-button>
+          <app-button variant="outline" (clicked)="navigate('/sanctions/send-reminders')">📨 Rappels</app-button>
+          <app-button variant="outline" (clicked)="navigate('/sanctions/report')">📊 Rapport</app-button>
+          <app-button variant="outline" (clicked)="navigate('/sanctions/communication')">💬 Communication</app-button>
+        </div>
+      </div>
+    </app-card>
+
+    <!-- Pending items summary -->
+    <app-card>
+      <div class="card-section">
+        <h2 class="section-title">📋 Tâches en cours</h2>
+
+        @if (mock.pendingAttendanceModifications().length > 0) {
+          <h3 class="subsection-title danger">🔄 Modifications de présence ({{ mock.pendingAttendanceModifications().length }})</h3>
+          @for (req of mock.pendingAttendanceModifications(); track req.id) {
+            <div class="task-item" (click)="navigate('/sanctions/attendance-modifications')">
+              <div class="task-info">
+                <span class="task-title">{{ req.memberName }} — {{ req.sessionLabel }}</span>
+                <app-badge variant="warning" size="sm">{{ req.currentStatus }} → {{ req.requestedStatus }}</app-badge>
+              </div>
+              <span class="task-meta">Demandé par {{ req.requestedBy }}</span>
+            </div>
+          }
+        }
+
+        @if (mock.pendingJustifications().length > 0) {
+          <h3 class="subsection-title warning">📝 Justificatifs à valider ({{ mock.pendingJustifications().length }})</h3>
+          @for (just of mock.pendingJustifications(); track just.id) {
+            <div class="task-item" (click)="navigate('/sanctions/justify-absence')">
+              <div class="task-info">
+                <span class="task-title">{{ just.memberName }} — {{ just.documentType }}</span>
+                <app-badge [variant]="just.declared ? 'info' : 'warning'" size="sm">
+                  {{ just.declared ? 'Déclarée' : 'Non déclarée' }}
+                </app-badge>
+              </div>
+              <span class="task-meta">{{ just.sessionLabel }} · {{ just.sanctionAmount | currencyXaf }}</span>
+            </div>
+          }
+        }
+
+        @if (mock.contestedSanctions().length > 0) {
+          <h3 class="subsection-title warning">❗ Contestations ({{ mock.contestedSanctions().length }})</h3>
+          @for (s of mock.contestedSanctions(); track s.id) {
+            <div class="task-item" (click)="navigate('/sanctions/' + s.id)">
+              <div class="task-info">
+                <span class="task-title">{{ s.member.user.firstName }} {{ s.member.user.lastName }}</span>
+                <app-badge variant="danger" size="sm">{{ s.amount | currencyXaf }}</app-badge>
+              </div>
+              <span class="task-meta">{{ s.contestReason }}</span>
+            </div>
+          }
+        }
+      </div>
+    </app-card>
+
+    <!-- Recent Activity -->
+    <app-card>
+      <div class="card-section">
+        <h2 class="section-title">📜 Activité récente</h2>
+        @for (act of mock.censorActivity(); track act.date + act.text) {
+          <div class="activity-item">
+            <span class="activity-date">{{ act.date }}</span>
+            <span class="activity-text">{{ act.text }}</span>
+          </div>
+        }
+      </div>
+    </app-card>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="dashboard-sidebar">
+    <!-- Calendar -->
+    <app-card>
+      <div class="card-section">
+        <h2 class="section-title">📅 Agenda à venir</h2>
+        @for (cal of mock.censorCalendar(); track cal.date) {
+          <div class="calendar-block">
+            <span class="calendar-date">{{ cal.date }}</span>
+            @for (task of cal.tasks; track task) {
+              <span class="calendar-task">• {{ task }}</span>
+            }
+          </div>
+        }
+      </div>
+    </app-card>
+
+    <!-- Most sanctioned members -->
+    <app-card>
+      <div class="card-section">
+        <h2 class="section-title">👥 Membres les plus sanctionnés</h2>
+        @for (m of mock.mostSanctionedMembers(); track m.name) {
+          <div class="member-sanction-item">
+            <span class="member-name">{{ m.name }}</span>
+            <div class="member-stats">
+              <app-badge variant="danger" size="sm">{{ m.count }} sanctions</app-badge>
+              <span class="member-amount">{{ m.totalAmount | currencyXaf }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </app-card>
+
+    <!-- Censor Notifications -->
+    <app-card>
+      <div class="card-section">
+        <div class="card-header">
+          <h2 class="section-title">🔔 Notifications</h2>
+          <app-badge variant="danger" size="sm">{{ mock.unreadCensorNotifications().length }}</app-badge>
+        </div>
+        @for (notif of mock.censorNotifications().slice(0, 5); track notif.id) {
+          <div [class]="'notif-item' + (notif.isRead ? '' : ' notif-unread')">
+            <span class="notif-title">{{ notif.title }}</span>
+            <span class="notif-body">{{ notif.body }}</span>
+          </div>
+        }
+      </div>
+    </app-card>
+  </div>
+</div>

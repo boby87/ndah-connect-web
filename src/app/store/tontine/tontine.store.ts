@@ -55,4 +55,15 @@ export class TontineStore {
       this._isLoading.set(false);
     }
   }
+
+  async createTontine(data: Partial<Tontine>): Promise<Tontine> {
+    this._isLoading.set(true);
+    try {
+      const response = await firstValueFrom(this.tontineApi.create(data));
+      this._tontines.update(tontines => [...tontines, response.data]);
+      return response.data;
+    } finally {
+      this._isLoading.set(false);
+    }
+  }
 }

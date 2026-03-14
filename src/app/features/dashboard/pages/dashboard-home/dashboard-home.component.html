@@ -120,7 +120,9 @@
         <div class="card-section">
           <h2 class="section-title">⚡ Actions rapides</h2>
           <div class="actions-grid">
-            <app-button variant="primary" (clicked)="navigate('/sessions/odj/sess-009')">📋 Préparer ODJ</app-button>
+            <app-button variant="primary" (clicked)="navigate('/sessions/create')">📅 Planifier une séance</app-button>
+            <app-button variant="primary" (clicked)="navigate('/votes/create')">🗳️ Créer un vote</app-button>
+            <app-button variant="outline" (clicked)="navigate('/sessions/odj/sess-009')">📋 Préparer ODJ</app-button>
             <app-button variant="outline" (clicked)="navigate('/sessions/convocations/sess-009')">📨 Convocations</app-button>
             <app-button variant="outline" (clicked)="navigate('/sessions/confirmations/sess-009')">✅ Confirmations</app-button>
             <app-button variant="outline" (clicked)="navigate('/sessions/pv-editor/sess-008')">📝 Rédiger PV</app-button>
@@ -242,6 +244,9 @@
       </app-card>
     </div>
   </div>
+} @else if (isCensor) {
+  <!-- ═══════ CENSOR DASHBOARD ═══════ -->
+  <app-dashboard-censor />
 } @else {
 <!-- ═══════ PRESIDENT DASHBOARD ═══════ -->
 <div class="dashboard-header">

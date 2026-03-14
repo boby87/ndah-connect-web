@@ -13,6 +13,7 @@ import { ButtonComponent } from '../../../../shared/components/ui/button/button.
       <div class="actions-grid">
         <app-button variant="outline" icon="💰" (clicked)="navigate('/contributions')">Nouvelle cotisation</app-button>
         <app-button variant="outline" icon="📅" (clicked)="navigate('/sessions')">Voir séances</app-button>
+        <app-button variant="outline" icon="🗳️" (clicked)="navigate('/votes/create')">Créer un vote</app-button>
         <app-button variant="outline" icon="🏧" (clicked)="navigate('/loans')">Demander un prêt</app-button>
         <app-button variant="outline" icon="👥" (clicked)="navigate('/members')">Voir membres</app-button>
       </div>

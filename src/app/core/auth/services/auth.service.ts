@@ -37,6 +37,24 @@ export const MOCK_PROFILES: MockProfile[] = [
       createdAt: '2024-06-15T10:00:00Z', updatedAt: '2026-03-01T08:00:00Z',
     },
   },
+  {
+    id: 'u-004', role: UserRole.TREASURER, label: 'Trésorier', emoji: '💰',
+    user: {
+      id: 'u-004', phoneNumber: '677400400', firstName: 'Paul', lastName: 'FOTSO',
+      email: 'paul.fotso@email.cm', gender: 'male', profession: 'Comptable',
+      address: 'Douala, Bonapriso', kycStatus: 'verified', isActive: true,
+      createdAt: '2024-06-15T10:00:00Z', updatedAt: '2026-03-01T08:00:00Z',
+    },
+  },
+  {
+    id: 'u-005', role: UserRole.CENSOR, label: 'Censeur', emoji: '⚖️',
+    user: {
+      id: 'u-005', phoneNumber: '677500500', firstName: 'Berthe', lastName: 'EYENGA',
+      email: 'berthe.eyenga@email.cm', gender: 'female', profession: 'Enseignante',
+      address: 'Douala, Deido', kycStatus: 'verified', isActive: true,
+      createdAt: '2024-06-15T10:00:00Z', updatedAt: '2026-03-01T08:00:00Z',
+    },
+  },
 ];
 
 @Injectable({ providedIn: 'root' })

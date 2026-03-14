@@ -154,6 +154,85 @@ export interface GeneratedReport {
   options?: { charts: boolean; stats: boolean; nominal: boolean };
 }
 
+// ── Censor-specific interfaces ──
+
+export interface AutoDetectedSanction {
+  id: string;
+  memberId: string;
+  memberName: string;
+  type: 'late' | 'absence';
+  arrivalTime?: string;
+  lateMinutes?: number;
+  signaled: boolean;
+  justificationPending: boolean;
+  amount: number;
+  selected: boolean;
+}
+
+export interface AttendanceModificationRequest {
+  id: string;
+  sessionId: string;
+  sessionLabel: string;
+  memberId: string;
+  memberName: string;
+  currentStatus: 'present' | 'late' | 'absent_excused' | 'absent_unexcused';
+  requestedStatus: 'present' | 'late' | 'absent_excused' | 'absent_unexcused';
+  requestedBy: string;
+  requestedAt: string;
+  reason: string;
+  impactSanction?: string;
+  status: 'pending' | 'approved' | 'refused' | 'info_requested';
+  censorComment?: string;
+}
+
+export interface AbsenceJustification {
+  id: string;
+  memberId: string;
+  memberName: string;
+  sessionId: string;
+  sessionLabel: string;
+  absenceDate: string;
+  declared: boolean;
+  declaredAt?: string;
+  documentType: string;
+  documentUrl: string;
+  documentSize: number;
+  submittedAt: string;
+  sanctionAmount: number;
+  sanctionPaid: boolean;
+  censorDecision?: 'validated' | 'rejected' | 'complement_requested';
+  censorComment?: string;
+  presidentDecision?: 'validated' | 'rejected';
+  status: 'pending_censor' | 'pending_president' | 'validated' | 'rejected' | 'complement_requested';
+  checks: { readable: boolean; dated: boolean; coversDate: boolean; authentic: boolean; officialStamp: boolean };
+}
+
+export interface CensorCommunication {
+  id: string;
+  type: 'warning' | 'reminder' | 'order' | 'info';
+  recipientType: 'individual' | 'group' | 'all';
+  recipients: { memberId: string; memberName: string }[];
+  subject: string;
+  message: string;
+  channels: string[];
+  sentAt: string;
+}
+
+export interface CensorReport {
+  id: string;
+  period: string;
+  sessionLabel: string;
+  sanctionsApplied: number;
+  totalAmount: number;
+  byType: { type: string; count: number; amount: number }[];
+  unpaidCount: number;
+  unpaidAmount: number;
+  membersAtRisk: { name: string; sanctionCount: number; unpaidAmount: number }[];
+  observations: string;
+  generatedAt: string;
+  status: 'draft' | 'finalized';
+}
+
 @Injectable({ providedIn: 'root' })
 export class MockDataService {
 
@@ -836,6 +915,50 @@ export class MockDataService {
     );
   }
 
+  createSession(data: { sessionType: 'ordinary' | 'extraordinary'; scheduledDate: string; scheduledTime: string; location: string; beneficiaryId?: string }): Session {
+    const members = this._members();
+    const sessions = this._sessions();
+    const nextNumber = sessions.length > 0 ? Math.max(...sessions.map(s => s.number)) + 1 : 1;
+    const beneficiary = data.beneficiaryId ? members.find(m => m.id === data.beneficiaryId) : undefined;
+    const newSession: Session = {
+      id: `sess-${Date.now()}`, cycleId: 'cycle-002', tontineId: 'tontine-001', number: nextNumber,
+      sessionType: data.sessionType, scheduledDate: data.scheduledDate, scheduledTime: data.scheduledTime,
+      location: data.location, beneficiaryId: data.beneficiaryId, beneficiary,
+      status: SessionStatus.SCHEDULED, agendaValidated: false, quorumReached: undefined,
+      createdAt: new Date().toISOString(),
+    };
+    this._sessions.update(list => [...list, newSession]);
+    return newSession;
+  }
+
+  batchCreateSessions(data: { startDate: string; time: string; location: string; frequency: 'weekly' | 'biweekly' | 'monthly'; count: number; beneficiaryIds: string[] }): Session[] {
+    const members = this._members();
+    const sessions = this._sessions();
+    let nextNumber = sessions.length > 0 ? Math.max(...sessions.map(s => s.number)) + 1 : 1;
+    const created: Session[] = [];
+    let currentDate = new Date(data.startDate);
+
+    for (let i = 0; i < data.count; i++) {
+      const beneficiaryId = data.beneficiaryIds[i] ?? undefined;
+      const beneficiary = beneficiaryId ? members.find(m => m.id === beneficiaryId) : undefined;
+      const newSession: Session = {
+        id: `sess-batch-${Date.now()}-${i}`, cycleId: 'cycle-002', tontineId: 'tontine-001', number: nextNumber + i,
+        sessionType: 'ordinary', scheduledDate: currentDate.toISOString().split('T')[0], scheduledTime: data.time,
+        location: data.location, beneficiaryId, beneficiary,
+        status: SessionStatus.SCHEDULED, agendaValidated: false, quorumReached: undefined,
+        createdAt: new Date().toISOString(),
+      };
+      created.push(newSession);
+
+      // Advance date
+      if (data.frequency === 'weekly') currentDate.setDate(currentDate.getDate() + 7);
+      else if (data.frequency === 'biweekly') currentDate.setDate(currentDate.getDate() + 14);
+      else currentDate.setMonth(currentDate.getMonth() + 1);
+    }
+    this._sessions.update(list => [...list, ...created]);
+    return created;
+  }
+
   closeSession(sessionId: string): void {
     this._sessions.update(list =>
       list.map(s => s.id === sessionId ? { ...s, status: SessionStatus.CLOSED, closedAt: new Date().toISOString() } : s),
@@ -1332,5 +1455,237 @@ export class MockDataService {
     this._generatedReports.update(list => [report, ...list]);
     this._secretaryActivity.update(list => [{ date: report.generatedAt, text: `Rapport généré: ${report.title}` }, ...list]);
     return report;
+  }
+
+  // ═══════════════════════════════════════════
+  // CENSOR-SPECIFIC DATA
+  // ═══════════════════════════════════════════
+
+  readonly _autoDetectedSanctions = signal<AutoDetectedSanction[]>([
+    { id: 'auto-001', memberId: 'm-012', memberName: 'Françoise EKOTTO', type: 'late', arrivalTime: '15:20', lateMinutes: 20, signaled: false, justificationPending: false, amount: 1000, selected: true },
+    { id: 'auto-002', memberId: 'm-018', memberName: 'Pauline EBOGO', type: 'late', arrivalTime: '15:18', lateMinutes: 18, signaled: false, justificationPending: false, amount: 1000, selected: true },
+    { id: 'auto-003', memberId: 'm-011', memberName: 'Hervé NOAH', type: 'late', arrivalTime: '15:02', lateMinutes: 2, signaled: false, justificationPending: false, amount: 1000, selected: false },
+    { id: 'auto-004', memberId: 'm-015', memberName: 'Didier NGOUMOU', type: 'absence', signaled: false, justificationPending: false, amount: 2000, selected: true },
+    { id: 'auto-005', memberId: 'm-017', memberName: 'Gaston MBIANDA', type: 'absence', signaled: false, justificationPending: false, amount: 2000, selected: true },
+    { id: 'auto-006', memberId: 'm-013', memberName: 'Landry MVOUMA', type: 'absence', signaled: true, justificationPending: true, amount: 2000, selected: false },
+    { id: 'auto-007', memberId: 'm-014', memberName: 'Aline BELL', type: 'absence', signaled: true, justificationPending: true, amount: 2000, selected: false },
+  ]);
+  readonly autoDetectedSanctions = this._autoDetectedSanctions.asReadonly();
+  readonly selectedAutoSanctions = computed(() => this._autoDetectedSanctions().filter(s => s.selected));
+
+  readonly _attendanceModifications = signal<AttendanceModificationRequest[]>([
+    { id: 'amod-001', sessionId: 'sess-008', sessionLabel: '#8 - 01 Mars 2026', memberId: 'm-015', memberName: 'Didier NGOUMOU', currentStatus: 'absent_unexcused', requestedStatus: 'present', requestedBy: 'Marie NGUEMO (Secrétaire)', requestedAt: '2026-03-02T10:00:00Z', reason: 'Erreur de pointage. Le membre était présent mais a été enregistré absent lors de la clôture.', impactSanction: 'Sanction d\'absence (2 000 XAF) sera annulée', status: 'pending' },
+    { id: 'amod-002', sessionId: 'sess-008', sessionLabel: '#8 - 01 Mars 2026', memberId: 'm-018', memberName: 'Pauline EBOGO', currentStatus: 'late', requestedStatus: 'present', requestedBy: 'Marie NGUEMO (Secrétaire)', requestedAt: '2026-03-02T11:30:00Z', reason: 'Le retard enregistré est dû à une erreur d\'horloge. Le membre était à l\'heure.', impactSanction: 'Sanction de retard (1 000 XAF) sera annulée', status: 'pending' },
+    { id: 'amod-003', sessionId: 'sess-007', sessionLabel: '#7 - 01 Fév 2026', memberId: 'm-016', memberName: 'Brigitte TCHAMBA', currentStatus: 'absent_unexcused', requestedStatus: 'absent_excused', requestedBy: 'Marie NGUEMO (Secrétaire)', requestedAt: '2026-02-02T09:00:00Z', reason: 'Le membre a présenté un justificatif médical après la séance.', impactSanction: 'Sanction d\'absence (2 000 XAF) sera annulée', status: 'pending' },
+  ]);
+  readonly attendanceModifications = this._attendanceModifications.asReadonly();
+  readonly pendingAttendanceModifications = computed(() => this._attendanceModifications().filter(r => r.status === 'pending'));
+
+  readonly _absenceJustifications = signal<AbsenceJustification[]>([
+    { id: 'just-001', memberId: 'm-013', memberName: 'Landry MVOUMA', sessionId: 'sess-008', sessionLabel: '#8 - 01 Mars 2026', absenceDate: '2026-03-01', declared: true, declaredAt: '2026-02-28T14:00:00Z', documentType: 'Ordre de mission', documentUrl: '/assets/mock/ordre-mission.pdf', documentSize: 180_000, submittedAt: '2026-03-02T10:00:00Z', sanctionAmount: 2000, sanctionPaid: false, status: 'pending_censor', checks: { readable: false, dated: false, coversDate: false, authentic: false, officialStamp: false } },
+    { id: 'just-002', memberId: 'm-014', memberName: 'Aline BELL', sessionId: 'sess-008', sessionLabel: '#8 - 01 Mars 2026', absenceDate: '2026-03-01', declared: true, declaredAt: '2026-02-27T09:00:00Z', documentType: 'Certificat médical', documentUrl: '/assets/mock/certificat-medical.pdf', documentSize: 245_000, submittedAt: '2026-03-02T14:00:00Z', sanctionAmount: 2000, sanctionPaid: false, status: 'pending_censor', checks: { readable: false, dated: false, coversDate: false, authentic: false, officialStamp: false } },
+    { id: 'just-003', memberId: 'm-016', memberName: 'Brigitte TCHAMBA', sessionId: 'sess-007', sessionLabel: '#7 - 01 Fév 2026', absenceDate: '2026-02-01', declared: false, documentType: 'Certificat médical', documentUrl: '/assets/mock/certificat-2.pdf', documentSize: 150_000, submittedAt: '2026-02-05T10:00:00Z', sanctionAmount: 2000, sanctionPaid: true, status: 'pending_censor', checks: { readable: false, dated: false, coversDate: false, authentic: false, officialStamp: false } },
+    { id: 'just-004', memberId: 'm-017', memberName: 'Gaston MBIANDA', sessionId: 'sess-007', sessionLabel: '#7 - 01 Fév 2026', absenceDate: '2026-02-01', declared: false, documentType: 'Attestation employeur', documentUrl: '/assets/mock/attestation.pdf', documentSize: 120_000, submittedAt: '2026-02-10T16:00:00Z', sanctionAmount: 2000, sanctionPaid: false, status: 'pending_censor', checks: { readable: false, dated: false, coversDate: false, authentic: false, officialStamp: false } },
+    { id: 'just-005', memberId: 'm-009', memberName: 'Thierry ESSAMA', sessionId: 'sess-007', sessionLabel: '#7 - 01 Fév 2026', absenceDate: '2026-02-01', declared: true, declaredAt: '2026-01-30T10:00:00Z', documentType: 'Convocation tribunal', documentUrl: '/assets/mock/convocation.pdf', documentSize: 95_000, submittedAt: '2026-02-03T10:00:00Z', sanctionAmount: 2000, sanctionPaid: false, censorDecision: 'validated', censorComment: 'Document conforme, convocation officielle du tribunal.', presidentDecision: 'validated', status: 'validated', checks: { readable: true, dated: true, coversDate: true, authentic: true, officialStamp: true } },
+  ]);
+  readonly absenceJustifications = this._absenceJustifications.asReadonly();
+  readonly pendingJustifications = computed(() => this._absenceJustifications().filter(j => j.status === 'pending_censor'));
+
+  readonly _censorCommunications = signal<CensorCommunication[]>([
+    { id: 'cc-001', type: 'reminder', recipientType: 'individual', recipients: [{ memberId: 'm-017', memberName: 'Gaston MBIANDA' }], subject: 'Rappel: Sanction impayée', message: 'Cher Gaston MBIANDA, nous vous rappelons que vous avez une sanction impayée de 2 000 XAF pour absence à la séance #8. Merci de régulariser.', channels: ['sms', 'push'], sentAt: '2026-03-10T10:00:00Z' },
+    { id: 'cc-002', type: 'warning', recipientType: 'individual', recipients: [{ memberId: 'm-011', memberName: 'Hervé NOAH' }], subject: 'Avertissement: Comportement en séance', message: 'Cher Hervé NOAH, suite à votre comportement perturbateur lors de la séance #8, nous vous adressons un avertissement formel.', channels: ['sms', 'push', 'email'], sentAt: '2026-03-06T14:00:00Z' },
+    { id: 'cc-003', type: 'reminder', recipientType: 'group', recipients: [{ memberId: 'm-017', memberName: 'Gaston MBIANDA' }, { memberId: 'm-011', memberName: 'Hervé NOAH' }], subject: 'Rappel: Sanctions impayées', message: 'Rappel groupé pour sanctions impayées. Veuillez régulariser votre situation avant la prochaine séance.', channels: ['sms', 'push'], sentAt: '2026-03-08T09:00:00Z' },
+  ]);
+  readonly censorCommunications = this._censorCommunications.asReadonly();
+
+  readonly _censorAlerts = signal<DashboardAlert[]>([
+    { id: 'ca-001', type: 'critical', message: '3 demandes de modification de présence en attente', actionLabel: 'Traiter', actionRoute: '/sanctions/attendance-modifications', dismissed: false },
+    { id: 'ca-002', type: 'critical', message: '4 justificatifs d\'absence à valider', actionLabel: 'Traiter', actionRoute: '/sanctions/justify-absence', dismissed: false },
+    { id: 'ca-003', type: 'warning', message: '2 contestations de sanctions à traiter', actionLabel: 'Traiter', actionRoute: '/sanctions/contestations', dismissed: false },
+    { id: 'ca-004', type: 'warning', message: '3 sanctions impayées > 30 jours', actionLabel: 'Voir', actionRoute: '/sanctions/unpaid', dismissed: false },
+    { id: 'ca-005', type: 'info', message: 'Rapport de séance à préparer pour la séance #9', actionLabel: 'Générer', actionRoute: '/sanctions/report', dismissed: false },
+  ]);
+  readonly censorAlerts = this._censorAlerts.asReadonly();
+  readonly activeCensorAlerts = computed(() => this._censorAlerts().filter(a => !a.dismissed));
+
+  readonly _censorNotifications = signal<Notification[]>([
+    { id: 'cn-001', userId: 'u-005', tontineId: 'tontine-001', type: 'attendance', title: 'Modification de présence', body: 'Le secrétaire demande une modification de présence pour Didier NGOUMOU (#8)', isRead: false, createdAt: '2026-03-02T10:00:00Z' },
+    { id: 'cn-002', userId: 'u-005', tontineId: 'tontine-001', type: 'justification', title: 'Justificatif à valider', body: 'Landry MVOUMA a soumis un ordre de mission pour son absence à la séance #8', isRead: false, createdAt: '2026-03-02T10:00:00Z' },
+    { id: 'cn-003', userId: 'u-005', tontineId: 'tontine-001', type: 'justification', title: 'Justificatif à valider', body: 'Aline BELL a soumis un certificat médical pour son absence à la séance #8', isRead: false, createdAt: '2026-03-02T14:00:00Z' },
+    { id: 'cn-004', userId: 'u-005', tontineId: 'tontine-001', type: 'contestation', title: 'Contestation de sanction', body: 'Landry MVOUMA conteste sa sanction pour cotisation en retard', isRead: false, createdAt: '2026-02-12T10:00:00Z' },
+    { id: 'cn-005', userId: 'u-005', tontineId: 'tontine-001', type: 'contestation', title: 'Contestation de sanction', body: 'Hervé NOAH conteste sa sanction pour comportement perturbateur', isRead: false, createdAt: '2026-03-06T10:00:00Z' },
+    { id: 'cn-006', userId: 'u-005', tontineId: 'tontine-001', type: 'sanction_paid', title: 'Sanction payée', body: 'Didier NGOUMOU a payé sa sanction de retard (1 000 XAF)', isRead: true, createdAt: '2026-03-01T18:30:00Z' },
+    { id: 'cn-007', userId: 'u-005', tontineId: 'tontine-001', type: 'cancellation', title: 'Sanction annulée par le Président', body: 'Le Président a annulé la sanction de Brigitte TCHAMBA (absence #7) - Justificatif médical accepté', isRead: true, createdAt: '2026-02-15T14:00:00Z' },
+  ]);
+  readonly censorNotifications = this._censorNotifications.asReadonly();
+  readonly unreadCensorNotifications = computed(() => this._censorNotifications().filter(n => !n.isRead));
+
+  readonly _censorActivity = signal<{ date: string; text: string }[]>([
+    { date: '2026-03-05', text: 'Sanction appliquée: Hervé NOAH - Comportement perturbateur (5 000 XAF)' },
+    { date: '2026-03-01', text: 'Sanctions automatiques confirmées: 2 retards, 1 absence (séance #8)' },
+    { date: '2026-03-01', text: 'Sanction appliquée: Gaston MBIANDA - Absence séance #8 (2 000 XAF)' },
+    { date: '2026-02-15', text: 'Justificatif validé: Thierry ESSAMA (convocation tribunal)' },
+    { date: '2026-02-11', text: 'Sanction appliquée: Landry MVOUMA - Cotisation en retard (1 500 XAF)' },
+    { date: '2026-02-03', text: 'Rappel de paiement envoyé à Brigitte TCHAMBA' },
+    { date: '2026-02-01', text: 'Sanctions séance #7 appliquées (3 sanctions)' },
+  ]);
+  readonly censorActivity = this._censorActivity.asReadonly();
+
+  readonly censorStats = computed(() => {
+    const allSanctions = this._sanctions();
+    const pending = allSanctions.filter(s => s.status === 'pending');
+    const paid = allSanctions.filter(s => s.status === 'paid');
+    const contested = allSanctions.filter(s => s.contested && !s.contestResult);
+    return {
+      sanctionsThisMonth: allSanctions.length,
+      byType: {
+        late: allSanctions.filter(s => s.type === SanctionType.LATE).length,
+        absence: allSanctions.filter(s => s.type === SanctionType.ABSENCE).length,
+        contributionLate: allSanctions.filter(s => s.type === SanctionType.CONTRIBUTION_LATE).length,
+        other: allSanctions.filter(s => s.type === SanctionType.OTHER).length,
+      },
+      totalAmount: allSanctions.reduce((s, san) => s + san.amount, 0),
+      collectedAmount: paid.reduce((s, san) => s + san.amount, 0),
+      unpaidCount: pending.length,
+      unpaidAmount: pending.reduce((s, san) => s + san.amount, 0),
+      contestedCount: contested.length,
+      pendingModifications: this.pendingAttendanceModifications().length,
+      pendingJustifications: this.pendingJustifications().length,
+      paymentRate: allSanctions.length > 0 ? Math.round((paid.length / allSanctions.length) * 100) : 0,
+    };
+  });
+
+  readonly censorCalendar = computed(() => [
+    { date: 'Aujourd\'hui (14/03)', tasks: ['Traiter 3 modifications de présence', 'Valider 4 justificatifs'] },
+    { date: 'Cette semaine', tasks: ['Traiter 2 contestations', 'Envoyer rappels impayés'] },
+    { date: 'Semaine prochaine', tasks: ['22/03 - Séance #9 (préparer rapport)', '22/03 - Confirmer sanctions auto'] },
+  ]);
+
+  readonly mostSanctionedMembers = computed(() => {
+    const sanctionsByMember = new Map<string, { name: string; count: number; totalAmount: number }>();
+    for (const s of this._sanctions()) {
+      const key = s.memberId;
+      const existing = sanctionsByMember.get(key);
+      if (existing) {
+        existing.count++;
+        existing.totalAmount += s.amount;
+      } else {
+        sanctionsByMember.set(key, { name: `${s.member.user.firstName} ${s.member.user.lastName}`, count: 1, totalAmount: s.amount });
+      }
+    }
+    return [...sanctionsByMember.values()].sort((a, b) => b.count - a.count).slice(0, 5);
+  });
+
+  // ═══════════════════════════════════════════
+  // CENSOR ACTIONS
+  // ═══════════════════════════════════════════
+
+  toggleAutoSanction(id: string): void {
+    this._autoDetectedSanctions.update(list => list.map(s => s.id === id ? { ...s, selected: !s.selected } : s));
+  }
+
+  selectAllAutoSanctions(type: 'late' | 'absence'): void {
+    this._autoDetectedSanctions.update(list => list.map(s => s.type === type ? { ...s, selected: true } : s));
+  }
+
+  deselectAllAutoSanctions(type: 'late' | 'absence'): void {
+    this._autoDetectedSanctions.update(list => list.map(s => s.type === type ? { ...s, selected: false } : s));
+  }
+
+  confirmAutoSanctions(): void {
+    const selected = this.selectedAutoSanctions();
+    for (const auto of selected) {
+      const sanction: Sanction = {
+        id: `sanc-auto-${Date.now()}-${auto.memberId}`,
+        memberId: auto.memberId,
+        member: this._members().find(m => m.id === auto.memberId)!,
+        tontineId: 'tontine-001',
+        sessionId: 'sess-009',
+        type: auto.type === 'late' ? SanctionType.LATE : SanctionType.ABSENCE,
+        reason: auto.type === 'late' ? `Retard de ${auto.lateMinutes} minutes à la séance #9` : 'Absence non justifiée à la séance #9',
+        amount: auto.amount,
+        status: 'pending',
+        appliedBy: 'u-005',
+        appliedAt: new Date().toISOString(),
+        contested: false,
+      };
+      this._sanctions.update(list => [...list, sanction]);
+    }
+    this._autoDetectedSanctions.update(list => list.filter(s => !s.selected));
+    this._censorActivity.update(list => [{ date: new Date().toISOString().split('T')[0], text: `Sanctions automatiques confirmées: ${selected.length} sanctions` }, ...list]);
+  }
+
+  applySanction(memberId: string, type: SanctionType, amount: number, reason: string, sessionId?: string): void {
+    const member = this._members().find(m => m.id === memberId);
+    if (!member) return;
+    const sanction: Sanction = {
+      id: `sanc-${Date.now()}`,
+      memberId,
+      member,
+      tontineId: 'tontine-001',
+      sessionId,
+      type,
+      reason,
+      amount,
+      status: 'pending',
+      appliedBy: 'u-005',
+      appliedAt: new Date().toISOString(),
+      contested: false,
+    };
+    this._sanctions.update(list => [...list, sanction]);
+    this._censorActivity.update(list => [{ date: new Date().toISOString().split('T')[0], text: `Sanction appliquée: ${member.user.firstName} ${member.user.lastName} - ${reason}` }, ...list]);
+  }
+
+  censorCancelSanction(id: string, reason: string): void {
+    this._sanctions.update(list =>
+      list.map(s => s.id === id ? { ...s, status: 'cancelled' as const, cancelledBy: 'u-005', cancelledAt: new Date().toISOString(), cancelReason: reason } : s),
+    );
+    this._censorActivity.update(list => [{ date: new Date().toISOString().split('T')[0], text: `Sanction annulée: ${id} - ${reason}` }, ...list]);
+  }
+
+  censorResolveContestation(id: string, decision: 'accept' | 'reject' | 'transfer', comment: string): void {
+    this._sanctions.update(list =>
+      list.map(s => {
+        if (s.id !== id) return s;
+        if (decision === 'accept') return { ...s, contestResult: 'accepted' as const, status: 'cancelled' as const, cancelledBy: 'u-005', cancelledAt: new Date().toISOString(), cancelReason: comment };
+        if (decision === 'reject') return { ...s, contestResult: 'rejected' as const };
+        return s; // transfer — status unchanged, handled by president
+      }),
+    );
+    this._censorActivity.update(list => [{ date: new Date().toISOString().split('T')[0], text: `Contestation traitée: ${id} (${decision})` }, ...list]);
+  }
+
+  processAttendanceModification(id: string, decision: 'approved' | 'refused' | 'info_requested', comment: string): void {
+    this._attendanceModifications.update(list =>
+      list.map(r => r.id === id ? { ...r, status: decision, censorComment: comment } : r),
+    );
+    if (decision === 'approved') {
+      const req = this._attendanceModifications().find(r => r.id === id);
+      if (req) {
+        this._attendance.update(list => list.map(a => a.memberId === req.memberId ? { ...a, status: req.requestedStatus } : a));
+      }
+    }
+    this._censorActivity.update(list => [{ date: new Date().toISOString().split('T')[0], text: `Modification présence traitée: ${id} (${decision})` }, ...list]);
+  }
+
+  processJustification(id: string, decision: 'validated' | 'rejected' | 'complement_requested', comment: string, checks?: AbsenceJustification['checks']): void {
+    this._absenceJustifications.update(list =>
+      list.map(j => {
+        if (j.id !== id) return j;
+        const newStatus = decision === 'validated' ? 'pending_president' as const : decision === 'rejected' ? 'rejected' as const : 'complement_requested' as const;
+        return { ...j, censorDecision: decision, censorComment: comment, status: newStatus, checks: checks ?? j.checks };
+      }),
+    );
+    this._censorActivity.update(list => [{ date: new Date().toISOString().split('T')[0], text: `Justificatif traité: ${id} (${decision})` }, ...list]);
+  }
+
+  sendCensorCommunication(type: CensorCommunication['type'], recipientType: CensorCommunication['recipientType'], recipients: { memberId: string; memberName: string }[], subject: string, message: string, channels: string[]): void {
+    const comm: CensorCommunication = { id: `cc-${Date.now()}`, type, recipientType, recipients, subject, message, channels, sentAt: new Date().toISOString() };
+    this._censorCommunications.update(list => [comm, ...list]);
+    this._censorActivity.update(list => [{ date: new Date().toISOString().split('T')[0], text: `Communication envoyée: ${subject} (${recipients.length} destinataire(s))` }, ...list]);
+  }
+
+  dismissCensorAlert(id: string): void {
+    this._censorAlerts.update(list => list.map(a => a.id === id ? { ...a, dismissed: true } : a));
   }
 }
