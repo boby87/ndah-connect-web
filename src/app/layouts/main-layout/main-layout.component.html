@@ -1,0 +1,10 @@
+<div class="main-layout" [class.sidebar-collapsed]="!uiStore.sidebarOpen()">
+  <app-sidebar />
+  <app-header />
+  <main class="main-content">
+    <router-outlet />
+  </main>
+  <app-footer />
+  <app-mobile-nav />
+  <app-toast />
+</div>

@@ -1,0 +1,27 @@
+<div class="login-page">
+  <h2 class="auth-heading">Connexion</h2>
+  <p class="auth-subheading">Connectez-vous à votre compte NdahConnect</p>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-form">
+    <app-form-field label="Numéro de téléphone" [required]="true">
+      <app-phone-input formControlName="phoneNumber" label="" />
+    </app-form-field>
+
+    <app-form-field label="Mot de passe" [required]="true">
+      <app-password-input formControlName="password" label="" placeholder="Entrez votre mot de passe" />
+    </app-form-field>
+
+    <div class="form-actions-top">
+      <a routerLink="/auth/forgot-password" class="forgot-link">Mot de passe oublié ?</a>
+    </div>
+
+    <app-button type="submit" variant="primary" [fullWidth]="true" [loading]="isLoading" [disabled]="form.invalid">
+      Se connecter
+    </app-button>
+  </form>
+
+  <p class="auth-footer-text">
+    Pas encore de compte ?
+    <a routerLink="/auth/register" class="auth-link">Créer un compte</a>
+  </p>
+</div>

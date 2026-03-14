@@ -1,0 +1,6 @@
+<div class="stats-grid">
+  <app-stat-card title="Membres actifs" [value]="activeMembers()" icon="👥" />
+  <app-stat-card title="Solde total" [value]="(totalBalance() | currencyXaf)" icon="💰" />
+  <app-stat-card title="Prochaine séance" [value]="nextSessionDate() || 'Non planifiée'" icon="📅" />
+  <app-stat-card title="Cotisations en attente" [value]="pendingContributions()" icon="⏳" />
+</div>

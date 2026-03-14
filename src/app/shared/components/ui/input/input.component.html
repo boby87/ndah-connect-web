@@ -1,0 +1,28 @@
+<div class="input-wrapper">
+  @if (label(); as labelText) {
+    <label class="input-label">{{ labelText }}</label>
+  }
+  <div class="input-container" [class.has-icon-left]="icon() && iconPosition() === 'left'" [class.has-icon-right]="icon() && iconPosition() === 'right'" [class.has-error]="error()">
+    @if (icon() && iconPosition() === 'left') {
+      <span class="input-icon left">{{ icon() }}</span>
+    }
+    <input
+      class="input-field"
+      [type]="type()"
+      [placeholder]="placeholder()"
+      [value]="value()"
+      [disabled]="isDisabled() || disabled()"
+      [readOnly]="readonly()"
+      (input)="onInput($event)"
+      (blur)="onBlur()"
+    />
+    @if (icon() && iconPosition() === 'right') {
+      <span class="input-icon right">{{ icon() }}</span>
+    }
+  </div>
+  @if (error(); as errorText) {
+    <span class="input-error">{{ errorText }}</span>
+  } @else if (hint(); as hintText) {
+    <span class="input-hint">{{ hintText }}</span>
+  }
+</div>

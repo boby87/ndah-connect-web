@@ -1,0 +1,32 @@
+<app-page-header title="Votes">
+  <app-button variant="primary" (clicked)="navigateToCreate()">
+    Nouveau vote
+  </app-button>
+</app-page-header>
+
+<div class="vote-list-container">
+  @if (isLoading()) {
+    <div class="loading-container">
+      <app-spinner size="lg" />
+    </div>
+  } @else if (votes().length === 0) {
+    <app-empty-state
+      icon="hand-raised"
+      title="Aucun vote"
+      description="Aucun vote créé pour le moment."
+      actionLabel="Créer un vote"
+      (action)="navigateToCreate()"
+    />
+  } @else {
+    <div class="vote-grid">
+      @for (vote of votes(); track vote.id) {
+        <app-card class="vote-card" (click)="navigateToDetail(vote.id)">
+          <div class="card-body">
+            <h3 class="vote-title">{{ vote.title }}</h3>
+            <p class="vote-description">{{ vote.description }}</p>
+          </div>
+        </app-card>
+      }
+    </div>
+  }
+</div>

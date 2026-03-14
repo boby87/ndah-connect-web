@@ -1,0 +1,10 @@
+export const APP_NAME = 'NdahConnect';
+export const APP_VERSION = '1.0.0';
+export const DEFAULT_LANGUAGE = 'fr';
+export const SUPPORTED_LANGUAGES = ['fr', 'en'] as const;
+export const DEFAULT_CURRENCY = 'XAF';
+export const DEFAULT_PAGE_SIZE = 20;
+export const OTP_LENGTH = 6;
+export const OTP_RESEND_DELAY_SECONDS = 60;
+export const PASSWORD_MIN_LENGTH = 8;
+export const PHONE_PREFIX = '+237';

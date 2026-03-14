@@ -1,0 +1,14 @@
+<div class="otp-container" (paste)="onPaste($event)">
+  @for (digit of digits(); track $index; let i = $index) {
+    <input
+      #otpInput
+      type="text"
+      inputmode="numeric"
+      maxlength="1"
+      class="otp-input"
+      [value]="digit"
+      (input)="onInput(i, $event)"
+      (keydown)="onKeydown(i, $event)"
+    />
+  }
+</div>

@@ -1,0 +1,21 @@
+@if (label()) {
+  <label class="select-label">{{ label() }}</label>
+}
+<select
+  class="select-field"
+  [class.select-error]="error()"
+  [disabled]="isDisabled()"
+  [value]="value()"
+  (change)="onSelect($event)"
+>
+  <option value="" disabled selected>{{ placeholder() }}</option>
+  @for (option of options(); track option.value) {
+    <option [value]="option.value">{{ option.label }}</option>
+  }
+</select>
+@if (hint() && !error()) {
+  <span class="select-hint">{{ hint() }}</span>
+}
+@if (error()) {
+  <span class="select-error-text">{{ error() }}</span>
+}

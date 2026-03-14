@@ -1,0 +1,18 @@
+@reference "tailwindcss";
+.toast-container {
+  @apply fixed top-4 right-4 z-[100] flex flex-col gap-2 max-w-sm w-full;
+}
+
+.toast {
+  @apply flex items-center gap-3 rounded-lg px-4 py-3 text-sm shadow-lg;
+}
+
+.toast-success { @apply bg-green-600 text-white; }
+.toast-error { @apply bg-red-600 text-white; }
+.toast-warning { @apply bg-amber-500 text-white; }
+.toast-info { @apply bg-blue-600 text-white; }
+.toast-icon { @apply text-lg; }
+.toast-message { @apply flex-1; }
+.toast-close { @apply text-lg leading-none opacity-70 cursor-pointer; }
+.toast-close:hover { @apply opacity-100; }
+

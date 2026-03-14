@@ -1,0 +1,28 @@
+@reference "tailwindcss";
+.vote-list-container {
+  @apply p-6;
+}
+
+.loading-container {
+  @apply flex items-center justify-center py-12;
+}
+
+.vote-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+.vote-card {
+  @apply cursor-pointer transition-shadow hover:shadow-lg;
+}
+
+.card-body {
+  @apply p-4;
+}
+
+.vote-title {
+  @apply text-lg font-semibold text-slate-900 dark:text-white mb-2;
+}
+
+.vote-description {
+  @apply text-sm text-slate-500 dark:text-slate-400 line-clamp-2;
+}

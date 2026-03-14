@@ -1,0 +1,32 @@
+@reference "tailwindcss";
+.card {
+  @apply rounded-xl bg-white border border-slate-200 overflow-hidden;
+}
+
+.card-outlined {
+  @apply border-2;
+}
+.card-flat {
+  @apply border-0;
+}
+
+.card-header:empty, .card-footer:empty {
+  @apply hidden;
+}
+
+.card-header {
+  @apply border-b border-slate-100 px-4 py-3;
+}
+.card-footer {
+  @apply border-t border-slate-100 px-4 py-3;
+}
+
+.padding-none .card-body { @apply p-0; }
+.padding-sm .card-body { @apply p-3; }
+.padding-md .card-body { @apply p-4; }
+.padding-lg .card-body { @apply p-6; }
+
+.shadow-none { @apply shadow-none; }
+.shadow-sm { @apply shadow-sm; }
+.shadow-md { @apply shadow-md; }
+.shadow-lg { @apply shadow-lg; }

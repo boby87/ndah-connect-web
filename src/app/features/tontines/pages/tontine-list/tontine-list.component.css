@@ -1,0 +1,44 @@
+@reference "tailwindcss";
+.tontine-list-container {
+  @apply p-6;
+}
+
+.search-section {
+  @apply mb-6;
+}
+
+.loading-container {
+  @apply flex items-center justify-center py-12;
+}
+
+.tontine-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+.tontine-card {
+  @apply cursor-pointer transition-shadow hover:shadow-lg;
+}
+
+.card-body {
+  @apply p-4;
+}
+
+.tontine-name {
+  @apply text-lg font-semibold text-slate-900 dark:text-white mb-2;
+}
+
+.tontine-description {
+  @apply text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2;
+}
+
+.tontine-meta {
+  @apply flex items-center justify-between text-sm;
+}
+
+.contribution-amount {
+  @apply font-medium text-blue-600 dark:text-blue-400;
+}
+
+.frequency {
+  @apply text-slate-400 capitalize;
+}

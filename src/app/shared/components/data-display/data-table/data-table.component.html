@@ -1,0 +1,35 @@
+<div class="table-wrapper">
+  <table class="data-table">
+    <thead>
+      <tr>
+        @for (col of columns(); track col.key) {
+          <th
+            [class.sortable]="col.sortable"
+            [style.width]="col.width"
+            (click)="sort(col)"
+          >
+            {{ col.label }}
+            @if (col.sortable && sortKey === col.key) {
+              <span class="sort-icon">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+            }
+          </th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @if (loading()) {
+        <tr><td [attr.colspan]="columns().length" class="text-center py-8 text-slate-500">Chargement...</td></tr>
+      } @else if (data().length === 0) {
+        <tr><td [attr.colspan]="columns().length" class="text-center py-8 text-slate-500">{{ emptyMessage() }}</td></tr>
+      } @else {
+        @for (row of data(); track $index) {
+          <tr class="data-row" (click)="onRowClick(row)">
+            @for (col of columns(); track col.key) {
+              <td>{{ row[col.key] }}</td>
+            }
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,13 @@
+@reference "tailwindcss";
+.avatar {
+  @apply rounded-full object-cover flex-shrink-0;
+}
+
+.avatar-sm { @apply w-8 h-8 text-xs; }
+.avatar-md { @apply w-10 h-10 text-sm; }
+.avatar-lg { @apply w-12 h-12 text-base; }
+.avatar-xl { @apply w-16 h-16 text-lg; }
+
+.avatar-placeholder {
+  @apply bg-blue-100 text-blue-700 font-medium flex items-center justify-center;
+}

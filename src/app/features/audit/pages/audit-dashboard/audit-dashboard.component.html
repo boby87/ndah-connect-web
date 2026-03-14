@@ -1,0 +1,36 @@
+<app-page-header title="Audit" />
+
+<div class="audit-container">
+  @if (isLoading()) {
+    <div class="loading-container">
+      <app-spinner size="lg" />
+    </div>
+  } @else {
+    <div class="audit-grid">
+      <app-card class="audit-card" (click)="navigateTo('report')">
+        <div class="card-body">
+          <h3 class="card-title">Rapports</h3>
+          <p class="card-description">Consulter les rapports d'audit</p>
+        </div>
+      </app-card>
+      <app-card class="audit-card" (click)="navigateTo('control')">
+        <div class="card-body">
+          <h3 class="card-title">Contrôles périodiques</h3>
+          <p class="card-description">Effectuer des contrôles réguliers</p>
+        </div>
+      </app-card>
+      <app-card class="audit-card" (click)="navigateTo('certification')">
+        <div class="card-body">
+          <h3 class="card-title">Certification</h3>
+          <p class="card-description">Gérer les certifications</p>
+        </div>
+      </app-card>
+      <app-card class="audit-card" (click)="navigateTo('recommendations')">
+        <div class="card-body">
+          <h3 class="card-title">Recommandations</h3>
+          <p class="card-description">Suivre les recommandations</p>
+        </div>
+      </app-card>
+    </div>
+  }
+</div>

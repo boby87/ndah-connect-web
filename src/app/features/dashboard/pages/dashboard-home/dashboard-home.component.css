@@ -1,0 +1,65 @@
+@reference "tailwindcss";
+
+.dashboard-header { @apply flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6; }
+.greeting { @apply text-2xl font-bold text-slate-900; }
+.subtitle { @apply text-sm text-slate-500 mt-1; }
+.header-badges { @apply flex gap-2; }
+
+.alerts-section { @apply mb-6 space-y-2; }
+.alert-item { @apply flex items-center gap-3 p-3 rounded-lg border; }
+.alert-critical { @apply bg-red-50 border-red-200; }
+.alert-warning { @apply bg-amber-50 border-amber-200; }
+.alert-info { @apply bg-blue-50 border-blue-200; }
+.alert-icon { @apply text-lg flex-shrink-0; }
+.alert-message { @apply flex-1 text-sm text-slate-800; }
+.alert-actions { @apply flex items-center gap-2; }
+.alert-btn { @apply text-xs font-medium px-3 py-1 rounded bg-white border border-slate-300 hover:bg-slate-50 cursor-pointer; }
+.alert-dismiss { @apply text-slate-400 hover:text-slate-600 cursor-pointer text-sm bg-transparent border-none; }
+
+.stats-grid { @apply grid grid-cols-2 md:grid-cols-4 gap-4 mb-6; }
+.stat-card { @apply cursor-default; }
+.stat-content { @apply flex items-center gap-3 p-1; }
+.stat-icon { @apply text-2xl; }
+.stat-info { @apply flex flex-col; }
+.stat-label { @apply text-xs text-slate-500 uppercase tracking-wide; }
+.stat-value { @apply text-lg font-bold text-slate-900; }
+.stat-sub { @apply text-xs text-slate-400; }
+
+.dashboard-grid { @apply grid grid-cols-1 lg:grid-cols-3 gap-6; }
+.dashboard-main { @apply lg:col-span-2 flex flex-col gap-6; }
+.dashboard-sidebar { @apply flex flex-col gap-6; }
+
+.card-section { @apply p-2; }
+.card-header { @apply flex justify-between items-center mb-4; }
+.section-title { @apply text-base font-semibold text-slate-900; }
+.subsection-title { @apply text-xs font-semibold uppercase tracking-wide mt-4 mb-2; }
+.subsection-title.danger { @apply text-red-600; }
+.subsection-title.warning { @apply text-amber-600; }
+
+.validation-item { @apply flex flex-col gap-1 p-3 rounded-lg hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-none; }
+.validation-info { @apply flex items-center justify-between gap-2; }
+.validation-title { @apply text-sm font-medium text-slate-800; }
+.validation-meta { @apply text-xs text-slate-500; }
+
+.actions-grid { @apply grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3; }
+
+.decision-item { @apply flex items-center gap-2 py-2 border-b border-slate-100 last:border-none text-sm; }
+.decision-date { @apply text-xs text-slate-400 w-20 flex-shrink-0; }
+.decision-icon { @apply text-base; }
+.decision-target { @apply text-slate-800; }
+.decision-comment { @apply text-xs text-slate-400; }
+
+.session-item { @apply flex flex-col gap-1 p-3 rounded-lg hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-none; }
+.session-header { @apply flex items-center justify-between; }
+.session-number { @apply font-bold text-slate-900; }
+.session-date { @apply text-sm text-slate-600; }
+.session-location { @apply text-xs text-slate-500; }
+.session-beneficiary { @apply text-xs text-blue-600; }
+
+.contestation-item { @apply flex flex-col gap-1 p-3 border-b border-slate-100 last:border-none cursor-pointer hover:bg-slate-50 rounded-lg; }
+.contestation-name { @apply text-sm font-medium text-slate-800; }
+.contestation-reason { @apply text-xs text-slate-500 line-clamp-2; }
+
+.cashbox-item { @apply flex justify-between items-center py-2 border-b border-slate-100 last:border-none; }
+.cashbox-name { @apply text-sm text-slate-700; }
+.cashbox-balance { @apply text-sm font-semibold text-slate-900; }

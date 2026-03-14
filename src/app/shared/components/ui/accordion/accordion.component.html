@@ -1,0 +1,11 @@
+<div class="accordion" [class.open]="isOpen()">
+  <button class="accordion-header" (click)="toggle()" type="button">
+    <span class="accordion-title">{{ title() }}</span>
+    <span class="accordion-icon">▸</span>
+  </button>
+  @if (isOpen()) {
+    <div class="accordion-body">
+      <ng-content />
+    </div>
+  }
+</div>

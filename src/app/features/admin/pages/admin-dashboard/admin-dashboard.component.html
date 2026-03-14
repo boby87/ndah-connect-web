@@ -1,0 +1,36 @@
+<app-page-header title="Administration" />
+
+<div class="admin-container">
+  @if (isLoading()) {
+    <div class="loading-container">
+      <app-spinner size="lg" />
+    </div>
+  } @else {
+    <div class="admin-grid">
+      <app-card class="admin-card" (click)="navigateTo('users')">
+        <div class="card-body">
+          <h3 class="card-title">Utilisateurs</h3>
+          <p class="card-description">Gérer les utilisateurs de la plateforme</p>
+        </div>
+      </app-card>
+      <app-card class="admin-card" (click)="navigateTo('tontines')">
+        <div class="card-body">
+          <h3 class="card-title">Tontines</h3>
+          <p class="card-description">Gérer toutes les tontines</p>
+        </div>
+      </app-card>
+      <app-card class="admin-card" (click)="navigateTo('logs')">
+        <div class="card-body">
+          <h3 class="card-title">Logs système</h3>
+          <p class="card-description">Consulter les journaux système</p>
+        </div>
+      </app-card>
+      <app-card class="admin-card" (click)="navigateTo('system-settings')">
+        <div class="card-body">
+          <h3 class="card-title">Paramètres système</h3>
+          <p class="card-description">Configurer la plateforme</p>
+        </div>
+      </app-card>
+    </div>
+  }
+</div>

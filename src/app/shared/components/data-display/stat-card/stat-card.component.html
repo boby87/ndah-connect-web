@@ -1,0 +1,16 @@
+<div class="stat-card">
+  <div class="stat-header">
+    @if (icon()) {
+      <span class="stat-icon">{{ icon() }}</span>
+    }
+    <span class="stat-title">{{ title() }}</span>
+  </div>
+  <div class="stat-value">{{ value() }}</div>
+  @if (trendValue()) {
+    <div [class]="'stat-trend stat-trend-' + trend()">
+      @if (trend() === 'up') { ↑ }
+      @if (trend() === 'down') { ↓ }
+      {{ trendValue() }}
+    </div>
+  }
+</div>

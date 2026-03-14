@@ -1,0 +1,9 @@
+@reference "tailwindcss";
+.otp-container {
+  @apply flex gap-2 justify-center;
+}
+
+.otp-input {
+  @apply w-12 h-14 text-center text-xl font-semibold rounded-lg border border-slate-300
+         focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-colors;
+}

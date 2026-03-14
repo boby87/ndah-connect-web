@@ -1,0 +1,31 @@
+<app-page-header title="Cotisations">
+  <app-button variant="primary" (clicked)="navigateToCollect()">
+    Collecter
+  </app-button>
+</app-page-header>
+
+<div class="contribution-list-container">
+  @if (isLoading()) {
+    <div class="loading-container">
+      <app-spinner size="lg" />
+    </div>
+  } @else if (contributions().length === 0) {
+    <app-empty-state
+      icon="wallet"
+      title="Aucune cotisation"
+      description="Aucune cotisation enregistrée pour le moment."
+    />
+  } @else {
+    <div class="contribution-grid">
+      @for (contribution of contributions(); track contribution.id) {
+        <app-card class="contribution-card">
+          <div class="card-body">
+            <h3 class="member-name">{{ contribution.member?.user?.firstName }} {{ contribution.member?.user?.lastName }}</h3>
+            <p class="amount">{{ contribution.amount | number }} XAF</p>
+            <span class="status">{{ contribution.status }}</span>
+          </div>
+        </app-card>
+      }
+    </div>
+  }
+</div>

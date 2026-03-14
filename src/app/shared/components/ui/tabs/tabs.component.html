@@ -1,0 +1,15 @@
+<div class="tabs">
+  @for (tab of tabs(); track tab.key) {
+    <button
+      class="tab-item"
+      [class.active]="tab.key === activeTab()"
+      (click)="selectTab(tab.key)"
+      type="button"
+    >
+      @if (tab.icon) {
+        <span class="tab-icon">{{ tab.icon }}</span>
+      }
+      {{ tab.label }}
+    </button>
+  }
+</div>

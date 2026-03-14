@@ -1,0 +1,16 @@
+@reference "tailwindcss";
+.spinner {
+  @apply inline-flex items-center justify-center;
+}
+
+.spinner-overlay {
+  @apply fixed inset-0 z-50 bg-white/80 flex items-center justify-center;
+}
+
+.spinner-circle {
+  @apply border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin;
+}
+
+.spinner-sm .spinner-circle { @apply w-5 h-5 border-2; }
+.spinner-md .spinner-circle { @apply w-8 h-8; }
+.spinner-lg .spinner-circle { @apply w-12 h-12; }

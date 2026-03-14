@@ -1,0 +1,6 @@
+<div [class]="'alert alert-' + type()">
+  <span class="alert-message">{{ message() }}</span>
+  @if (closable()) {
+    <button class="alert-close" (click)="closed.emit()" type="button">&times;</button>
+  }
+</div>

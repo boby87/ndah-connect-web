@@ -1,0 +1,12 @@
+@reference "tailwindcss";
+.settings-container {
+  @apply p-6;
+}
+
+.card-body {
+  @apply p-6;
+}
+
+.placeholder-text {
+  @apply text-slate-500;
+}

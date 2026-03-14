@@ -1,0 +1,20 @@
+@if (label()) {
+  <label class="textarea-label">{{ label() }}</label>
+}
+<textarea
+  class="textarea-field"
+  [class.textarea-error]="error()"
+  [placeholder]="placeholder()"
+  [rows]="rows()"
+  [disabled]="isDisabled()"
+  [value]="value()"
+  [attr.maxlength]="maxLength()"
+  (input)="onInput($event)"
+  (blur)="onBlur()"
+></textarea>
+@if (hint() && !error()) {
+  <span class="textarea-hint">{{ hint() }}</span>
+}
+@if (error()) {
+  <span class="textarea-error-text">{{ error() }}</span>
+}

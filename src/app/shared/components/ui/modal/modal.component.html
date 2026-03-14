@@ -1,0 +1,21 @@
+@if (isOpen()) {
+  <div class="modal-backdrop" (click)="onBackdropClick()">
+    <div [class]="'modal-container modal-' + size()" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        @if (title(); as titleText) {
+          <h3 class="modal-title">{{ titleText }}</h3>
+        }
+        <ng-content select="[modal-header]" />
+        @if (showClose()) {
+          <button class="modal-close" (click)="onClose()" type="button">&times;</button>
+        }
+      </div>
+      <div class="modal-body">
+        <ng-content />
+      </div>
+      <div class="modal-footer">
+        <ng-content select="[modal-footer]" />
+      </div>
+    </div>
+  </div>
+}

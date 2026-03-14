@@ -1,0 +1,267 @@
+<!-- Header -->
+<div class="dashboard-header">
+  <div>
+    <h1 class="greeting">Bonjour, {{ authStore.userFullName() }} 👋</h1>
+    <p class="subtitle">Président de <strong>{{ mock.tontine.name }}</strong></p>
+  </div>
+  <div class="header-badges">
+    <app-badge variant="danger" [dot]="true">{{ mock.unreadNotifications().length }} notifications</app-badge>
+    <app-badge variant="warning" [dot]="true">{{ mock.stats().pendingValidations }} validations</app-badge>
+  </div>
+</div>
+
+<!-- Alerts -->
+@if (mock.activeAlerts().length > 0) {
+  <div class="alerts-section">
+    <h2 class="section-title">🚨 Alertes urgentes</h2>
+    @for (alert of mock.activeAlerts(); track alert.id) {
+      <div [class]="'alert-item alert-' + alert.type">
+        <span class="alert-icon">
+          @switch (alert.type) {
+            @case ('critical') { ❗ }
+            @case ('warning') { ⚠️ }
+            @case ('info') { ℹ️ }
+          }
+        </span>
+        <span class="alert-message">{{ alert.message }}</span>
+        <div class="alert-actions">
+          @if (alert.actionLabel && alert.actionRoute) {
+            <button class="alert-btn" (click)="navigate(alert.actionRoute)" type="button">{{ alert.actionLabel }}</button>
+          }
+          <button class="alert-dismiss" (click)="dismissAlert(alert.id)" type="button">✕</button>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+  <app-card class="stat-card">
+    <div class="stat-content">
+      <span class="stat-icon">🏦</span>
+      <div class="stat-info">
+        <span class="stat-label">Caisses</span>
+        <span class="stat-value">{{ mock.totalBalance() | currencyXaf }}</span>
+      </div>
+    </div>
+  </app-card>
+  <app-card class="stat-card">
+    <div class="stat-content">
+      <span class="stat-icon">👥</span>
+      <div class="stat-info">
+        <span class="stat-label">Membres actifs</span>
+        <span class="stat-value">{{ mock.stats().activeMembers }}</span>
+      </div>
+    </div>
+  </app-card>
+  <app-card class="stat-card">
+    <div class="stat-content">
+      <span class="stat-icon">💳</span>
+      <div class="stat-info">
+        <span class="stat-label">Prêts actifs</span>
+        <span class="stat-value">{{ mock.stats().activeLoans }}</span>
+        <span class="stat-sub">{{ mock.stats().activeLoanAmount | currencyXaf }}</span>
+      </div>
+    </div>
+  </app-card>
+  <app-card class="stat-card">
+    <div class="stat-content">
+      <span class="stat-icon">⚖️</span>
+      <div class="stat-info">
+        <span class="stat-label">Sanctions en cours</span>
+        <span class="stat-value">{{ mock.stats().pendingSanctions }}</span>
+        <span class="stat-sub">{{ mock.stats().pendingSanctionAmount | currencyXaf }}</span>
+      </div>
+    </div>
+  </app-card>
+  <app-card class="stat-card">
+    <div class="stat-content">
+      <span class="stat-icon">📅</span>
+      <div class="stat-info">
+        <span class="stat-label">Prochaine séance</span>
+        @if (mock.stats().nextSession; as ns) {
+          <span class="stat-value">#{{ ns.number }}</span>
+          <span class="stat-sub">{{ ns.scheduledDate }}</span>
+        } @else {
+          <span class="stat-value">-</span>
+        }
+      </div>
+    </div>
+  </app-card>
+  <app-card class="stat-card">
+    <div class="stat-content">
+      <span class="stat-icon">✅</span>
+      <div class="stat-info">
+        <span class="stat-label">Taux cotisation</span>
+        <span class="stat-value">{{ mock.stats().contributionRate }}%</span>
+      </div>
+    </div>
+  </app-card>
+  <app-card class="stat-card">
+    <div class="stat-content">
+      <span class="stat-icon">⏳</span>
+      <div class="stat-info">
+        <span class="stat-label">Validations</span>
+        <span class="stat-value">{{ mock.stats().pendingValidations }}</span>
+        <span class="stat-sub">en attente</span>
+      </div>
+    </div>
+  </app-card>
+  <app-card class="stat-card">
+    <div class="stat-content">
+      <span class="stat-icon">📈</span>
+      <div class="stat-info">
+        <span class="stat-label">Progression cycle</span>
+        <span class="stat-value">{{ mock.stats().cycleProgress }}%</span>
+        <span class="stat-sub">({{ mock.stats().cycleCompleted }}/{{ mock.stats().cycleTotalSessions }})</span>
+      </div>
+    </div>
+  </app-card>
+</div>
+
+<!-- Main content grid -->
+<div class="dashboard-grid">
+  <!-- Validations pending -->
+  <div class="dashboard-main">
+    <app-card>
+      <div class="card-section">
+        <div class="card-header">
+          <h2 class="section-title">⏳ Validations en attente ({{ mock.stats().pendingValidations }})</h2>
+          <app-button variant="outline" size="sm" (clicked)="navigate('/loans')">Voir tout</app-button>
+        </div>
+
+        @if (mock.criticalValidations().length > 0) {
+          <h3 class="subsection-title danger">🔴 Critique</h3>
+          @for (v of mock.criticalValidations(); track v.id) {
+            <div class="validation-item" (click)="navigate('/loans/' + v.relatedId)">
+              <div class="validation-info">
+                <span class="validation-title">{{ v.title }}</span>
+                @if (v.amount) {
+                  <app-badge variant="danger">{{ v.amount | currencyXaf }}</app-badge>
+                }
+              </div>
+              <span class="validation-meta">{{ v.submittedBy }} · Avis commissaire:
+                @switch (v.auditorApproval) {
+                  @case ('approved') { ✅ }
+                  @case ('reserved') { ⚠️ }
+                  @default { ⏳ }
+                }
+              </span>
+            </div>
+          }
+        }
+
+        @if (mock.normalValidations().length > 0) {
+          <h3 class="subsection-title warning">🟡 Normal</h3>
+          @for (v of mock.normalValidations(); track v.id) {
+            <div class="validation-item" (click)="navigate(v.type === 'adhesion' ? '/members/adhesion-requests' : v.type === 'agenda' || v.type === 'minutes' ? '/documents' : '/treasury')">
+              <div class="validation-info">
+                <span class="validation-title">{{ v.title }}</span>
+                @if (v.amount) {
+                  <app-badge variant="warning">{{ v.amount | currencyXaf }}</app-badge>
+                }
+              </div>
+              <span class="validation-meta">{{ v.submittedBy }}</span>
+            </div>
+          }
+        }
+      </div>
+    </app-card>
+
+    <!-- Quick Actions -->
+    <app-card>
+      <div class="card-section">
+        <h2 class="section-title">⚡ Actions rapides</h2>
+        <div class="actions-grid">
+          <app-button variant="outline" (clicked)="navigate('/documents')">📋 Valider documents</app-button>
+          <app-button variant="outline" (clicked)="navigate('/loans')">💰 Valider opérations</app-button>
+          <app-button variant="outline" (clicked)="navigate('/sessions')">📅 Gérer séances</app-button>
+          <app-button variant="outline" (clicked)="navigate('/votes/create')">🗳️ Lancer un vote</app-button>
+          <app-button variant="outline" (clicked)="navigate('/members')">👥 Gérer membres</app-button>
+          <app-button variant="outline" (clicked)="navigate('/sanctions')">⚖️ Sanctions</app-button>
+        </div>
+      </div>
+    </app-card>
+
+    <!-- Decision History -->
+    <app-card>
+      <div class="card-section">
+        <h2 class="section-title">📜 Historique des décisions</h2>
+        @for (d of mock.decisions(); track d.id) {
+          <div class="decision-item">
+            <span class="decision-date">{{ d.date }}</span>
+            <span class="decision-icon">
+              @switch (d.action) {
+                @case ('approved') { ✅ }
+                @case ('rejected') { ❌ }
+                @case ('blocked') { 🚫 }
+                @case ('cancelled') { 🔄 }
+              }
+            </span>
+            <span class="decision-target">{{ d.target }}</span>
+            @if (d.comment) {
+              <span class="decision-comment">({{ d.comment }})</span>
+            }
+          </div>
+        }
+      </div>
+    </app-card>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="dashboard-sidebar">
+    <!-- Upcoming Sessions -->
+    <app-card>
+      <div class="card-section">
+        <h2 class="section-title">📅 Prochaines séances</h2>
+        @for (s of mock.sessions(); track s.id) {
+          @if (s.status === 'scheduled' || s.status === 'opened') {
+            <div class="session-item" (click)="navigate('/sessions/' + s.id)">
+              <div class="session-header">
+                <span class="session-number">#{{ s.number }}</span>
+                <app-badge [variant]="s.agendaValidated ? 'success' : 'warning'" size="sm">
+                  {{ s.agendaValidated ? 'ODJ validé' : 'ODJ à valider' }}
+                </app-badge>
+              </div>
+              <span class="session-date">{{ s.scheduledDate }} à {{ s.scheduledTime }}</span>
+              <span class="session-location">📍 {{ s.location }}</span>
+              @if (s.beneficiary) {
+                <span class="session-beneficiary">🎯 {{ s.beneficiary.user.firstName }} {{ s.beneficiary.user.lastName }}</span>
+              }
+            </div>
+          }
+        }
+      </div>
+    </app-card>
+
+    <!-- Contestations -->
+    @if (mock.contestedSanctions().length > 0) {
+      <app-card>
+        <div class="card-section">
+          <h2 class="section-title">⚠️ Contestations ({{ mock.contestedSanctions().length }})</h2>
+          @for (s of mock.contestedSanctions(); track s.id) {
+            <div class="contestation-item" (click)="navigate('/sanctions/' + s.id)">
+              <span class="contestation-name">{{ s.member.user.firstName }} {{ s.member.user.lastName }}</span>
+              <span class="contestation-reason">{{ s.contestReason }}</span>
+              <app-badge variant="warning" size="sm">{{ s.amount | currencyXaf }}</app-badge>
+            </div>
+          }
+        </div>
+      </app-card>
+    }
+
+    <!-- Cash Boxes -->
+    <app-card>
+      <div class="card-section">
+        <h2 class="section-title">🏦 État des caisses</h2>
+        @for (cb of mock.cashBoxes(); track cb.id) {
+          <div class="cashbox-item">
+            <span class="cashbox-name">{{ cb.name }}</span>
+            <span class="cashbox-balance">{{ cb.balance | currencyXaf }}</span>
+          </div>
+        }
+      </div>
+    </app-card>
+  </div>
+</div>

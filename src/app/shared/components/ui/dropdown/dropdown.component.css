@@ -1,0 +1,21 @@
+@reference "tailwindcss";
+.dropdown {
+  @apply relative inline-block;
+}
+
+.dropdown-menu {
+  @apply absolute z-50 mt-1 min-w-[10rem] bg-white rounded-lg shadow-lg border border-slate-200 py-1;
+  left: 0;
+
+  &.dropdown-right { left: auto; right: 0; }
+}
+
+.dropdown-item {
+  @apply w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer;
+
+  &.danger { @apply text-red-600 hover:bg-red-50; }
+}
+
+.dropdown-icon {
+  @apply w-4 text-center;
+}

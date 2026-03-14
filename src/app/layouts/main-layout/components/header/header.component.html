@@ -1,0 +1,16 @@
+<header class="header">
+  <div class="header-left">
+    <button class="menu-toggle" (click)="toggleSidebar()" type="button">☰</button>
+    <app-tontine-selector />
+  </div>
+
+  <div class="header-right">
+    <button class="notification-btn" routerLink="/notifications" type="button">
+      🔔
+      @if (notificationStore.unreadCount() > 0) {
+        <span class="notification-badge">{{ notificationStore.unreadCount() }}</span>
+      }
+    </button>
+    <app-user-menu />
+  </div>
+</header>

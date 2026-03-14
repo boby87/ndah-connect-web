@@ -1,0 +1,41 @@
+<div class="register-page">
+  <h2 class="auth-heading">Créer un compte</h2>
+  <p class="auth-subheading">Rejoignez NdahConnect pour gérer vos tontines</p>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-form">
+    <app-form-field label="Numéro de téléphone" [required]="true">
+      <app-phone-input formControlName="phoneNumber" />
+    </app-form-field>
+
+    <div class="form-row">
+      <app-form-field label="Prénom" [required]="true">
+        <app-input formControlName="firstName" placeholder="Votre prénom" />
+      </app-form-field>
+      <app-form-field label="Nom" [required]="true">
+        <app-input formControlName="lastName" placeholder="Votre nom" />
+      </app-form-field>
+    </div>
+
+    <app-form-field label="Email" hint="Optionnel">
+      <app-input formControlName="email" type="email" placeholder="email@exemple.com" />
+    </app-form-field>
+
+    <app-form-field label="Mot de passe" [required]="true">
+      <app-password-input formControlName="password" [showStrength]="true" />
+    </app-form-field>
+
+    <app-form-field label="Confirmer le mot de passe" [required]="true"
+      [error]="form.hasError('passwordMismatch') ? 'Les mots de passe ne correspondent pas' : ''">
+      <app-password-input formControlName="passwordConfirmation" placeholder="Confirmez le mot de passe" />
+    </app-form-field>
+
+    <app-button type="submit" variant="primary" [fullWidth]="true" [loading]="isLoading" [disabled]="form.invalid">
+      Créer un compte
+    </app-button>
+  </form>
+
+  <p class="auth-footer-text">
+    Déjà un compte ?
+    <a routerLink="/auth/login" class="auth-link">Se connecter</a>
+  </p>
+</div>

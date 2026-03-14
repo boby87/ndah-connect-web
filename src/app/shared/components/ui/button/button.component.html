@@ -1,0 +1,21 @@
+<button
+  [type]="type()"
+  [disabled]="disabled() || loading()"
+  [class]="'btn btn-' + variant() + ' btn-' + size()"
+  [class.btn-full-width]="fullWidth()"
+  [class.btn-icon-only]="iconOnly()"
+  [class.btn-loading]="loading()"
+  (click)="onClick($event)"
+>
+  @if (loading()) {
+    <span class="btn-spinner"></span>
+  }
+  @if (icon(); as iconName) {
+    <span class="btn-icon">{{ iconName }}</span>
+  }
+  @if (!iconOnly()) {
+    <span class="btn-content">
+      <ng-content />
+    </span>
+  }
+</button>
