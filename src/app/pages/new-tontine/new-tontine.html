@@ -29,7 +29,7 @@
           <label class="text-m text-black font-bold">Nom de la tontine</label>
           <input
             type="text"
-            placeholder="e.g. Douala Traders 2024"
+            placeholder="Douala Entrepreneurs 2026"
             class="mt-2 px-4 py-3 w-full rounded-lg border border-gray-300 shadow "
           />
         </div>
@@ -48,7 +48,7 @@
           <!-- LEFT -->
           <div class="flex items-center gap-4">
             <div class="w-12 h-12 bg-gray-100 flex items-center justify-center rounded-lg">
-              📁
+              <i class="fa fa-folder"></i>
             </div>
             <div>
               <p class="font-medium">Charger votre logo</p>
@@ -161,14 +161,16 @@
 
         <div *ngFor="let regle of regles; let i = index trackBy: trackByIndex" class="mt-2 border-b border-gray-400 pb-2">
           <label class="text-m text-black font-bold mt-6">Definir la regle</label>
-          <input type="text" [(ngModel)]="regles[i]" placeholder="Sanction, condition d'acces,..." class="mt-2 px-4 py-3 w-full rounded-lg border border-gray-300 shadow"/>
-          <button
-            type="button"
-            (click)="supprimerRegle(i)"
-            class="text-red-500"
-          >
-            ❌
-          </button>
+          <div class="flex justify-between">
+            <input type="text" [(ngModel)]="regles[i]" placeholder="Sanction, condition d'acces,..." class="mt-2 px-4 py-3 w-3/4 rounded-lg border border-gray-300 shadow"/>
+            <button
+              type="button"
+              (click)="supprimerRegle(i)"
+              class="text-red-500 cursor-pointer"
+            >
+              ❌
+            </button>
+          </div>
         </div>
         <button
           type="button"
@@ -180,7 +182,7 @@
       </div>
       <div class="mt-6 flex justify-end">
         <button class="text-green-600 font-semibold border border-green-600 text-center  px-4 py-3 rounded-lg hover:bg-green-600 hover:text-white transition mr-8 cursor-pointer">Enregistrer</button>
-        <button class="text-white font-semibold bg-green-500 text-center  px-4 py-3 rounded-lg hover:bg-green-600 transition cursor-pointer">Creer la tontine</button>
+        <button routerLink="/newTontine/adminAccess" class="text-white font-semibold bg-green-500 text-center  px-4 py-3 rounded-lg hover:bg-green-600 transition cursor-pointer">Creer la tontine</button>
       </div>
     </main>
   </div>

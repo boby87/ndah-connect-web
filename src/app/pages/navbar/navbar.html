@@ -7,11 +7,26 @@
     </div>
   </div>
   <ul class="space-y-3">
-    <li class="text-green-700 p-3 bg-green-100 font-semibold rounded-lg ml-4"><i class="fa fa-home"></i> Home</li>
-    <li class="text-gray-600 cursor-pointer p-3  font-semibold ml-4 hover:text-green-700 hover:bg-green-100 hover:rounded-lg"><i class="fa fa-user"></i> Joindre Tontine</li>
-    <li class="text-gray-600 cursor-pointer p-3  font-semibold ml-4 hover:text-green-700 hover:bg-green-100 hover:rounded-lg"><i class="fa fa-user"></i> Mes Tontines</li>
-    <li class="text-gray-600 cursor-pointer p-3  font-semibold ml-4 hover:text-green-700 hover:bg-green-100 hover:rounded-lg"><i class="fa fa-plus"></i> Creer Tontine</li>
-    <li class="text-gray-600 cursor-pointer p-3  font-semibold ml-4 hover:text-green-700 hover:bg-green-100 hover:rounded-lg"><i class="fa fa-clock"></i> Historique</li>
+    <li ><a  routerLink="/home"
+            routerLinkActive="text-green-700 p-3 bg-green-100 font-semibold rounded-lg "
+            class="text-gray-600 cursor-pointer p-3 mt-2 font-semibold ml-4 hover:text-green-700 hover:bg-green-100 hover:rounded-lg hover:p-3">
+          <i class="fa fa-home"></i> Home</a></li>
+
+    <li ><a  routerLink="/joinTontine"
+            routerLinkActive="text-green-700 p-3 bg-green-100 font-semibold rounded-lg"
+            class="text-gray-600 cursor-pointer p-3 mt-2 font-semibold ml-4 hover:text-green-700 hover:bg-green-100 hover:rounded-lg hover:p-3">
+      <i class="fa fa-user-plus"></i> Joindre Tontine</a></li>
+
+    <li ><a  routerLink="/tontines"
+            routerLinkActive="text-green-700 p-3 bg-green-100 font-semibold rounded-lg "
+            class="text-gray-600 cursor-pointer p-3 mt-2 font-semibold ml-4 hover:text-green-700 hover:bg-green-100 hover:rounded-lg hover:p-3">
+      <i class="fa fa-folder"></i> Mes Tontines</a></li>
+
+    <li ><a  routerLink="/newTontine"
+            routerLinkActive="text-green-700 p-3 bg-green-100 font-semibold rounded-lg"
+            class="text-gray-600 cursor-pointer p-3 mt-2 font-semibold ml-4 hover:text-green-700 hover:bg-green-100 hover:rounded-lg hover:p-3">
+      <i class="fa fa-plus"></i> Creer Tontine</a></li>
+
 
   </ul>
 

@@ -3,6 +3,7 @@ import {Haeder} from '../haeder/haeder';
 import {Navbar} from '../navbar/navbar';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
+import {RouterLink} from '@angular/router';
 
 @Component({
   selector: 'app-new-tontine',
@@ -10,7 +11,8 @@ import {FormsModule} from '@angular/forms';
     CommonModule,
     FormsModule,
     Haeder,
-    Navbar
+    Navbar,
+    RouterLink
   ],
   templateUrl: './new-tontine.html',
   styleUrl: './new-tontine.css',

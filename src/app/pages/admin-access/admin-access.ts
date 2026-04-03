@@ -1,13 +1,15 @@
 import { Component } from '@angular/core';
 import {Haeder} from "../haeder/haeder";
 import {Navbar} from "../navbar/navbar";
+import {RouterLink} from '@angular/router';
 
 @Component({
   selector: 'app-admin-access',
-    imports: [
-        Haeder,
-        Navbar
-    ],
+  imports: [
+    Haeder,
+    Navbar,
+    RouterLink
+  ],
   templateUrl: './admin-access.html',
   styleUrl: './admin-access.css',
 })
