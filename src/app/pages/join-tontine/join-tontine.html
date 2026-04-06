@@ -1,0 +1,104 @@
+<div class="flex min-h-screen bg-gray-50">
+  <!--sidebar-->
+  <app-navbar/>
+  <!--main-->
+  <div class="flex-1 flex flex-col ">
+    <!--Navbar-->
+    <app-haeder></app-haeder>
+
+    <!--Main body-->
+    <main class="p-6">
+      <!--premier blocs-->
+      <h1 class="mt-8 font-bold text-5xl">
+        Rejoindre une Tontine
+      </h1>
+      <span class="text-gray-400 m-3">Rejoingner ou inviter des membres a rejoindre une tontine</span>
+
+      <!--premier bloc-->
+      <div class="bg-white p-6 mt-8 rounded-xl shadow">
+        <div class="mb-4">
+          <label class="text-m text-black font-bold">Reference de la tontine</label>
+          <input
+            type="text"
+            placeholder="code tontine"
+            class="mt-2 px-4 py-3 w-full rounded-lg border border-gray-300 shadow "
+          />
+        </div>
+        <button class="w-full bg-green-500 text-white py-3 rounded-lg mt-4 text-center font-bold cursor-pointer hover:bg-green-600">
+          Rechercher
+        </button>
+      </div>
+      <!--details-->
+      <div class="bg-white mt-6 rounded-xl shadow overflow-hidden">
+        <div class="flex justify-between mb-4 bg-linear-to-r from-green-600 to-green-400 p-6">
+          <div class="flex items-center gap-2  text-white ">
+            <img src="https://logo.svgcdn.com/token-branded/free.png" class="h-25 w-25">
+            <div class="p-2">
+              <p class="text-sm">GROUPE VERIFIE</p>
+              <h2 class="text-xl font-semibold">
+                Douala Entrepreneurs 2026
+              </h2>
+            </div>
+         </div>
+          <button routerLink = "/joinTontine/invitationTontine" class="p-2 shadow-lg text-gray-400 rounded-lg mt-4 text-center font-bold cursor-pointer bg-white hover:bg-green-600">Inviter des membres</button>
+
+        </div>
+
+        <div class="p-6 grid grid-cols-3 gap-6">
+          <div class="col-span-2">
+            <p class="text-gray-500 text-sm mb-2 font-bold">
+              Description
+            </p>
+            <p class="text-gray-600 text-sm text-justify">
+              discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32
+            </p>
+            <div class="mt-4 flex gap-2">
+              <div class="mt-4 bg-gray-100 rounded-xl p-4">
+                <p class=" text-gray-400">Administrateur</p>
+                <p class="font-medium">Joe Marc</p>
+              </div>
+              <div class="mt-4 bg-gray-100 rounded-xl p-4">
+                <p class=" text-gray-400">Membres inscrits</p>
+                <p class="font-medium">15 / 20 membres</p>
+              </div>
+            </div>
+            <div class="mt-4 ">
+              <p><i class="fa fa-check text-green-600 "></i> Les paiements en retard font l'objet d'une amende</p>
+              <p><i class="fa fa-check text-green-600 "></i> Les paiements en retard font l'objet d'une amende</p>
+              <p><i class="fa fa-check text-green-600 "></i> Les paiements en retard font l'objet d'une amende</p>
+              <p><i class="fa fa-check text-green-600 "></i> Les paiements en retard font l'objet d'une amende</p>
+            </div>
+          </div>
+
+       <!--bloc de droite-->
+          <div>
+            <div class="bg-green-100 p-4 rounded-xl shadow">
+              <div class="pb-3 border-b border-b-white">
+                <p class="font-semibold text-green-600">
+                  Montant Contribution
+                </p>
+                <h2 class="text-xl font-bold text-black">
+                  10 000 FCFA
+                </h2>
+              </div>
+              <div>
+                <p class="text-gray-400 mt-2">PROCHAIN TOUR</p>
+                <p>25 Avril 2026</p>
+                <p class="text-gray-400 mt-2">DUREE DU CYCLE</p>
+                <p>6 mois</p>
+                <p class="text-gray-400 mt-2">TOTAL</p>
+                <p CLASS="text-xl font-bold text-black">350 000 FCFA</p>
+              </div>
+            </div>
+
+            <button class="w-full bg-green-500 text-white py-3 shadow-lg rounded-lg mt-4 text-center font-bold cursor-pointer hover:bg-green-600">
+              Envoyer la demande
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>

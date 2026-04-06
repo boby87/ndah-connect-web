@@ -1,0 +1,189 @@
+<div class="flex min-h-screen bg-gray-50">
+  <!--sidebar-->
+  <app-navbar/>
+  <!--main-->
+  <div class="flex-1 flex flex-col ">
+    <!--Navbar-->
+    <app-haeder></app-haeder>
+
+    <!--Main body-->
+    <main class="p-6">
+      <!--premier blocs-->
+      <h1 class="mt-8 font-bold text-5xl">
+        Nouvelle Tontine
+      </h1>
+      <span class="text-gray-400 m-3">Creer une tontine et inviter des membres a rejoindre</span>
+
+      <!--premier bloc-->
+      <div class="bg-white p-6 mt-8 rounded-xl shadow">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="w-8 h-8 bg-green-100 text-green-600 flex items-center justify-center rounded-full">
+            1
+          </span>
+          <h2 class="font-semibold">
+            Informations de base
+          </h2>
+        </div>
+        <!-- Nom -->
+        <div class="mb-4">
+          <label class="text-m text-black font-bold">Nom de la tontine</label>
+          <input
+            type="text"
+            placeholder="Douala Entrepreneurs 2026"
+            class="mt-2 px-4 py-3 w-full rounded-lg border border-gray-300 shadow "
+          />
+        </div>
+        <!-- Couleurs -->
+        <div class="mb-4">
+          <label class="text-m text-black font-bold">Choisir Couleurs</label>
+          <div class="flex gap-3 mt-2">
+            <div class="w-6 h-6 bg-green-500 cursor-pointer rounded-full hover:border-2 hover:border-green-600 shadow"></div>
+            <div class="w-6 h-6 bg-blue-500 rounded-full hover:border-2 hover:border-green-600 cursor-pointer"></div>
+            <div class="w-6 h-6 bg-purple-500 rounded-full hover:border-2 hover:border-green-600 cursor-pointer"></div>
+            <div class="w-6 h-6 bg-orange-500 rounded-full hover:border-2 hover:border-green-600 cursor-pointer"></div>
+          </div>
+        </div>
+        <!--logo-->
+        <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 flex items-center justify-between mt-4">
+          <!-- LEFT -->
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gray-100 flex items-center justify-center rounded-lg">
+              <i class="fa fa-folder"></i>
+            </div>
+            <div>
+              <p class="font-medium">Charger votre logo</p>
+              <p class="text-sm text-gray-500">
+                PNG ou JPG
+              </p>
+            </div>
+          </div>
+
+          <!-- BUTTON -->
+          <label class="bg-gray-100 px-4 py-2 rounded-lg cursor-pointer hover:bg-gray-200">
+            Parcourrir
+            <input
+              type="file"
+              class="hidden"
+            />
+          </label>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="text-m text-black font-bold">Description</label>
+          <textarea
+            rows="4"
+            class="mt-2 px-4 py-3 w-full rounded-lg border border-gray-300 shadow "
+            placeholder="Description..."
+          ></textarea>
+        </div>
+      </div>
+
+      <!--2nd bloc-->
+      <div class="grid grid-cols-2 gap-6 mt-6">
+
+        <!-- PARTICIPATION -->
+        <div class="bg-white p-6 rounded-xl shadow">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-8 h-8 bg-green-100 text-green-600 flex items-center justify-center rounded-full">
+             2
+            </span>
+            <h2 class="font-semibold">
+              Participation
+            </h2>
+          </div>
+          <label class="text-m text-black font-bold mt-6">Nombre Max des membres</label>
+          <input placeholder="Membres Max " class="mt-2 px-4 py-3 w-full rounded-lg border border-gray-300 shadow "/>
+          <label class="text-m text-black font-bold">Contribution par cycle</label>
+          <input placeholder="Contribution" class="mt-2 px-4 py-3 w-full rounded-lg border border-gray-300 shadow "/>
+          <label class="text-m text-black font-bold">Date de debut</label>
+          <input placeholder="debut tontine" class="mt-2 px-4 py-3 w-full rounded-lg border border-gray-300 shadow "/>
+
+        </div>
+
+        <!-- MEETING -->
+        <div class="bg-white p-6 rounded-xl shadow">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-8 h-8 bg-green-100 text-green-600 flex items-center justify-center rounded-full">
+              3
+            </span>
+            <h2 class="font-semibold">
+              Configuration
+            </h2>
+          </div>
+          <label class="text-m text-black font-bold mt-6">Frequence des contributions</label>
+          <select class="mt-2 px-4 py-3 w-full rounded-lg border border-gray-300 shadow">
+            <option>Semaine</option>
+            <option>Mois</option>
+          </select>
+          <label class="text-m text-black font-bold mt-6">Nombre de sequences</label>
+          <input type="text" placeholder="Nombre de cycle" class="mt-2 px-4 py-3 w-full rounded-lg border border-gray-300 shadow"/>
+
+          <div class="bg-green-100 text-green-700 p-3 rounded-lg mt-6">
+            Estimation Total : 600 000 FCFA
+          </div>
+        </div>
+      </div>
+
+      <!--Beneficiaire-->
+      <div class="bg-white p-6 rounded-xl shadow mt-6">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="w-8 h-8 bg-green-100 text-green-600 flex items-center justify-center rounded-full">
+           4
+          </span>
+          <h2 class="font-semibold">
+            Designation du beneficiaire
+          </h2>
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+          <div class=" border border-gray-500 p-4 rounded-lg hover:border hover:border-green-600 hover:bg-green-100 hover:cursor-pointer" >
+            Selection au hasard
+          </div>
+          <div class="border border-gray-500 p-4 rounded-lg hover:border hover:border-green-600 hover:bg-green-100 cursor-pointer">
+            Selection Manuelle
+          </div>
+          <div class="border border-gray-500 p-4 rounded-lg hover:border hover:border-green-600 hover:bg-green-100 cursor-pointer">
+            Votes des Membres
+          </div>
+        </div>
+      </div>
+      <!--Regles et sanctions-->
+      <div class="bg-white p-6 rounded-xl shadow mt-8">
+        <div class="flex items-center gap-2 mb-4">
+            <span class="w-8 h-8 bg-green-100 text-green-600 flex items-center justify-center rounded-full">
+              5
+            </span>
+          <h2 class="font-semibold">
+            Regles et Sanctions
+          </h2>
+        </div>
+        <!-- Bouton -->
+
+        <div *ngFor="let regle of regles; let i = index trackBy: trackByIndex" class="mt-2 border-b border-gray-400 pb-2">
+          <label class="text-m text-black font-bold mt-6">Definir la regle</label>
+          <div class="flex justify-between">
+            <input type="text" [(ngModel)]="regles[i]" placeholder="Sanction, condition d'acces,..." class="mt-2 px-4 py-3 w-3/4 rounded-lg border border-gray-300 shadow"/>
+            <button
+              type="button"
+              (click)="supprimerRegle(i)"
+              class="text-red-500 cursor-pointer"
+            >
+              ❌
+            </button>
+          </div>
+        </div>
+        <button
+          type="button"
+          (click)="ajouterRegle()"
+          class="px-4 py-2 bg-green-600 cursor-pointer text-white rounded-lg mt-4"
+        >
+          Nouvelle règle
+        </button>
+      </div>
+      <div class="mt-6 flex justify-end">
+        <button class="text-green-600 font-semibold border border-green-600 text-center  px-4 py-3 rounded-lg hover:bg-green-600 hover:text-white transition mr-8 cursor-pointer">Enregistrer</button>
+        <button routerLink="/newTontine/adminAccess" class="text-white font-semibold bg-green-500 text-center  px-4 py-3 rounded-lg hover:bg-green-600 transition cursor-pointer">Creer la tontine</button>
+      </div>
+    </main>
+  </div>
+</div>
