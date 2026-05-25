@@ -1,0 +1,131 @@
+<div class="space-y-6">
+  <header>
+    <h1 class="text-2xl font-bold text-gray-900">Vérification des bilans de séance</h1>
+    <p class="text-sm text-gray-500">
+      Le Commissaire doit vérifier chaque bilan de séance (RM-VB01). Valider, valider avec réserves ou rejeter (RM-VB02).
+      Réserves et rejets doivent être justifiés (RM-VB03).
+    </p>
+  </header>
+
+  @if (errorMessage(); as err) {
+    <tc-alert kind="error">{{ err }}</tc-alert>
+  }
+
+  <div class="grid gap-6 lg:grid-cols-3">
+    <aside>
+      <tc-card title="Examiner un bilan de séance">
+        <form class="space-y-3" (submit)="onSubmit($event)">
+          <div>
+            <label class="text-sm font-medium text-gray-700">Séance</label>
+            <select
+              class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              [value]="sessionId()"
+              (change)="sessionId.set($any($event.target).value)"
+            >
+              <option value="">— Sélectionner —</option>
+              @for (s of sessions(); track s.id) {
+                <option [value]="s.id">Séance #{{ s.number }} — {{ s.scheduledAt | tcDate }}</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <p class="mb-1 text-sm font-medium text-gray-700">Décision</p>
+            <div class="space-y-1 text-sm">
+              <label class="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="dec"
+                  class="h-4 w-4 text-violet-600 focus:ring-violet-500"
+                  [checked]="decision() === 'CONFORM'"
+                  (change)="decision.set('CONFORM')"
+                />
+                ✅ Conforme
+              </label>
+              <label class="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="dec"
+                  class="h-4 w-4 text-violet-600 focus:ring-violet-500"
+                  [checked]="decision() === 'WITH_RESERVES'"
+                  (change)="decision.set('WITH_RESERVES')"
+                />
+                ⚠ Avec réserves
+              </label>
+              <label class="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="dec"
+                  class="h-4 w-4 text-violet-600 focus:ring-violet-500"
+                  [checked]="decision() === 'REJECTED'"
+                  (change)="decision.set('REJECTED')"
+                />
+                ❌ Rejeter
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-sm font-medium text-gray-700">Observations</label>
+            <textarea
+              class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              rows="3"
+              [value]="observations()"
+              (input)="observations.set($any($event.target).value)"
+            ></textarea>
+          </div>
+
+          @if (decision() !== 'CONFORM') {
+            <div>
+              <label class="text-sm font-medium text-gray-700">Réserves / motif</label>
+              <textarea
+                class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                rows="3"
+                [value]="reserves()"
+                (input)="reserves.set($any($event.target).value)"
+              ></textarea>
+            </div>
+          }
+
+          <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
+            ✓ Enregistrer la vérification
+          </tc-button>
+        </form>
+      </tc-card>
+    </aside>
+
+    <div class="lg:col-span-2">
+      <tc-card title="Historique des vérifications">
+        @if (resource.isLoading()) {
+          <p class="text-sm text-gray-500">Chargement…</p>
+        } @else if (reviews().length === 0) {
+          <tc-empty-state title="Aucune vérification" icon="📋" />
+        } @else {
+          <ul class="divide-y divide-gray-100">
+            @for (r of reviews(); track r.id) {
+              <li class="py-3 first:pt-0 last:pb-0">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <p class="font-medium text-gray-900">Séance #{{ r.sessionNumber }}</p>
+                      <tc-badge [kind]="decisionBadge(r.decision)">{{ decisionLabel(r.decision) }}</tc-badge>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">
+                      Vérifié le {{ r.reviewedAt | tcDate: true }} · {{ r.reviewedByFullName }}
+                    </p>
+                    @if (r.observations) {
+                      <p class="mt-2 text-sm text-gray-700">{{ r.observations }}</p>
+                    }
+                    @if (r.reserves) {
+                      <p class="mt-1 text-sm text-amber-700">Réserves : {{ r.reserves }}</p>
+                    }
+                  </div>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </tc-card>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,147 @@
+<div class="space-y-6">
+  <header>
+    <h1 class="text-2xl font-bold text-gray-900">Demandes d'éclaircissements</h1>
+    <p class="text-sm text-gray-500">
+      Questionnez le Trésorier (ou Secrétaire / Censeur) sur toute opération (RM-DE01). Évaluez la réponse (RM-DE04).
+    </p>
+  </header>
+
+  @if (errorMessage(); as err) {
+    <tc-alert kind="error">{{ err }}</tc-alert>
+  }
+
+  <div class="grid gap-6 lg:grid-cols-3">
+    <aside>
+      <tc-card title="Nouvelle demande">
+        <form class="space-y-3" (submit)="onSubmit($event)">
+          <tc-input label="Objet" [(value)]="subject" [required]="true" />
+
+          <div>
+            <label class="text-xs font-medium text-gray-700">Question</label>
+            <textarea
+              class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              rows="4"
+              [value]="question()"
+              (input)="question.set($any($event.target).value)"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="text-xs font-medium text-gray-700">Destinataire</label>
+            <select
+              class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              [value]="targetRole()"
+              (change)="targetRole.set($any($event.target).value)"
+            >
+              <option value="TREASURER">Trésorier</option>
+              <option value="SECRETARY">Secrétaire</option>
+              <option value="CENSOR">Censeur</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="text-xs font-medium text-gray-700">Délai de réponse</label>
+            <select
+              class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              [value]="dueWithin()"
+              (change)="dueWithin.set(+$any($event.target).value)"
+            >
+              <option [value]="24">24 heures</option>
+              <option [value]="48">48 heures</option>
+              <option [value]="72">72 heures</option>
+              <option [value]="168">1 semaine</option>
+            </select>
+          </div>
+
+          <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
+            ✈ Envoyer
+          </tc-button>
+        </form>
+      </tc-card>
+    </aside>
+
+    <div class="space-y-3 lg:col-span-2">
+      @if (resource.isLoading()) {
+        <p class="text-sm text-gray-500">Chargement…</p>
+      } @else if (clarifications().length === 0) {
+        <tc-card>
+          <tc-empty-state title="Aucune demande" icon="❓" />
+        </tc-card>
+      } @else {
+        @for (c of clarifications(); track c.id) {
+          <tc-card>
+            <div class="space-y-2">
+              <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <p class="font-semibold text-gray-900">{{ c.reference }} — {{ c.subject }}</p>
+                    <tc-badge [kind]="statusBadge(c.status)">{{ statusLabel(c.status) }}</tc-badge>
+                  </div>
+                  <p class="mt-1 text-xs text-gray-500">
+                    Émise le {{ c.raisedAt | tcDate: true }} · → {{ c.targetRole }} · délai {{ c.dueWithinHours }}h
+                  </p>
+                </div>
+              </div>
+
+              <div class="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                <p class="text-xs font-medium text-gray-700">Question</p>
+                <p class="mt-1 text-sm text-gray-700">{{ c.question }}</p>
+              </div>
+
+              @if (c.response) {
+                <div class="rounded-lg border border-blue-100 bg-blue-50 p-3">
+                  <p class="text-xs font-medium text-blue-900">
+                    Réponse — {{ c.respondedAt | tcDate: true }} · {{ c.respondedByFullName }}
+                  </p>
+                  <p class="mt-1 text-sm text-blue-900">{{ c.response }}</p>
+                </div>
+              }
+
+              <div class="flex flex-wrap gap-2">
+                @if (c.status === 'PENDING') {
+                  <tc-button
+                    variant="outline"
+                    size="sm"
+                    [loading]="acting() === c.id + ':sim'"
+                    (clicked)="simulate(c)"
+                  >
+                    🧪 Simuler réponse Trésorier
+                  </tc-button>
+                }
+                @if (c.status === 'RESPONDED') {
+                  <tc-button
+                    variant="success"
+                    size="sm"
+                    [loading]="acting() === c.id + ':sat'"
+                    (clicked)="evaluate(c, 'SATISFACTORY')"
+                  >
+                    ✅ Satisfaisante
+                  </tc-button>
+                  <tc-button
+                    variant="outline"
+                    size="sm"
+                    [loading]="acting() === c.id + ':par'"
+                    (clicked)="evaluate(c, 'PARTIAL')"
+                  >
+                    ⚠ Partielle
+                  </tc-button>
+                  <tc-button
+                    variant="danger"
+                    size="sm"
+                    [loading]="acting() === c.id + ':unsat'"
+                    (clicked)="evaluate(c, 'UNSATISFACTORY')"
+                  >
+                    ❌ Escalader au Président
+                  </tc-button>
+                }
+                @if (c.evaluation) {
+                  <span class="text-xs text-gray-500">Évaluation : {{ evalLabel(c.evaluation) }}</span>
+                }
+              </div>
+            </div>
+          </tc-card>
+        }
+      }
+    </div>
+  </div>
+</div>

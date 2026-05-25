@@ -1,48 +1,46 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
 export interface Toast {
-  id: string;
-  type: 'success' | 'error' | 'warning' | 'info';
+  id: number;
+  kind: 'success' | 'error' | 'warning' | 'info';
+  title?: string;
   message: string;
-  duration: number;
+  durationMs: number;
 }
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
-  private readonly _toasts = signal<Toast[]>([]);
-  readonly toasts = this._toasts.asReadonly();
+  private readonly toastsSignal = signal<Toast[]>([]);
+  private nextId = 1;
 
-  success(message: string, duration = 5000): void {
-    this.addToast('success', message, duration);
+  readonly toasts = this.toastsSignal.asReadonly();
+
+  success(message: string, title?: string, durationMs = 4000): void {
+    this.push({ kind: 'success', message, title, durationMs });
   }
 
-  error(message: string, duration = 8000): void {
-    this.addToast('error', message, duration);
+  error(message: string, title?: string, durationMs = 6000): void {
+    this.push({ kind: 'error', message, title, durationMs });
   }
 
-  warning(message: string, duration = 6000): void {
-    this.addToast('warning', message, duration);
+  warning(message: string, title?: string, durationMs = 5000): void {
+    this.push({ kind: 'warning', message, title, durationMs });
   }
 
-  info(message: string, duration = 5000): void {
-    this.addToast('info', message, duration);
+  info(message: string, title?: string, durationMs = 4000): void {
+    this.push({ kind: 'info', message, title, durationMs });
   }
 
-  remove(id: string): void {
-    this._toasts.update(toasts => toasts.filter(t => t.id !== id));
+  dismiss(id: number): void {
+    this.toastsSignal.update((items) => items.filter((t) => t.id !== id));
   }
 
-  clear(): void {
-    this._toasts.set([]);
-  }
-
-  private addToast(type: Toast['type'], message: string, duration: number): void {
-    const id = crypto.randomUUID();
-    const toast: Toast = { id, type, message, duration };
-    this._toasts.update(toasts => [...toasts, toast]);
-
-    if (duration > 0) {
-      setTimeout(() => this.remove(id), duration);
+  private push(partial: Omit<Toast, 'id'>): void {
+    const id = this.nextId++;
+    const toast: Toast = { id, ...partial };
+    this.toastsSignal.update((items) => [...items, toast]);
+    if (typeof window !== 'undefined' && toast.durationMs > 0) {
+      window.setTimeout(() => this.dismiss(id), toast.durationMs);
     }
   }
 }

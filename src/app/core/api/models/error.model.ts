@@ -1,6 +1,15 @@
 export interface ApiError {
-  statusCode: number;
+  code: string;
   message: string;
-  errors?: Record<string, string[]>;
+  details?: Record<string, string[]>;
   timestamp: string;
+  path?: string;
+  status: number;
 }
+
+export const isApiError = (value: unknown): value is ApiError =>
+  typeof value === 'object' &&
+  value !== null &&
+  'code' in value &&
+  'message' in value &&
+  'status' in value;

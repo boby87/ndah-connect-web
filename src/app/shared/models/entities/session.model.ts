@@ -1,25 +1,27 @@
-import { SessionStatus } from '../../../core/enums';
-import { Member } from './member.model';
+import { SessionStatus } from '../../../core/enums/session-status.enum';
 
 export interface Session {
   id: string;
-  cycleId: string;
   tontineId: string;
+  cycleId: string;
   number: number;
-  sessionType: 'ordinary' | 'extraordinary';
-  scheduledDate: string;
-  scheduledTime: string;
+  scheduledAt: string;
+  startedAt?: string;
+  endedAt?: string;
   location?: string;
-  locationCoordinates?: { lat: number; lng: number };
-  beneficiaryId?: string;
-  beneficiary?: Member;
   status: SessionStatus;
-  agendaValidated: boolean;
-  agendaDocumentId?: string;
-  minutesDocumentId?: string;
-  openedAt?: string;
-  closedAt?: string;
-  openedBy?: string;
-  quorumReached?: boolean;
-  createdAt: string;
+  agenda: AgendaItem[];
+  beneficiaryMemberId?: string;
+  totalCollected: number;
+  totalDistributed: number;
+  attendanceCount: number;
+  quorumReached: boolean;
+}
+
+export interface AgendaItem {
+  id: string;
+  order: number;
+  title: string;
+  description?: string;
+  status: 'PENDING' | 'IN_PROGRESS' | 'DONE' | 'SKIPPED';
 }

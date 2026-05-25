@@ -1,11 +1,16 @@
-<div [class]="'card card-' + variant() + ' padding-' + padding() + ' shadow-' + shadow()">
-  <div class="card-header">
-    <ng-content select="[card-header]" />
-  </div>
-  <div class="card-body">
-    <ng-content />
-  </div>
-  <div class="card-footer">
-    <ng-content select="[card-footer]" />
-  </div>
+<div class="tc-card" [class.tc-card--soft]="tone() === 'soft'" [class.tc-card--accent]="tone() === 'accent'" [class.tc-card--padded]="padded()">
+  @if (eyebrow() || title()) {
+    <header class="tc-card__header">
+      @if (eyebrow()) {
+        <p class="tc-eyebrow">{{ eyebrow() }}</p>
+      }
+      @if (title()) {
+        <h3 class="tc-card__title">{{ title() }}</h3>
+      }
+      @if (subtitle()) {
+        <p class="tc-card__subtitle">{{ subtitle() }}</p>
+      }
+    </header>
+  }
+  <ng-content />
 </div>

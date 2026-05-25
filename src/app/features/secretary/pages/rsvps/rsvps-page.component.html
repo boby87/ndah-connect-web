@@ -1,0 +1,88 @@
+<div class="space-y-6">
+  <a routerLink="/secretary/dashboard" class="inline-flex items-center text-sm text-blue-600 hover:underline">
+    ← Retour au tableau de bord
+  </a>
+
+  @if (errorMessage(); as err) {
+    <tc-alert kind="error">{{ err }}</tc-alert>
+  }
+
+  @if (resource.isLoading()) {
+    <div class="flex justify-center py-12"><tc-spinner size="lg" /></div>
+  } @else if (summary(); as s) {
+    <header>
+      <h1 class="text-2xl font-bold text-gray-900">Confirmations — Séance #{{ s.sessionNumber }}</h1>
+      <p class="text-sm text-gray-500">{{ s.scheduledAt | tcDate: true }}</p>
+    </header>
+
+    <section class="grid gap-4 sm:grid-cols-4">
+      <tc-card>
+        <p class="text-xs uppercase text-gray-500">Confirmés</p>
+        <p class="text-2xl font-bold text-green-600">{{ s.confirmed }}</p>
+      </tc-card>
+      <tc-card>
+        <p class="text-xs uppercase text-gray-500">Incertains</p>
+        <p class="text-2xl font-bold text-amber-600">{{ s.tentative }}</p>
+      </tc-card>
+      <tc-card>
+        <p class="text-xs uppercase text-gray-500">Déclinés</p>
+        <p class="text-2xl font-bold text-red-600">{{ s.declined }}</p>
+      </tc-card>
+      <tc-card>
+        <p class="text-xs uppercase text-gray-500">Sans réponse</p>
+        <p class="text-2xl font-bold text-gray-500">{{ s.pending }}</p>
+      </tc-card>
+    </section>
+
+    <tc-card>
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p class="text-sm text-gray-700">
+            Quorum requis : {{ (s.quorumPercent * 100 | number: '1.0-0') }}% — Statut actuel :
+            <span [class]="s.quorumReached ? 'text-green-600 font-semibold' : 'text-amber-600 font-semibold'">
+              {{ s.quorumReached ? '✓ Atteint' : '⚠ Non atteint' }}
+            </span>
+          </p>
+          <p class="mt-1 text-xs text-gray-500">
+            {{ s.confirmed }} confirmé(s) sur {{ s.totalMembers }} membre(s) actifs.
+          </p>
+        </div>
+        <tc-button variant="primary" size="sm" [loading]="remindLoading()" (clicked)="remindPending()">
+          📨 Relancer les {{ s.pending }} sans réponse
+        </tc-button>
+      </div>
+    </tc-card>
+
+    <tc-card title="Détail par membre">
+      <ul class="divide-y divide-gray-100">
+        @for (rsvp of s.rsvps; track rsvp.memberId) {
+          <li class="flex flex-wrap items-center justify-between gap-3 py-3">
+            <div>
+              <p class="font-medium text-gray-900">{{ rsvp.memberFullName }}</p>
+              @if (rsvp.respondedAt) {
+                <p class="text-xs text-gray-500">Répondu {{ rsvp.respondedAt | tcDate: true }}</p>
+              }
+              @if (rsvp.reason) {
+                <p class="mt-1 text-xs italic text-amber-700">« {{ rsvp.reason }} »</p>
+              }
+            </div>
+            <div class="flex flex-wrap gap-1">
+              @for (st of statuses; track st) {
+                <button
+                  type="button"
+                  [class]="rsvpButtonClass(rsvp.status, st)"
+                  [disabled]="actingMember() === rsvp.memberId"
+                  (click)="setStatus(rsvp.memberId, st)"
+                >
+                  {{ RSVP_STATUS_LABELS[st] }}
+                </button>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    </tc-card>
+  } @else {
+    <tc-card>Aucune donnée RSVP.</tc-card>
+  }
+</div>

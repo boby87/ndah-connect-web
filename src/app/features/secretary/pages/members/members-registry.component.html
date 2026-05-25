@@ -1,0 +1,82 @@
+<div class="space-y-6">
+  <header>
+    <h1 class="text-2xl font-bold text-gray-900">Registre des membres</h1>
+    <p class="text-sm text-gray-500">
+      Téléphone, email et matricule sont modifiables directement. Les autres champs nécessitent une validation Président
+      (RM-RM03).
+    </p>
+  </header>
+
+  @if (errorMessage(); as err) {
+    <tc-alert kind="error">{{ err }}</tc-alert>
+  }
+
+  @if (resource.isLoading()) {
+    <p class="text-sm text-gray-500">Chargement…</p>
+  } @else if (members().length === 0) {
+    <tc-card>
+      <tc-empty-state title="Aucun membre" icon="📇" />
+    </tc-card>
+  } @else {
+    <tc-card>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 text-left text-xs uppercase tracking-wider text-gray-500">
+              <th class="py-3">Matricule</th>
+              <th class="py-3">Nom complet</th>
+              <th class="py-3">Téléphone</th>
+              <th class="py-3">Email</th>
+              <th class="py-3">Statut</th>
+              <th class="py-3">Arriérés</th>
+              <th class="py-3">Adhésion</th>
+              <th class="py-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (member of members(); track member.id) {
+              <tr class="border-b border-gray-100">
+                @if (editingId() === member.id) {
+                  <td class="py-2"><tc-input [(value)]="editMatricule" /></td>
+                  <td class="py-2 font-medium">{{ member.firstName }} {{ member.lastName }}</td>
+                  <td class="py-2"><tc-input type="tel" [(value)]="editPhone" /></td>
+                  <td class="py-2"><tc-input type="email" [(value)]="editEmail" /></td>
+                  <td class="py-2">
+                    <tc-badge [kind]="statusKind(member.status)">
+                      {{ member.status | statusLabel: 'member' }}
+                    </tc-badge>
+                  </td>
+                  <td class="py-2" [class.text-red-600]="member.totalArrears > 0">
+                    {{ member.totalArrears | xaf }}
+                  </td>
+                  <td class="py-2">{{ member.joinedAt | tcDate }}</td>
+                  <td class="flex gap-1 py-2">
+                    <tc-button variant="success" size="sm" [loading]="saving()" (clicked)="save(member.id)">✓</tc-button>
+                    <tc-button variant="outline" size="sm" (clicked)="cancel()">✗</tc-button>
+                  </td>
+                } @else {
+                  <td class="py-3 font-mono text-xs text-gray-600">{{ member.matricule }}</td>
+                  <td class="py-3 font-medium text-gray-900">{{ member.firstName }} {{ member.lastName }}</td>
+                  <td class="py-3 text-gray-700">{{ member.phone | phone }}</td>
+                  <td class="py-3 text-gray-700">{{ member.email ?? '—' }}</td>
+                  <td class="py-3">
+                    <tc-badge [kind]="statusKind(member.status)">
+                      {{ member.status | statusLabel: 'member' }}
+                    </tc-badge>
+                  </td>
+                  <td class="py-3" [class.text-red-600]="member.totalArrears > 0">
+                    {{ member.totalArrears | xaf }}
+                  </td>
+                  <td class="py-3 text-gray-700">{{ member.joinedAt | tcDate }}</td>
+                  <td class="py-3">
+                    <tc-button variant="ghost" size="sm" (clicked)="edit(member)">Éditer</tc-button>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </tc-card>
+  }
+</div>

@@ -1,0 +1,104 @@
+<div class="space-y-6">
+  <header>
+    <h1 class="text-2xl font-bold text-gray-900">Annonces aux membres</h1>
+    <p class="text-sm text-gray-500">
+      Envoyez des communications via plusieurs canaux. Les annonces sont archivées automatiquement (RM-AN05).
+    </p>
+  </header>
+
+  @if (errorMessage(); as err) {
+    <tc-alert kind="error">{{ err }}</tc-alert>
+  }
+
+  <div class="grid gap-6 lg:grid-cols-3">
+    <div class="lg:col-span-2">
+      <tc-card title="Historique">
+        @if (resource.isLoading()) {
+          <p class="text-sm text-gray-500">Chargement…</p>
+        } @else if (announcements().length === 0) {
+          <tc-empty-state title="Aucune annonce" icon="📢" />
+        } @else {
+          <ul class="divide-y divide-gray-100">
+            @for (a of announcements(); track a.id) {
+              <li class="py-4 first:pt-0 last:pb-0">
+                <div class="flex flex-wrap items-start justify-between gap-2">
+                  <p class="font-semibold text-gray-900">{{ a.title }}</p>
+                  <span class="text-xs text-gray-500">{{ a.publishedAt | tcDate: true }}</span>
+                </div>
+                <p class="mt-1 text-sm text-gray-700 whitespace-pre-wrap">{{ a.body }}</p>
+                <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                  <tc-badge kind="info">{{ audienceLabel(a.audience) }}</tc-badge>
+                  @for (c of a.channels; track c) {
+                    <tc-badge kind="neutral">{{ channelLabel(c) }}</tc-badge>
+                  }
+                  <span class="text-gray-400">· par {{ a.authorFullName }}</span>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </tc-card>
+    </div>
+
+    <aside>
+      <tc-card title="Publier une annonce">
+        <form class="space-y-4" (submit)="onSubmit($event)">
+          <tc-input
+            label="Titre"
+            [(value)]="title"
+            [(touched)]="titleTouched"
+            [error]="titleError()"
+            [required]="true"
+          />
+          <tc-textarea
+            label="Message"
+            [(value)]="body"
+            [(touched)]="bodyTouched"
+            [error]="bodyError()"
+            [rows]="5"
+            [required]="true"
+          />
+          <div>
+            <p class="mb-1 text-sm font-medium text-gray-700">Audience</p>
+            <div class="space-y-1 text-sm">
+              @for (opt of audienceOptions; track opt.value) {
+                <label class="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="audience"
+                    class="h-4 w-4 text-violet-600 focus:ring-violet-500"
+                    [checked]="audience() === opt.value"
+                    (change)="audience.set(opt.value)"
+                  />
+                  {{ opt.label }}
+                </label>
+              }
+            </div>
+          </div>
+          <div>
+            <p class="mb-1 text-sm font-medium text-gray-700">Canaux</p>
+            <div class="space-y-1 text-sm">
+              @for (c of channels; track c) {
+                <label class="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    class="h-4 w-4 rounded text-violet-600 focus:ring-violet-500"
+                    [checked]="selectedChannels().includes(c)"
+                    (change)="toggleChannel(c, $event)"
+                  />
+                  {{ channelLabel(c) }}
+                </label>
+              }
+            </div>
+            @if (channelsError()) {
+              <p class="mt-1 text-xs text-red-600">{{ channelsError() }}</p>
+            }
+          </div>
+          <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
+            Publier
+          </tc-button>
+        </form>
+      </tc-card>
+    </aside>
+  </div>
+</div>

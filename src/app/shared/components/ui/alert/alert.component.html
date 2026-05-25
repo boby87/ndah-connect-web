@@ -1,6 +1,11 @@
-<div [class]="'alert alert-' + type()">
-  <span class="alert-message">{{ message() }}</span>
-  @if (closable()) {
-    <button class="alert-close" (click)="closed.emit()" type="button">&times;</button>
-  }
+<div [class]="classes()" role="alert">
+  <span class="tc-alert__icon" aria-hidden="true"></span>
+  <div class="tc-alert__body">
+    @if (title()) {
+      <p class="tc-alert__title">{{ title() }}</p>
+    }
+    <div class="tc-alert__content">
+      <ng-content />
+    </div>
+  </div>
 </div>

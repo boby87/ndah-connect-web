@@ -1,14 +1,10 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-@Pipe({ name: 'initials', standalone: true })
+@Pipe({ name: 'initials', pure: true })
 export class InitialsPipe implements PipeTransform {
-  transform(value: string | null | undefined): string {
-    if (!value) return '';
-    return value
-      .split(' ')
-      .filter(Boolean)
-      .map(word => word[0].toUpperCase())
-      .slice(0, 2)
-      .join('');
+  transform(firstName?: string | null, lastName?: string | null): string {
+    const a = (firstName ?? '').trim().charAt(0).toUpperCase();
+    const b = (lastName ?? '').trim().charAt(0).toUpperCase();
+    return `${a}${b}` || '?';
   }
 }

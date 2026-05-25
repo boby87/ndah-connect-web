@@ -1,6 +1,32 @@
+import { environment } from '../../../environments/environment';
+
 export const API_CONFIG = {
-  BASE_URL: 'http://localhost:3000/api/v1',
-  TIMEOUT: 30000,
-  RETRY_ATTEMPTS: 3,
-  RETRY_DELAY: 1000,
+  baseUrl: environment.apiUrl,
+  useMock: environment.useMock,
+  timeout: 30000,
+  retryCount: 1,
+} as const;
+
+export const API_ENDPOINTS = {
+  auth: {
+    login: '/auth/login',
+    register: '/auth/register',
+    logout: '/auth/logout',
+    refresh: '/auth/refresh',
+    forgotPassword: '/auth/forgot-password',
+    resetPassword: '/auth/reset-password',
+    verifyOtp: '/auth/verify-otp',
+    me: '/auth/me',
+  },
+  tontines: '/tontines',
+  members: '/members',
+  sessions: '/sessions',
+  contributions: '/contributions',
+  distributions: '/distributions',
+  loans: '/loans',
+  sanctions: '/sanctions',
+  documents: '/documents',
+  notifications: '/notifications',
+  votes: '/votes',
+  treasury: '/treasury',
 } as const;

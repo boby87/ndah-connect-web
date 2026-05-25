@@ -1,44 +1,65 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/auth/services/auth.service';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { AlertComponent } from '../../../../shared/components/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../shared/components/ui/button/button.component';
-import { PhoneInputComponent } from '../../../../shared/components/forms/phone-input/phone-input.component';
-import { FormFieldComponent } from '../../../../shared/components/forms/form-field/form-field.component';
+import { InputComponent } from '../../../../shared/components/ui/input/input.component';
 
 @Component({
-  selector: 'app-forgot-password',
-  standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ButtonComponent, PhoneInputComponent, FormFieldComponent],
-  templateUrl: './forgot-password.component.html',
-  styleUrl: './forgot-password.component.css',
+  selector: 'tc-forgot-password-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink, InputComponent, ButtonComponent, AlertComponent],
+  template: `
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Mot de passe oublié</h1>
+      <p class="text-sm text-gray-500 mt-1">
+        Indiquez votre email ou téléphone, nous vous enverrons un code de réinitialisation.
+      </p>
+
+      <form class="mt-8 space-y-4" (submit)="onSubmit($event)">
+        @if (success()) {
+          <tc-alert kind="success">{{ success() }}</tc-alert>
+        }
+        <tc-input
+          label="Email ou téléphone"
+          [(value)]="identifier"
+          [required]="true"
+        />
+        <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
+          Envoyer le code
+        </tc-button>
+        <p class="text-center text-sm text-gray-600">
+          <a routerLink="/auth/login" class="text-blue-600 hover:underline font-medium">Retour à la connexion</a>
+        </p>
+      </form>
+    </div>
+  `,
 })
-export class ForgotPasswordComponent {
-  private readonly fb = inject(FormBuilder);
-  private readonly authService = inject(AuthService);
+export class ForgotPasswordPageComponent {
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly notification = inject(NotificationService);
 
-  protected isLoading = false;
+  readonly identifier = signal('');
+  readonly submitting = signal(false);
+  readonly success = signal<string | null>(null);
 
-  readonly form = this.fb.nonNullable.group({
-    phoneNumber: ['', [Validators.required]],
-  });
+  async onSubmit(event: Event): Promise<void> {
+    event.preventDefault();
+    if (!this.identifier().trim()) return;
 
-  async onSubmit(): Promise<void> {
-    if (this.form.invalid) return;
-
-    this.isLoading = true;
+    this.submitting.set(true);
     try {
-      await this.authService.forgotPassword(this.form.getRawValue().phoneNumber);
-      this.notification.success('Un code de réinitialisation a été envoyé.');
-      this.router.navigate(['/auth/reset-password'], { queryParams: { phone: this.form.value.phoneNumber } });
-    } catch {
-      this.notification.error('Erreur. Vérifiez votre numéro de téléphone.');
+      await this.auth.forgotPassword(this.identifier());
+      this.success.set('Si le compte existe, un code de réinitialisation vous a été envoyé.');
+      setTimeout(
+        () =>
+          this.router.navigate(['/auth/reset-password'], {
+            queryParams: { identifier: this.identifier() },
+          }),
+        1500,
+      );
     } finally {
-      this.isLoading = false;
+      this.submitting.set(false);
     }
   }
 }

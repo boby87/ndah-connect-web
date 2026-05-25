@@ -1,20 +1,25 @@
-@if (label()) {
-  <label class="textarea-label">{{ label() }}</label>
-}
-<textarea
-  class="textarea-field"
-  [class.textarea-error]="error()"
-  [placeholder]="placeholder()"
-  [rows]="rows()"
-  [disabled]="isDisabled()"
-  [value]="value()"
-  [attr.maxlength]="maxLength()"
-  (input)="onInput($event)"
-  (blur)="onBlur()"
-></textarea>
-@if (hint() && !error()) {
-  <span class="textarea-hint">{{ hint() }}</span>
-}
-@if (error()) {
-  <span class="textarea-error-text">{{ error() }}</span>
-}
+<div class="tc-field" [class.tc-field--error]="hasError()">
+  @if (label()) {
+    <label class="tc-field__label" [for]="textareaId">
+      {{ label() }}
+      @if (required()) {
+        <span class="tc-field__required">*</span>
+      }
+    </label>
+  }
+  <textarea
+    class="tc-field__textarea"
+    [id]="textareaId"
+    [rows]="rows()"
+    [placeholder]="placeholder()"
+    [disabled]="disabled()"
+    [value]="value()"
+    (input)="onInput($event)"
+    (blur)="touched.set(true)"
+  ></textarea>
+  @if (hasError()) {
+    <p class="tc-field__error">{{ error() }}</p>
+  } @else if (hint()) {
+    <p class="tc-field__hint">{{ hint() }}</p>
+  }
+</div>

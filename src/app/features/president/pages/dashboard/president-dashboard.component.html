@@ -1,0 +1,138 @@
+<section class="tc-page">
+  <header class="tc-page__hero">
+    <div>
+      <p class="tc-eyebrow">Présidence</p>
+      <h1 class="tc-page__title">Bonjour {{ auth.user()?.firstName }} 👋</h1>
+      <p class="tc-page__subtitle">Vue consolidée de votre tontine.</p>
+    </div>
+  </header>
+
+  @if (dashboardResource.isLoading()) {
+    <div class="tc-page__loading"><tc-spinner size="lg" /></div>
+  } @else if (data(); as d) {
+    @if (d.alerts.length > 0) {
+      <section class="tc-alerts">
+        @for (alert of d.alerts; track alert.id) {
+          <tc-alert [kind]="alertKind(alert.level)">
+            <div class="tc-alert-row">
+              <span>{{ alert.message }}</span>
+              @if (alert.link) {
+                <a [routerLink]="alert.link" class="tc-alert-row__action">Traiter →</a>
+              }
+            </div>
+          </tc-alert>
+        }
+      </section>
+    }
+
+    <section class="tc-grid tc-grid--stats">
+      <tc-stat-card label="Caisses (solde)" [value]="d.kpi.totalCashBalance | xaf" icon="🏦" />
+      <tc-stat-card label="Membres actifs" [value]="d.kpi.activeMembersCount" icon="👥" />
+      <tc-stat-card label="Prêts actifs" [value]="d.kpi.activeLoansCount" [sublabel]="(d.kpi.activeLoansAmount | xaf) ?? ''" icon="💳" tone="info" />
+      <tc-stat-card label="Sanctions en cours" [value]="d.kpi.pendingSanctionsCount" [sublabel]="(d.kpi.pendingSanctionsAmount | xaf) ?? ''" icon="⚖" tone="warning" />
+      <tc-stat-card label="Prochaine séance" [value]="nextSessionValue(d)" [sublabel]="d.kpi.nextSessionNumber ? ('Séance #' + d.kpi.nextSessionNumber) : ''" icon="📅" />
+      <tc-stat-card label="Taux de cotisations" [value]="(d.kpi.contributionRate * 100 | number: '1.0-0') + '%'" sublabel="ce cycle" icon="✅" tone="success" />
+      <tc-stat-card label="Validations en attente" [value]="d.kpi.pendingValidationsCount" icon="⏳" [tone]="d.kpi.pendingValidationsCount > 0 ? 'warning' : 'neutral'" />
+      <tc-stat-card label="Progression du cycle" [value]="(d.kpi.cycleProgressPercent | number: '1.0-0') + '%'" [sublabel]="d.kpi.cycleCompletedSessions + '/' + d.kpi.cycleTotalSessions + ' séances'" icon="📈" tone="info" />
+    </section>
+
+    <section class="tc-grid tc-grid--split">
+      <tc-card eyebrow="Bureau" title="Validations en attente" subtitle="Décisions à prendre rapidement">
+        @if (d.pendingValidations.length === 0) {
+          <tc-empty-state title="Tout est à jour" icon="✓" description="Aucune validation en attente." />
+        } @else {
+          <ul class="tc-pv-list">
+            @for (item of d.pendingValidations; track item.id) {
+              <li>
+                <a [routerLink]="['/president/validations', item.id]" class="tc-pv-list__item">
+                  <div class="tc-pv-list__main">
+                    <p class="tc-pv-list__title">{{ item.title }}</p>
+                    <p class="tc-pv-list__meta">
+                      {{ categoryLabel(item.category) }}
+                      @if (item.amount) {
+                        · <span>{{ item.amount | xaf }}</span>
+                      }
+                    </p>
+                  </div>
+                  <tc-badge [kind]="priorityKind(item.priority)">{{ priorityLabel(item.priority) }}</tc-badge>
+                  <tc-icon name="chevron-down" [size]="16" />
+                </a>
+              </li>
+            }
+          </ul>
+          <a routerLink="/president/validations" class="tc-link">Voir toutes les validations →</a>
+        }
+      </tc-card>
+
+      <tc-card eyebrow="Performance" title="Indicateurs" subtitle="Comparaison vs cycle précédent">
+        <ul class="tc-perf-list">
+          @for (perf of d.performance; track perf.label) {
+            <li>
+              <span class="tc-perf-list__label">{{ perf.label }}</span>
+              <span class="tc-perf-list__values">
+                <span class="tc-perf-list__current">{{ perf.current }}{{ perf.unit }}</span>
+                <span [class]="trendTone(perf)">
+                  {{ perf.trend === 'UP' ? '↗' : perf.trend === 'DOWN' ? '↘' : '→' }} {{ deltaText(perf) }}
+                </span>
+              </span>
+            </li>
+          }
+        </ul>
+      </tc-card>
+    </section>
+
+    <section class="tc-grid tc-grid--split">
+      <tc-card eyebrow="Activité" title="Historique récent">
+        @if (d.recentDecisions.length === 0) {
+          <p class="tc-empty-line">Aucune décision enregistrée pour le moment.</p>
+        } @else {
+          <ul class="tc-timeline">
+            @for (entry of d.recentDecisions; track entry.id) {
+              <li>
+                <span class="tc-timeline__date">{{ entry.decidedAt | tcDate }}</span>
+                <span class="tc-timeline__subject">{{ entry.subject }}</span>
+                <tc-badge [kind]="decisionKind(entry.decision)">{{ decisionLabel(entry.decision) }}</tc-badge>
+              </li>
+            }
+          </ul>
+        }
+      </tc-card>
+
+      <tc-card eyebrow="Calendrier" title="Agenda">
+        @if (d.agenda.length === 0) {
+          <p class="tc-empty-line">Aucune échéance.</p>
+        } @else {
+          <ul class="tc-agenda">
+            @for (item of d.agenda; track item.id) {
+              <li>
+                <span [class]="bucketBadge(item.bucket)">{{ bucketShort(item.bucket) }}</span>
+                <div>
+                  <p class="tc-agenda__title">{{ item.title }}</p>
+                  <p class="tc-agenda__meta">{{ item.when | tcDate: true }}</p>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </tc-card>
+    </section>
+
+    <section>
+      <tc-card eyebrow="Actions" title="Raccourcis">
+        <div class="tc-quick-actions">
+          <a routerLink="/president/validations" class="tc-quick-actions__item">
+            <tc-icon name="check-square" [size]="18" /> Valider documents & opérations
+          </a>
+          <a routerLink="/president/sanctions" class="tc-quick-actions__item">
+            <tc-icon name="gavel" [size]="18" /> Gérer les sanctions
+          </a>
+          <a routerLink="/president/announcements" class="tc-quick-actions__item">
+            <tc-icon name="megaphone" [size]="18" /> Publier une annonce
+          </a>
+        </div>
+      </tc-card>
+    </section>
+  } @else {
+    <tc-card>Impossible de charger le tableau de bord.</tc-card>
+  }
+</section>

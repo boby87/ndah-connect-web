@@ -1,57 +1,86 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/auth/services/auth.service';
-import { NotificationService } from '../../../../core/services/notification.service';
-import { passwordMatchValidator } from '../../../../shared/validators/password-match.validator';
+import { isStrongPassword } from '../../../../core/utils/validation.utils';
+import { AlertComponent } from '../../../../shared/components/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../shared/components/ui/button/button.component';
-import { PasswordInputComponent } from '../../../../shared/components/forms/password-input/password-input.component';
-import { FormFieldComponent } from '../../../../shared/components/forms/form-field/form-field.component';
 import { InputComponent } from '../../../../shared/components/ui/input/input.component';
 
 @Component({
-  selector: 'app-reset-password',
-  standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ButtonComponent, PasswordInputComponent, FormFieldComponent, InputComponent],
-  templateUrl: './reset-password.component.html',
-  styleUrl: './reset-password.component.css',
+  selector: 'tc-reset-password-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink, InputComponent, ButtonComponent, AlertComponent],
+  template: `
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Nouveau mot de passe</h1>
+      <p class="text-sm text-gray-500 mt-1">
+        Définissez votre nouveau mot de passe en utilisant le code reçu.
+      </p>
+
+      <form class="mt-8 space-y-4" (submit)="onSubmit($event)">
+        @if (errorMessage()) {
+          <tc-alert kind="error">{{ errorMessage() }}</tc-alert>
+        }
+        <tc-input label="Email ou téléphone" [(value)]="identifier" [required]="true" />
+        <tc-input label="Code reçu" [(value)]="code" placeholder="000000" [required]="true" />
+        <tc-input
+          label="Nouveau mot de passe"
+          type="password"
+          [(value)]="password"
+          [error]="passwordError()"
+          [(touched)]="passwordTouched"
+          [required]="true"
+        />
+        <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
+          Réinitialiser
+        </tc-button>
+        <p class="text-center text-sm text-gray-600">
+          <a routerLink="/auth/login" class="text-blue-600 hover:underline font-medium">Retour à la connexion</a>
+        </p>
+      </form>
+    </div>
+  `,
 })
-export class ResetPasswordComponent implements OnInit {
-  private readonly fb = inject(FormBuilder);
-  private readonly authService = inject(AuthService);
+export class ResetPasswordPageComponent {
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
-  private readonly notification = inject(NotificationService);
 
-  protected isLoading = false;
+  readonly identifier = signal(this.route.snapshot.queryParamMap.get('identifier') ?? '');
+  readonly code = signal('');
+  readonly password = signal('');
+  readonly passwordTouched = signal(false);
+  readonly submitting = signal(false);
+  readonly errorMessage = signal<string | null>(null);
 
-  readonly form = this.fb.nonNullable.group({
-    code: ['', [Validators.required, Validators.minLength(6)]],
-    password: ['', [Validators.required, Validators.minLength(8)]],
-    passwordConfirmation: ['', [Validators.required]],
-  }, { validators: [passwordMatchValidator('password', 'passwordConfirmation')] });
+  readonly passwordError = computed(() =>
+    this.password() && !isStrongPassword(this.password()) ? 'Mot de passe trop faible.' : '',
+  );
 
-  ngOnInit(): void {
-    const code = this.route.snapshot.queryParams['code'];
-    if (code) {
-      this.form.patchValue({ code });
+  async onSubmit(event: Event): Promise<void> {
+    event.preventDefault();
+    this.passwordTouched.set(true);
+    this.errorMessage.set(null);
+
+    if (!this.identifier() || !this.code() || this.passwordError() || !this.password()) {
+      this.errorMessage.set('Veuillez compléter le formulaire correctement.');
+      return;
     }
-  }
 
-  async onSubmit(): Promise<void> {
-    if (this.form.invalid) return;
-
-    this.isLoading = true;
+    this.submitting.set(true);
     try {
-      const phone = this.route.snapshot.queryParams['phone'] ?? '';
-      await this.authService.resetPassword({ phoneNumber: phone, ...this.form.getRawValue() });
-      this.notification.success('Mot de passe réinitialisé avec succès !');
-      this.router.navigate(['/auth/login']);
-    } catch {
-      this.notification.error('Erreur lors de la réinitialisation.');
+      await this.auth.resetPassword({
+        identifier: this.identifier(),
+        code: this.code(),
+        newPassword: this.password(),
+      });
+      await this.router.navigateByUrl('/auth/login');
+    } catch (error: unknown) {
+      const message =
+        (error as { error?: { message?: string } })?.error?.message ?? 'Réinitialisation impossible.';
+      this.errorMessage.set(message);
     } finally {
-      this.isLoading = false;
+      this.submitting.set(false);
     }
   }
 }

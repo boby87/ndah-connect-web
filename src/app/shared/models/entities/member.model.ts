@@ -1,18 +1,21 @@
-import { MemberStatus, UserRole } from '../../../core/enums';
-import { User } from './user.model';
+import { MemberStatus } from '../../../core/enums/member-status.enum';
+import { UserRole } from '../../../core/enums/user-role.enum';
 
 export interface Member {
   id: string;
   userId: string;
-  user: User;
   tontineId: string;
-  role: UserRole;
+  matricule: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email?: string;
+  avatarUrl?: string;
   status: MemberStatus;
+  roles: UserRole[];
   joinedAt: string;
-  sponsorId?: string;
-  sponsor?: Member;
-  tourNumber?: number;
-  canRequestLoan: boolean;
-  createdAt: string;
-  updatedAt: string;
+  tourOrder?: number;
+  hasReceivedTour: boolean;
+  totalContributed: number;
+  totalArrears: number;
 }

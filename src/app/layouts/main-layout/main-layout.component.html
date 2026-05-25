@@ -1,10 +1,12 @@
-<div class="main-layout" [class.sidebar-collapsed]="!uiStore.sidebarOpen()">
-  <app-sidebar />
-  <app-header />
-  <main class="main-content">
-    <router-outlet />
-  </main>
-  <app-footer />
-  <app-mobile-nav />
-  <app-toast />
+<div class="tc-shell">
+  <tc-sidebar />
+  <div class="tc-shell__main">
+    <tc-header />
+    <main class="tc-shell__content">
+      <div class="tc-shell__container">
+        <router-outlet />
+      </div>
+    </main>
+  </div>
 </div>
+<tc-toast-container />

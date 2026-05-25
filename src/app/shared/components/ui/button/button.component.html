@@ -1,21 +1,6 @@
-<button
-  [type]="type()"
-  [disabled]="disabled() || loading()"
-  [class]="'btn btn-' + variant() + ' btn-' + size()"
-  [class.btn-full-width]="fullWidth()"
-  [class.btn-icon-only]="iconOnly()"
-  [class.btn-loading]="loading()"
-  (click)="onClick($event)"
->
+<button [type]="type()" [disabled]="disabled() || loading()" [class]="hostClasses()" (click)="clicked.emit($event)">
   @if (loading()) {
-    <span class="btn-spinner"></span>
+    <span class="tc-btn__spinner" aria-hidden="true"></span>
   }
-  @if (icon(); as iconName) {
-    <span class="btn-icon">{{ iconName }}</span>
-  }
-  @if (!iconOnly()) {
-    <span class="btn-content">
-      <ng-content />
-    </span>
-  }
+  <ng-content />
 </button>

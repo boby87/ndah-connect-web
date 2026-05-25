@@ -1,26 +1,21 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { AuthService } from '../../../../core/auth/services/auth.service';
+import { LoadingService } from '../../../../core/services/loading.service';
+import { ThemeService } from '../../../../core/services/theme.service';
 import { UiStore } from '../../../../store/ui/ui.store';
-import { AuthStore } from '../../../../store/auth/auth.store';
-import { NotificationStore } from '../../../../store/notification/notification.store';
-import { TontineStore } from '../../../../store/tontine/tontine.store';
-import { TontineSelectorComponent } from '../tontine-selector/tontine-selector.component';
-import { UserMenuComponent } from '../user-menu/user-menu.component';
+import { InitialsPipe } from '../../../../shared/pipes/initials.pipe';
+import { IconComponent } from '../../../../shared/components/ui/icon/icon.component';
 
 @Component({
-  selector: 'app-header',
-  standalone: true,
-  imports: [TontineSelectorComponent, UserMenuComponent],
-  templateUrl: './header.component.html',
-  styleUrl: './header.component.css',
+  selector: 'tc-header',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [InitialsPipe, IconComponent],
+  templateUrl: './header.component.html',
+  styleUrl: './header.component.scss',
 })
 export class HeaderComponent {
-  protected readonly uiStore = inject(UiStore);
-  protected readonly authStore = inject(AuthStore);
-  protected readonly notificationStore = inject(NotificationStore);
-  protected readonly tontineStore = inject(TontineStore);
-
-  toggleSidebar(): void {
-    this.uiStore.toggleSidebar();
-  }
+  protected readonly ui = inject(UiStore);
+  protected readonly auth = inject(AuthService);
+  protected readonly theme = inject(ThemeService);
+  protected readonly loading = inject(LoadingService);
 }

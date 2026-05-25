@@ -1,17 +1,14 @@
-import { REGEX } from '../constants';
+import { REGEX } from '../constants/regex.constants';
 
-export function isValidCameroonPhone(phone: string): boolean {
-  return REGEX.CAMEROON_PHONE.test(phone);
-}
+export const isValidCameroonPhone = (value: string): boolean => REGEX.phoneCm.test(value.trim());
 
-export function isValidEmail(email: string): boolean {
-  return REGEX.EMAIL.test(email);
-}
+export const normalizeCameroonPhone = (value: string): string => {
+  const digits = value.replace(/\D/g, '');
+  if (digits.startsWith('237')) return `+${digits}`;
+  if (digits.length === 9) return `+237${digits}`;
+  return value;
+};
 
-export function isValidPassword(password: string): boolean {
-  return REGEX.PASSWORD.test(password);
-}
+export const isValidEmail = (value: string): boolean => REGEX.email.test(value.trim());
 
-export function isValidAmount(amount: number): boolean {
-  return amount > 0 && Number.isFinite(amount);
-}
+export const isStrongPassword = (value: string): boolean => REGEX.strongPassword.test(value);

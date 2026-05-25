@@ -1,2 +1,2 @@
-export { MainLayoutComponent } from './main-layout';
-export { AuthLayoutComponent } from './auth-layout';
+export * from './auth-layout';
+export * from './main-layout';

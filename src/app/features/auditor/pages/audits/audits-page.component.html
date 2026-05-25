@@ -1,0 +1,178 @@
+<div class="space-y-6">
+  <header>
+    <h1 class="text-2xl font-bold text-gray-900">Audits formels</h1>
+    <p class="text-sm text-gray-500">
+      Réalisez des audits financiers, de conformité, opérationnels ou complets.
+    </p>
+  </header>
+
+  @if (errorMessage(); as err) {
+    <tc-alert kind="error">{{ err }}</tc-alert>
+  }
+
+  <div class="grid gap-6 lg:grid-cols-3">
+    <aside>
+      <tc-card title="Nouvel audit">
+        <form class="space-y-3" (submit)="onSubmit($event)">
+          <div>
+            <label class="text-xs font-medium text-gray-700">Périmètre</label>
+            <select
+              class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              [value]="scope()"
+              (change)="scope.set($any($event.target).value)"
+            >
+              <option value="FINANCIAL">Financier</option>
+              <option value="COMPLIANCE">Conformité</option>
+              <option value="OPERATIONAL">Opérationnel</option>
+              <option value="COMPLETE">Complet</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-xs font-medium text-gray-700">Du</label>
+              <input
+                type="date"
+                class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                [value]="periodFrom()"
+                (change)="periodFrom.set($any($event.target).value)"
+              />
+            </div>
+            <div>
+              <label class="text-xs font-medium text-gray-700">Au</label>
+              <input
+                type="date"
+                class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                [value]="periodTo()"
+                (change)="periodTo.set($any($event.target).value)"
+              />
+            </div>
+          </div>
+
+          <div>
+            <p class="mb-1 text-xs font-medium text-gray-700">Constats</p>
+            <div class="space-y-2">
+              @for (f of findings(); track $index) {
+                <div class="space-y-1 rounded-lg border border-gray-200 p-2 text-sm">
+                  <div class="flex items-center gap-2">
+                    <input
+                      class="flex-1 rounded border border-gray-300 px-2 py-1 text-xs"
+                      placeholder="Domaine (ex: Trésorerie)"
+                      [value]="f.area"
+                      (input)="updateFinding($index, 'area', $any($event.target).value)"
+                    />
+                    <select
+                      class="rounded border border-gray-300 px-2 py-1 text-xs"
+                      [value]="f.finding"
+                      (change)="updateFinding($index, 'finding', $any($event.target).value)"
+                    >
+                      <option value="CONFORM">Conforme</option>
+                      <option value="WITH_RESERVES">Réserves</option>
+                      <option value="NON_CONFORM">Non conforme</option>
+                    </select>
+                    @if (findings().length > 1) {
+                      <button type="button" class="text-xs text-red-600" (click)="removeFinding($index)">✕</button>
+                    }
+                  </div>
+                  <textarea
+                    class="w-full rounded border border-gray-300 px-2 py-1 text-xs"
+                    rows="2"
+                    placeholder="Description"
+                    [value]="f.description"
+                    (input)="updateFinding($index, 'description', $any($event.target).value)"
+                  ></textarea>
+                </div>
+              }
+              <button
+                type="button"
+                class="w-full rounded border-2 border-dashed border-gray-300 py-1 text-xs hover:bg-gray-50"
+                (click)="addFinding()"
+              >
+                ➕ Ajouter
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-xs font-medium text-gray-700">Constat global</label>
+            <select
+              class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              [value]="overallFinding()"
+              (change)="overallFinding.set($any($event.target).value)"
+            >
+              <option value="CONFORM">Conforme</option>
+              <option value="WITH_RESERVES">Avec réserves</option>
+              <option value="NON_CONFORM">Non conforme</option>
+            </select>
+          </div>
+
+          <textarea
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            rows="2"
+            placeholder="Observations générales"
+            [value]="observations()"
+            (input)="observations.set($any($event.target).value)"
+          ></textarea>
+
+          <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
+            ✓ Enregistrer l'audit
+          </tc-button>
+        </form>
+      </tc-card>
+    </aside>
+
+    <div class="space-y-3 lg:col-span-2">
+      @if (resource.isLoading()) {
+        <p class="text-sm text-gray-500">Chargement…</p>
+      } @else if (audits().length === 0) {
+        <tc-card>
+          <tc-empty-state title="Aucun audit" icon="📑" />
+        </tc-card>
+      } @else {
+        @for (a of audits(); track a.id) {
+          <tc-card>
+            <div class="space-y-2">
+              <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <p class="font-semibold text-gray-900">{{ a.reference }}</p>
+                    <tc-badge kind="info">{{ a.scope }}</tc-badge>
+                    @if (a.overallFinding) {
+                      <tc-badge [kind]="findingBadge(a.overallFinding)">
+                        {{ findingLabel(a.overallFinding) }}
+                      </tc-badge>
+                    }
+                  </div>
+                  <p class="mt-1 text-xs text-gray-500">
+                    Période : {{ a.periodFrom | tcDate }} → {{ a.periodTo | tcDate }}
+                    @if (a.completedAt) {
+                      · Clôturé le {{ a.completedAt | tcDate: true }}
+                    }
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <p class="mb-1 text-xs font-medium text-gray-700">Constats</p>
+                <ul class="space-y-1">
+                  @for (f of a.findings; track f.id) {
+                    <li class="rounded-lg border border-gray-100 p-2 text-sm">
+                      <div class="flex items-center gap-2">
+                        <p class="font-medium text-gray-900">{{ f.area }}</p>
+                        <tc-badge [kind]="findingBadge(f.finding)">{{ findingLabel(f.finding) }}</tc-badge>
+                      </div>
+                      <p class="mt-1 text-xs text-gray-600">{{ f.description }}</p>
+                    </li>
+                  }
+                </ul>
+              </div>
+
+              @if (a.observations) {
+                <p class="text-sm text-gray-700">{{ a.observations }}</p>
+              }
+            </div>
+          </tc-card>
+        }
+      }
+    </div>
+  </div>
+</div>

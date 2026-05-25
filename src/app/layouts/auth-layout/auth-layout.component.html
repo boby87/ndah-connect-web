@@ -1,15 +1,26 @@
-<div class="auth-layout">
-  <div class="auth-left">
-    <div class="auth-brand">
-      <span class="auth-logo">🏦</span>
-      <h1 class="auth-title">NdahConnect</h1>
-      <p class="auth-tagline">Gérez vos tontines en toute simplicité</p>
+<div class="tc-auth">
+  <aside class="tc-auth__brand">
+    <div>
+      <div class="tc-auth__logo">
+        <span class="tc-auth__logo-mark">TC</span>
+        <span class="tc-auth__logo-name">TontineConnect</span>
+      </div>
+      <p class="tc-auth__title">
+        La plateforme moderne<br />
+        de gestion des tontines<br />
+        au Cameroun.
+      </p>
+      <p class="tc-auth__subtitle">
+        Cotisations, prêts, sessions, sanctions, audits — chaque rôle dispose
+        d'un espace dédié, sécurisé et conforme à votre règlement intérieur.
+      </p>
     </div>
-  </div>
-  <div class="auth-right">
-    <div class="auth-card">
+    <p class="tc-auth__copy">© 2026 TontineConnect</p>
+  </aside>
+  <main class="tc-auth__main">
+    <div class="tc-auth__form">
       <router-outlet />
     </div>
-  </div>
-  <app-toast />
+  </main>
 </div>
+<tc-toast-container />

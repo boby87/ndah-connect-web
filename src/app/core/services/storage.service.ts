@@ -2,33 +2,29 @@ import { Injectable } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class StorageService {
-  get(key: string): string | null {
-    return localStorage.getItem(key);
-  }
+  private readonly storage = typeof window !== 'undefined' ? window.localStorage : null;
 
-  set(key: string, value: string): void {
-    localStorage.setItem(key, value);
-  }
-
-  remove(key: string): void {
-    localStorage.removeItem(key);
-  }
-
-  clear(): void {
-    localStorage.clear();
-  }
-
-  getObject<T>(key: string): T | null {
-    const value = this.get(key);
-    if (!value) return null;
+  get<T>(key: string): T | null {
+    if (!this.storage) return null;
+    const raw = this.storage.getItem(key);
+    if (raw === null) return null;
     try {
-      return JSON.parse(value) as T;
+      return JSON.parse(raw) as T;
     } catch {
-      return null;
+      return raw as unknown as T;
     }
   }
 
-  setObject<T>(key: string, value: T): void {
-    this.set(key, JSON.stringify(value));
+  set<T>(key: string, value: T): void {
+    if (!this.storage) return;
+    this.storage.setItem(key, JSON.stringify(value));
+  }
+
+  remove(key: string): void {
+    this.storage?.removeItem(key);
+  }
+
+  clear(): void {
+    this.storage?.clear();
   }
 }

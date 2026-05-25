@@ -1,18 +1,17 @@
-import { ContributionStatus, PaymentMethod } from '../../../core/enums';
-import { Member } from './member.model';
+import { ContributionStatus } from '../../../core/enums/contribution-status.enum';
+import { PaymentMethod } from '../../../core/enums/payment-method.enum';
 
 export interface Contribution {
   id: string;
-  memberId: string;
-  member: Member;
-  sessionId: string;
   tontineId: string;
-  amount: number;
-  contributionType: 'regular' | 'arrears' | 'extraordinary';
-  paymentMethod: PaymentMethod;
-  paymentReference?: string;
+  sessionId: string;
+  memberId: string;
+  expectedAmount: number;
+  paidAmount: number;
   status: ContributionStatus;
   paidAt?: string;
-  confirmedBy?: string;
-  createdAt: string;
+  paymentMethod?: PaymentMethod;
+  reference?: string;
+  collectedByUserId?: string;
+  note?: string;
 }

@@ -1,0 +1,326 @@
+<section class="tc-page tc-wizard">
+  <header class="tc-page__hero">
+    <div>
+      <p class="tc-eyebrow">Création</p>
+      <h1 class="tc-page__title">Créer une tontine</h1>
+      <p class="tc-page__subtitle">
+        Lancez votre tontine en 5 étapes. Vous en deviendrez automatiquement le Président.
+      </p>
+    </div>
+  </header>
+
+  <!-- Stepper -->
+  <ol class="tc-stepper">
+    @for (s of stepLabels; track $index) {
+      <li
+        class="tc-stepper__item"
+        [class.tc-stepper__item--active]="step() === $index + 1"
+        [class.tc-stepper__item--done]="step() > $index + 1"
+      >
+        <span class="tc-stepper__index">
+          @if (step() > $index + 1) {
+            ✓
+          } @else {
+            {{ $index + 1 }}
+          }
+        </span>
+        <span class="tc-stepper__label">{{ s }}</span>
+        @if ($index < stepLabels.length - 1) {
+          <span class="tc-stepper__connector" aria-hidden="true"></span>
+        }
+      </li>
+    }
+  </ol>
+
+  @if (errorMessage(); as err) {
+    <tc-alert kind="error">{{ err }}</tc-alert>
+  }
+
+  <!-- Step 1 -->
+  @if (step() === 1) {
+    <tc-card eyebrow="Étape 1 / 5" title="Informations générales" subtitle="Identité publique de la tontine">
+      <form class="tc-form" (submit)="next($event)">
+        <tc-input
+          label="Nom de la tontine"
+          [(value)]="name"
+          [(touched)]="nameTouched"
+          [error]="nameError()"
+          hint="ex: La Fraternité de Yaoundé"
+          [required]="true"
+        />
+
+        <div class="tc-field">
+          <label class="tc-field__label">Description</label>
+          <textarea
+            class="tc-field__textarea"
+            rows="3"
+            placeholder="Décrivez l'objectif et le contexte de votre tontine"
+            [value]="description()"
+            (input)="description.set($any($event.target).value)"
+          ></textarea>
+        </div>
+
+        <div class="tc-field">
+          <label class="tc-field__label">Date de démarrage</label>
+          <input
+            type="date"
+            class="tc-field__input"
+            [value]="startDate()"
+            (change)="startDate.set($any($event.target).value)"
+          />
+        </div>
+
+        <div class="tc-form__actions tc-form__actions--end">
+          <tc-button type="submit" variant="primary">Suivant →</tc-button>
+        </div>
+      </form>
+    </tc-card>
+  }
+
+  <!-- Step 2 -->
+  @if (step() === 2) {
+    <tc-card eyebrow="Étape 2 / 5" title="Paramètres financiers" subtitle="Montant, rythme et taille du groupe">
+      <form class="tc-form" (submit)="next($event)">
+        <tc-input
+          label="Montant de cotisation (XAF)"
+          type="number"
+          [(value)]="contributionAmountStr"
+          [(touched)]="contributionAmountTouched"
+          [error]="contributionAmountError()"
+          hint="Montant que chaque membre verse par cycle"
+          [required]="true"
+        />
+
+        <div class="tc-field">
+          <p class="tc-field__label">Fréquence des cotisations</p>
+          <div class="tc-radio-row">
+            <label class="tc-radio">
+              <input type="radio" name="freq" [checked]="frequency() === 'WEEKLY'" (change)="frequency.set('WEEKLY')" />
+              <span>Hebdomadaire</span>
+            </label>
+            <label class="tc-radio">
+              <input type="radio" name="freq" [checked]="frequency() === 'BIWEEKLY'" (change)="frequency.set('BIWEEKLY')" />
+              <span>Bimensuelle</span>
+            </label>
+            <label class="tc-radio">
+              <input type="radio" name="freq" [checked]="frequency() === 'MONTHLY'" (change)="frequency.set('MONTHLY')" />
+              <span>Mensuelle</span>
+            </label>
+          </div>
+        </div>
+
+        <tc-input
+          label="Nombre maximum de membres"
+          type="number"
+          [(value)]="maxMembersStr"
+          [(touched)]="maxMembersTouched"
+          [error]="maxMembersError()"
+          hint="Minimum 3, au-delà attention à la durée du cycle"
+          [required]="true"
+        />
+
+        <tc-alert kind="info">
+          <strong>{{ cycleDurationLabel() }}</strong> · Cagnotte estimée par tour :
+          <strong>{{ cagnotteEstimate() | xaf }}</strong>
+        </tc-alert>
+
+        <div class="tc-form__actions">
+          <tc-button variant="ghost" (clicked)="prev()">← Précédent</tc-button>
+          <tc-button type="submit" variant="primary">Suivant →</tc-button>
+        </div>
+      </form>
+    </tc-card>
+  }
+
+  <!-- Step 3 -->
+  @if (step() === 3) {
+    <tc-card eyebrow="Étape 3 / 5" title="Règlement intérieur" subtitle="Sanctions, prêts, prélèvements">
+      <form class="tc-form" (submit)="next($event)">
+        <section class="tc-section">
+          <h3 class="tc-section__title"><tc-icon name="gavel" [size]="18" /> Sanctions</h3>
+          <div class="tc-grid-3">
+            <tc-input label="Retard (XAF)" type="number" [(value)]="latePenaltyStr" />
+            <tc-input label="Absence (XAF)" type="number" [(value)]="absencePenaltyStr" />
+            <tc-input label="Cotisation tardive (XAF)" type="number" [(value)]="contributionLatePenaltyStr" />
+          </div>
+        </section>
+
+        <section class="tc-section">
+          <h3 class="tc-section__title"><tc-icon name="banknote" [size]="18" /> Prêts</h3>
+          <div class="tc-grid-3">
+            <tc-input label="Plafond prêt (XAF)" type="number" [(value)]="loanMaxAmountStr" />
+            <tc-input label="Taux d'intérêt (%)" type="number" [(value)]="loanInterestRateStr" hint="ex: 5 pour 5%" />
+            <tc-input label="Durée max (mois)" type="number" [(value)]="loanMaxDurationStr" />
+          </div>
+        </section>
+
+        <section class="tc-section">
+          <h3 class="tc-section__title"><tc-icon name="piggy-bank" [size]="18" /> Caisses & dépenses</h3>
+          <div class="tc-grid-3">
+            <tc-input
+              label="Plafond dépense sans validation (XAF)"
+              type="number"
+              [(value)]="expenseCapStr"
+              hint="Au-delà : validation Président + Commissaire"
+            />
+            <tc-input
+              label="Prélèvement secours (%)"
+              type="number"
+              [(value)]="emergencyDeductionStr"
+              hint="Sur la cagnotte distribuée"
+            />
+            <tc-input
+              label="Prélèvement fonctionnement (%)"
+              type="number"
+              [(value)]="operationsDeductionStr"
+            />
+          </div>
+          @if (deductionsTotalError()) {
+            <p class="tc-section__error">
+              La somme des prélèvements ne peut dépasser 100% (actuel : {{ totalDeductions() }}%).
+            </p>
+          }
+        </section>
+
+        <div class="tc-form__actions">
+          <tc-button variant="ghost" (clicked)="prev()">← Précédent</tc-button>
+          <tc-button type="submit" variant="primary" [disabled]="deductionsTotalError()">
+            Suivant →
+          </tc-button>
+        </div>
+      </form>
+    </tc-card>
+  }
+
+  <!-- Step 4 -->
+  @if (step() === 4) {
+    <tc-card eyebrow="Étape 4 / 5" title="Membres fondateurs" subtitle="Invitez votre bureau (Secrétaire, Trésorier, Censeur, Commissaire)">
+      <div class="tc-founders">
+        @for (f of founders(); track $index) {
+          <div class="tc-founder">
+            <header class="tc-founder__header">
+              <p class="tc-founder__title">Fondateur {{ $index + 1 }}</p>
+              <button type="button" class="tc-link-danger" (click)="removeFounder($index)">Supprimer</button>
+            </header>
+            <div class="tc-founder__grid">
+              <input
+                class="tc-field__input"
+                placeholder="Nom complet"
+                [value]="f.fullName"
+                (input)="updateFounder($index, 'fullName', $any($event.target).value)"
+              />
+              <select
+                class="tc-field__input"
+                [value]="f.role"
+                (change)="updateFounder($index, 'role', $any($event.target).value)"
+              >
+                <option value="MEMBER">Membre simple</option>
+                <option value="SECRETARY">Secrétaire</option>
+                <option value="TREASURER">Trésorier</option>
+                <option value="CENSOR">Censeur</option>
+                <option value="AUDITOR">Commissaire aux Comptes</option>
+              </select>
+              <input
+                class="tc-field__input"
+                placeholder="+237699..."
+                [value]="f.phone"
+                (input)="updateFounder($index, 'phone', $any($event.target).value)"
+              />
+              <input
+                type="email"
+                class="tc-field__input"
+                placeholder="email (optionnel)"
+                [value]="f.email"
+                (input)="updateFounder($index, 'email', $any($event.target).value)"
+              />
+            </div>
+          </div>
+        }
+
+        <button type="button" class="tc-add-card" (click)="addFounder()">
+          <tc-icon name="plus-circle" [size]="18" /> Ajouter un fondateur
+        </button>
+      </div>
+
+      @if (founderError()) {
+        <p class="tc-section__error">{{ founderError() }}</p>
+      }
+
+      <div class="tc-form__actions">
+        <tc-button variant="ghost" (clicked)="prev()">← Précédent</tc-button>
+        <tc-button variant="primary" (clicked)="goToReview()">Suivant →</tc-button>
+      </div>
+    </tc-card>
+  }
+
+  <!-- Step 5 -->
+  @if (step() === 5) {
+    <tc-card eyebrow="Étape 5 / 5" title="Récapitulatif" subtitle="Vérifiez avant la création">
+      <div class="tc-recap">
+        <section>
+          <h3 class="tc-section__title">Informations générales</h3>
+          <dl class="tc-recap__grid tc-recap__grid--2">
+            <div><dt>Nom</dt><dd>{{ name() }}</dd></div>
+            <div><dt>Démarrage</dt><dd>{{ startDate() }}</dd></div>
+            <div class="tc-recap__full">
+              <dt>Description</dt>
+              <dd>{{ description() || '—' }}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section>
+          <h3 class="tc-section__title">Paramètres financiers</h3>
+          <dl class="tc-recap__grid">
+            <div><dt>Cotisation</dt><dd>{{ contributionAmount() | xaf }}</dd></div>
+            <div><dt>Fréquence</dt><dd>{{ freqLabel() }}</dd></div>
+            <div><dt>Membres max</dt><dd>{{ maxMembers() }}</dd></div>
+          </dl>
+        </section>
+
+        <section>
+          <h3 class="tc-section__title">Règlement</h3>
+          <dl class="tc-recap__grid">
+            <div><dt>Retard</dt><dd>{{ latePenalty() | xaf }}</dd></div>
+            <div><dt>Absence</dt><dd>{{ absencePenalty() | xaf }}</dd></div>
+            <div><dt>Cotisation tardive</dt><dd>{{ contributionLatePenalty() | xaf }}</dd></div>
+            <div><dt>Plafond prêt</dt><dd>{{ loanMaxAmount() | xaf }}</dd></div>
+            <div><dt>Taux prêt</dt><dd>{{ loanInterestRate() }}%</dd></div>
+            <div><dt>Durée prêt max</dt><dd>{{ loanMaxDuration() }} mois</dd></div>
+            <div><dt>Plafond dépense</dt><dd>{{ expenseCap() | xaf }}</dd></div>
+            <div><dt>Prélèvement secours</dt><dd>{{ emergencyDeduction() }}%</dd></div>
+            <div><dt>Prélèvement fonct.</dt><dd>{{ operationsDeduction() }}%</dd></div>
+          </dl>
+        </section>
+
+        <section>
+          <h3 class="tc-section__title">Bureau et fondateurs ({{ founders().length }})</h3>
+          @if (founders().length === 0) {
+            <p class="tc-empty-line">Aucun fondateur invité. Vous serez seul au démarrage.</p>
+          } @else {
+            <ul class="tc-recap__list">
+              @for (f of founders(); track $index) {
+                <li>
+                  <span>{{ f.fullName }} <span class="tc-recap__phone">— {{ f.phone }}</span></span>
+                  <tc-badge kind="info">{{ roleLabel(f.role) }}</tc-badge>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+
+        <tc-alert kind="info">
+          La tontine sera créée en statut <strong>Brouillon</strong>. Vous pourrez la passer
+          à l'état actif une fois les fondateurs ayant confirmé leur adhésion.
+        </tc-alert>
+
+        <div class="tc-form__actions">
+          <tc-button variant="ghost" (clicked)="prev()">← Modifier</tc-button>
+          <tc-button variant="primary" [loading]="submitting()" (clicked)="submit()">
+            ✓ Créer la tontine
+          </tc-button>
+        </div>
+      </div>
+    </tc-card>
+  }
+</section>

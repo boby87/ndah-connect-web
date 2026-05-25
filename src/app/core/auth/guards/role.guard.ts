@@ -1,16 +1,16 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { UserRole } from '../../enums';
+import { UserRole } from '../../enums/user-role.enum';
+import { AuthService } from '../services/auth.service';
 
 export const roleGuard: CanActivateFn = (route) => {
+  const auth = inject(AuthService);
   const router = inject(Router);
-  const requiredRoles = route.data?.['roles'] as UserRole[] | undefined;
+  const required = (route.data?.['roles'] as UserRole[] | undefined) ?? [];
 
-  if (!requiredRoles || requiredRoles.length === 0) {
+  if (required.length === 0 || auth.hasAnyRole(required)) {
     return true;
   }
 
-  // The current member role will be checked from TontineStore at runtime
-  // For now, allow access – role enforcement done in TontineStore integration
-  return true;
+  return router.createUrlTree(['/dashboard']);
 };

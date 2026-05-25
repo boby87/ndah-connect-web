@@ -1,0 +1,169 @@
+<div class="space-y-6">
+  <header>
+    <h1 class="text-2xl font-bold text-gray-900">Contrôles périodiques</h1>
+    <p class="text-sm text-gray-500">
+      Effectuez des contrôles hebdomadaires, mensuels, trimestriels ou ponctuels.
+    </p>
+  </header>
+
+  @if (errorMessage(); as err) {
+    <tc-alert kind="error">{{ err }}</tc-alert>
+  }
+
+  <tc-card title="Démarrer un nouveau contrôle">
+    <form class="grid gap-3 sm:grid-cols-4" (submit)="onCreate($event)">
+      <div>
+        <label class="text-xs font-medium text-gray-700">Type</label>
+        <select
+          class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          [value]="newKind()"
+          (change)="newKind.set($any($event.target).value)"
+        >
+          <option value="WEEKLY">Hebdomadaire</option>
+          <option value="MONTHLY">Mensuel</option>
+          <option value="QUARTERLY">Trimestriel</option>
+          <option value="AD_HOC">Ponctuel</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs font-medium text-gray-700">Du</label>
+        <input
+          type="date"
+          class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          [value]="periodFrom()"
+          (change)="periodFrom.set($any($event.target).value)"
+        />
+      </div>
+      <div>
+        <label class="text-xs font-medium text-gray-700">Au</label>
+        <input
+          type="date"
+          class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          [value]="periodTo()"
+          (change)="periodTo.set($any($event.target).value)"
+        />
+      </div>
+      <div class="flex items-end">
+        <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="creating()">
+          ▶ Démarrer
+        </tc-button>
+      </div>
+    </form>
+  </tc-card>
+
+  @if (resource.isLoading()) {
+    <p class="text-sm text-gray-500">Chargement…</p>
+  } @else if (controls().length === 0) {
+    <tc-card>
+      <tc-empty-state title="Aucun contrôle" icon="🔍" />
+    </tc-card>
+  } @else {
+    <ul class="space-y-3">
+      @for (c of controls(); track c.id) {
+        <li>
+          <tc-card>
+            <div class="space-y-3">
+              <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <p class="font-semibold text-gray-900">{{ c.reference }} — {{ kindLabel(c.kind) }}</p>
+                    <tc-badge [kind]="statusBadge(c.status)">{{ c.status }}</tc-badge>
+                  </div>
+                  <p class="mt-1 text-xs text-gray-500">
+                    Période : {{ c.periodFrom | tcDate }} → {{ c.periodTo | tcDate }}
+                    @if (c.completedAt) {
+                      · Clôturé le {{ c.completedAt | tcDate: true }}
+                    }
+                  </p>
+                </div>
+                <div class="text-right">
+                  <p class="text-sm">
+                    <span class="font-semibold text-green-600">{{ c.conformCount }}</span> conformes ·
+                    <span class="font-semibold text-amber-600">{{ c.anomaliesCount }}</span> anomalies
+                  </p>
+                </div>
+              </div>
+
+              @if (c.checkpoints.length > 0) {
+                <ul class="divide-y divide-gray-100 rounded-lg border border-gray-100">
+                  @for (cp of c.checkpoints; track cp.id) {
+                    <li class="flex items-center justify-between gap-2 p-2 text-sm">
+                      <div class="min-w-0 flex-1">
+                        <p class="text-gray-700">{{ cp.label }}</p>
+                        @if (cp.note) {
+                          <p class="text-xs text-gray-500">{{ cp.note }}</p>
+                        }
+                      </div>
+                      <div class="shrink-0 text-right text-xs">
+                        @if (cp.expectedValue != null) {
+                          <p class="text-gray-500">Attendu : {{ cp.expectedValue | xaf }}</p>
+                        }
+                        @if (cp.observedValue != null) {
+                          <p>Observé : {{ cp.observedValue | xaf }}</p>
+                        }
+                        @if (cp.variance) {
+                          <p [class]="cp.variance < 0 ? 'text-red-600' : 'text-amber-600'">
+                            Écart : {{ cp.variance | xaf }}
+                          </p>
+                        }
+                        @if (cp.conform === true) {
+                          <tc-badge kind="success">Conforme</tc-badge>
+                        } @else if (cp.conform === false) {
+                          <tc-badge kind="warning">Anomalie</tc-badge>
+                        }
+                      </div>
+                    </li>
+                  }
+                </ul>
+              }
+
+              @if (c.observations) {
+                <div class="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                  <p class="text-xs font-medium text-gray-700">Observations</p>
+                  <p class="mt-1 text-sm text-gray-700">{{ c.observations }}</p>
+                </div>
+              }
+
+              @if (c.status !== 'COMPLETED') {
+                @if (completing() === c.id) {
+                  <div class="space-y-2 rounded-lg border border-blue-200 bg-blue-50 p-3">
+                    <p class="text-sm font-medium text-blue-900">Saisir les soldes observés</p>
+                    @for (cp of editCheckpoints(); track cp.id; let i = $index) {
+                      <div class="flex items-center gap-2 text-sm">
+                        <span class="flex-1">{{ cp.label }}</span>
+                        <input
+                          type="number"
+                          class="w-32 rounded-lg border border-gray-300 px-2 py-1 text-sm"
+                          [value]="cp.observedValue ?? ''"
+                          (input)="updateCp(i, +$any($event.target).value)"
+                          placeholder="observé"
+                        />
+                      </div>
+                    }
+                    <textarea
+                      class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                      rows="2"
+                      placeholder="Observations générales"
+                      [value]="completeObservations()"
+                      (input)="completeObservations.set($any($event.target).value)"
+                    ></textarea>
+                    <div class="flex gap-2">
+                      <tc-button variant="primary" size="sm" [loading]="acting() === c.id" (clicked)="finalize(c)">
+                        ✓ Clôturer le contrôle
+                      </tc-button>
+                      <tc-button variant="ghost" size="sm" (clicked)="cancelComplete()">Annuler</tc-button>
+                    </div>
+                  </div>
+                } @else {
+                  <tc-button variant="primary" size="sm" (clicked)="openComplete(c)">
+                    Saisir les observations
+                  </tc-button>
+                }
+              }
+            </div>
+          </tc-card>
+        </li>
+      }
+    </ul>
+  }
+</div>

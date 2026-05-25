@@ -4,8 +4,8 @@ export interface Cycle {
   number: number;
   startDate: string;
   endDate?: string;
+  isActive: boolean;
   totalSessions: number;
   completedSessions: number;
-  status: 'active' | 'completed';
-  createdAt: string;
+  totalCollected: number;
 }

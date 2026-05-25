@@ -1,28 +1,33 @@
-<div class="input-wrapper">
-  @if (label(); as labelText) {
-    <label class="input-label">{{ labelText }}</label>
+<div class="tc-field" [class.tc-field--error]="hasError()">
+  @if (label()) {
+    <label class="tc-field__label" [for]="inputId">
+      {{ label() }}
+      @if (required()) {
+        <span class="tc-field__required">*</span>
+      }
+    </label>
   }
-  <div class="input-container" [class.has-icon-left]="icon() && iconPosition() === 'left'" [class.has-icon-right]="icon() && iconPosition() === 'right'" [class.has-error]="error()">
-    @if (icon() && iconPosition() === 'left') {
-      <span class="input-icon left">{{ icon() }}</span>
+  <div class="tc-field__control">
+    @if (prefix()) {
+      <span class="tc-field__prefix">{{ prefix() }}</span>
     }
     <input
-      class="input-field"
+      class="tc-field__input"
+      [class.tc-field__input--with-prefix]="prefix()"
+      [id]="inputId"
       [type]="type()"
       [placeholder]="placeholder()"
-      [value]="value()"
-      [disabled]="isDisabled() || disabled()"
+      [disabled]="disabled()"
       [readOnly]="readonly()"
+      [autocomplete]="autocomplete()"
+      [value]="value()"
       (input)="onInput($event)"
-      (blur)="onBlur()"
+      (blur)="touched.set(true)"
     />
-    @if (icon() && iconPosition() === 'right') {
-      <span class="input-icon right">{{ icon() }}</span>
-    }
   </div>
-  @if (error(); as errorText) {
-    <span class="input-error">{{ errorText }}</span>
-  } @else if (hint(); as hintText) {
-    <span class="input-hint">{{ hintText }}</span>
+  @if (hasError()) {
+    <p class="tc-field__error">{{ error() }}</p>
+  } @else if (hint()) {
+    <p class="tc-field__hint">{{ hint() }}</p>
   }
 </div>

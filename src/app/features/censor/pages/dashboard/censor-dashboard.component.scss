@@ -1,0 +1,49 @@
+:host { display: block; }
+
+.tc-alert-list { list-style: disc; margin: 0; padding-left: 1.1rem; }
+.tc-alert-list li { margin: 0.15rem 0; }
+
+.tc-breakdown {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.55rem 0.85rem;
+    background: var(--surface-muted);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+  }
+}
+
+.tc-breakdown__type { color: var(--text-default); }
+.tc-breakdown__right { display: inline-flex; align-items: center; gap: 0.6rem; }
+.tc-breakdown__amount { font-weight: 700; color: var(--text-strong); }
+
+.tc-rank {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 0.85rem;
+    background: var(--surface-muted);
+    border-radius: var(--radius-md);
+  }
+}
+
+.tc-rank__name { margin: 0; font-weight: 600; font-size: 0.875rem; color: var(--text-strong); }
+.tc-rank__count { margin: 0.15rem 0 0; font-size: 0.7rem; color: var(--text-muted); }
+.tc-rank__amount { font-weight: 700; color: #b45309; }

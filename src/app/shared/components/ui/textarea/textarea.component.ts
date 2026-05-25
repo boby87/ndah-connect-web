@@ -1,39 +1,30 @@
-import { ChangeDetectionStrategy, Component, forwardRef, input, signal } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, input, model } from '@angular/core';
+
+let textareaIdCounter = 0;
 
 @Component({
-  selector: 'app-textarea',
-  standalone: true,
-  templateUrl: './textarea.component.html',
-  styleUrl: './textarea.component.css',
+  selector: 'tc-textarea',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => TextareaComponent), multi: true },
-  ],
+  templateUrl: './textarea.component.html',
+  styleUrl: './textarea.component.scss',
 })
-export class TextareaComponent implements ControlValueAccessor {
-  readonly label = input('');
-  readonly placeholder = input('');
-  readonly hint = input('');
-  readonly error = input('');
-  readonly rows = input(4);
-  readonly maxLength = input<number | null>(null);
-  readonly isDisabled = signal(false);
+export class TextareaComponent {
+  readonly textareaId = `tc-textarea-${++textareaIdCounter}`;
 
-  protected value = signal('');
-  private onChange: (v: string) => void = () => {};
-  private onTouched: () => void = () => {};
+  readonly value = model<string>('');
+  readonly label = input<string>('');
+  readonly placeholder = input<string>('');
+  readonly hint = input<string>('');
+  readonly error = input<string>('');
+  readonly rows = input<number>(4);
+  readonly disabled = input(false);
+  readonly required = input(false);
 
-  writeValue(v: string): void { this.value.set(v ?? ''); }
-  registerOnChange(fn: (v: string) => void): void { this.onChange = fn; }
-  registerOnTouched(fn: () => void): void { this.onTouched = fn; }
-  setDisabledState(d: boolean): void { this.isDisabled.set(d); }
+  readonly touched = model<boolean>(false);
+
+  readonly hasError = computed(() => !!this.error() && this.touched());
 
   onInput(event: Event): void {
-    const val = (event.target as HTMLTextAreaElement).value;
-    this.value.set(val);
-    this.onChange(val);
+    this.value.set((event.target as HTMLTextAreaElement).value);
   }
-
-  onBlur(): void { this.onTouched(); }
 }

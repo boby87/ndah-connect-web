@@ -1,60 +1,35 @@
-import { ChangeDetectionStrategy, Component, forwardRef, input, signal } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, input, model } from '@angular/core';
+
+let inputIdCounter = 0;
+
+export type InputType = 'text' | 'email' | 'password' | 'tel' | 'number' | 'search' | 'url';
 
 @Component({
-  selector: 'app-input',
-  standalone: true,
-  templateUrl: './input.component.html',
-  styleUrl: './input.component.css',
+  selector: 'tc-input',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => InputComponent),
-      multi: true,
-    },
-  ],
+  templateUrl: './input.component.html',
+  styleUrl: './input.component.scss',
 })
-export class InputComponent implements ControlValueAccessor {
-  readonly type = input<string>('text');
-  readonly placeholder = input('');
-  readonly label = input<string>();
-  readonly hint = input<string>();
-  readonly error = input<string>();
+export class InputComponent {
+  readonly inputId = `tc-input-${++inputIdCounter}`;
+
+  readonly value = model<string>('');
+  readonly label = input<string>('');
+  readonly type = input<InputType>('text');
+  readonly placeholder = input<string>('');
+  readonly hint = input<string>('');
+  readonly error = input<string>('');
+  readonly prefix = input<string>('');
   readonly disabled = input(false);
   readonly readonly = input(false);
-  readonly icon = input<string>();
-  readonly iconPosition = input<'left' | 'right'>('left');
+  readonly required = input(false);
+  readonly autocomplete = input<string>('off');
 
-  readonly value = signal('');
-  readonly isDisabled = signal(false);
+  readonly touched = model<boolean>(false);
 
-  private onChange: (value: string) => void = () => {};
-  private onTouched: () => void = () => {};
-
-  writeValue(value: string): void {
-    this.value.set(value || '');
-  }
-
-  registerOnChange(fn: (value: string) => void): void {
-    this.onChange = fn;
-  }
-
-  registerOnTouched(fn: () => void): void {
-    this.onTouched = fn;
-  }
-
-  setDisabledState(isDisabled: boolean): void {
-    this.isDisabled.set(isDisabled);
-  }
+  readonly hasError = computed(() => !!this.error() && this.touched());
 
   onInput(event: Event): void {
-    const val = (event.target as HTMLInputElement).value;
-    this.value.set(val);
-    this.onChange(val);
-  }
-
-  onBlur(): void {
-    this.onTouched();
+    this.value.set((event.target as HTMLInputElement).value);
   }
 }

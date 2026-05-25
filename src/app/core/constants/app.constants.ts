@@ -1,10 +1,13 @@
-export const APP_NAME = 'NdahConnect';
-export const APP_VERSION = '1.0.0';
-export const DEFAULT_LANGUAGE = 'fr';
-export const SUPPORTED_LANGUAGES = ['fr', 'en'] as const;
-export const DEFAULT_CURRENCY = 'XAF';
-export const DEFAULT_PAGE_SIZE = 20;
-export const OTP_LENGTH = 6;
-export const OTP_RESEND_DELAY_SECONDS = 60;
-export const PASSWORD_MIN_LENGTH = 8;
-export const PHONE_PREFIX = '+237';
+export const APP_CONSTANTS = {
+  brand: 'TontineConnect',
+  supportEmail: 'support@tontineconnect.cm',
+  supportPhone: '+237 6 00 00 00 00',
+  defaultAvatarUrl: '/assets/images/illustrations/avatar-placeholder.svg',
+} as const;
+
+export const DATE_FORMATS = {
+  display: 'dd/MM/yyyy',
+  displayWithTime: 'dd/MM/yyyy HH:mm',
+  api: 'yyyy-MM-dd',
+  apiWithTime: "yyyy-MM-dd'T'HH:mm:ss",
+} as const;

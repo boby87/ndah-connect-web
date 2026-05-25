@@ -1,44 +1,31 @@
-export function formatDate(date: string | Date, format: string = 'dd/MM/yyyy'): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  const hours = String(d.getHours()).padStart(2, '0');
-  const minutes = String(d.getMinutes()).padStart(2, '0');
+const DAY_MS = 24 * 60 * 60 * 1000;
 
-  return format
-    .replace('dd', day)
-    .replace('MM', month)
-    .replace('yyyy', String(year))
-    .replace('HH', hours)
-    .replace('mm', minutes);
-}
+export const toDate = (value: string | Date | null | undefined): Date | null => {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
 
-export function getRelativeTime(date: string | Date): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
-  const diffSeconds = Math.floor(diffMs / 1000);
-  const diffMinutes = Math.floor(diffSeconds / 60);
-  const diffHours = Math.floor(diffMinutes / 60);
-  const diffDays = Math.floor(diffHours / 24);
+export const formatDate = (value: string | Date | null | undefined): string => {
+  const date = toDate(value);
+  if (!date) return '—';
+  return new Intl.DateTimeFormat('fr-CM', { dateStyle: 'medium' }).format(date);
+};
 
-  if (diffSeconds < 60) return 'à l\'instant';
-  if (diffMinutes < 60) return `il y a ${diffMinutes} minute${diffMinutes > 1 ? 's' : ''}`;
-  if (diffHours < 24) return `il y a ${diffHours} heure${diffHours > 1 ? 's' : ''}`;
-  if (diffDays < 30) return `il y a ${diffDays} jour${diffDays > 1 ? 's' : ''}`;
+export const formatDateTime = (value: string | Date | null | undefined): string => {
+  const date = toDate(value);
+  if (!date) return '—';
+  return new Intl.DateTimeFormat('fr-CM', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+};
 
-  return formatDate(d);
-}
+export const daysBetween = (a: string | Date, b: string | Date): number => {
+  const da = toDate(a);
+  const db = toDate(b);
+  if (!da || !db) return 0;
+  return Math.floor((db.getTime() - da.getTime()) / DAY_MS);
+};
 
-export function isDateInPast(date: string | Date): boolean {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return d.getTime() < Date.now();
-}
-
-export function daysUntil(date: string | Date): number {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  const now = new Date();
-  const diffMs = d.getTime() - now.getTime();
-  return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-}
+export const isPast = (value: string | Date): boolean => {
+  const date = toDate(value);
+  return !!date && date.getTime() < Date.now();
+};

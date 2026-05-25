@@ -1,0 +1,108 @@
+<div class="space-y-6">
+  <header>
+    <h1 class="text-2xl font-bold text-gray-900">Ordres du jour</h1>
+    <p class="text-sm text-gray-500">
+      Préparez l'ODJ au moins 5 jours avant la séance (règle RM-OJ01) puis soumettez-le au Président.
+    </p>
+  </header>
+
+  @if (errorMessage(); as err) {
+    <tc-alert kind="error">{{ err }}</tc-alert>
+  }
+
+  <div class="grid gap-6 lg:grid-cols-3">
+    <div class="space-y-3 lg:col-span-2">
+      @if (resource.isLoading()) {
+        <p class="text-sm text-gray-500">Chargement…</p>
+      } @else if (agendas().length === 0) {
+        <tc-card>
+          <tc-empty-state title="Aucun ODJ" icon="📋" />
+        </tc-card>
+      } @else {
+        @for (a of agendas(); track a.id) {
+          <tc-card>
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  <p class="font-semibold text-gray-900">ODJ — Séance #{{ a.sessionNumber }}</p>
+                  <tc-badge [kind]="statusKind(a.status)">{{ STATUS_LABELS[a.status] }}</tc-badge>
+                </div>
+                <p class="mt-1 text-xs text-gray-500">
+                  {{ a.scheduledAt | tcDate: true }}
+                  @if (a.location) {
+                    · 📍 {{ a.location }}
+                  }
+                </p>
+                <ol class="mt-3 list-decimal space-y-1 pl-5 text-sm text-gray-700">
+                  @for (it of a.items.slice(0, 5); track it.id) {
+                    <li>{{ it.title }}</li>
+                  }
+                  @if (a.items.length > 5) {
+                    <li class="italic text-gray-500">… et {{ a.items.length - 5 }} autre(s) point(s)</li>
+                  }
+                </ol>
+                @if (a.presidentComment) {
+                  <p class="mt-3 text-xs italic text-amber-700">
+                    💬 Commentaire Président : « {{ a.presidentComment }} »
+                  </p>
+                }
+              </div>
+              <div class="shrink-0">
+                @if (a.status === 'DRAFT' || a.status === 'CHANGES_REQUESTED') {
+                  <tc-button
+                    variant="primary"
+                    size="sm"
+                    [loading]="acting() === a.id"
+                    (clicked)="submit(a.id)"
+                  >
+                    Soumettre au Président
+                  </tc-button>
+                }
+              </div>
+            </div>
+          </tc-card>
+        }
+      }
+    </div>
+
+    <aside>
+      <tc-card title="Nouveau ODJ">
+        <form class="space-y-4" (submit)="onSubmit($event)">
+          <tc-input label="Numéro de séance" type="number" [(value)]="sessionNumber" [required]="true" />
+          <tc-input
+            label="Date prévue (YYYY-MM-DDTHH:mm)"
+            [(value)]="scheduledAt"
+            [(touched)]="dateTouched"
+            [error]="dateError()"
+            [required]="true"
+          />
+          <tc-input label="Lieu" [(value)]="location" />
+          <tc-input label="Bénéficiaire (ID membre)" [(value)]="beneficiary" hint="ex: member-1" />
+          <div>
+            <p class="mb-1 text-sm font-medium text-gray-700">Points standards inclus</p>
+            <p class="mb-2 text-xs text-gray-500">
+              Les 10 points types sont automatiquement ajoutés (règle RM-OJ02).
+            </p>
+            <details class="text-xs">
+              <summary class="cursor-pointer text-blue-600">Voir la liste</summary>
+              <ol class="mt-1 list-decimal pl-5 text-gray-600">
+                @for (s of standardItems; track s.title) {
+                  <li>{{ s.title }} ({{ s.duration }} min)</li>
+                }
+              </ol>
+            </details>
+          </div>
+          <tc-textarea
+            label="Points supplémentaires (un par ligne)"
+            [(value)]="customItems"
+            [rows]="4"
+            hint="ex: Présentation candidat X — Vote cotisation extra…"
+          />
+          <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
+            Créer l'ODJ
+          </tc-button>
+        </form>
+      </tc-card>
+    </aside>
+  </div>
+</div>

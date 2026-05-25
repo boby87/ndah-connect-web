@@ -1,0 +1,175 @@
+<div class="space-y-6">
+  <header>
+    <h1 class="text-2xl font-bold text-gray-900">Certification des comptes</h1>
+    <p class="text-sm text-gray-500">
+      Avant l'Assemblée Générale (RM-CC01). Certifiez, certifiez avec réserves ou refusez (RM-CC02). Signature
+      électronique (RM-CC03).
+    </p>
+  </header>
+
+  @if (errorMessage(); as err) {
+    <tc-alert kind="error">{{ err }}</tc-alert>
+  }
+
+  <div class="grid gap-6 lg:grid-cols-3">
+    <aside>
+      <tc-card title="Nouvelle certification">
+        <form class="space-y-3" (submit)="onSubmit($event)">
+          <div>
+            <label class="text-xs font-medium text-gray-700">Périmètre</label>
+            <select
+              class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              [value]="scope()"
+              (change)="scope.set($any($event.target).value)"
+            >
+              <option value="MONTH">Mois</option>
+              <option value="CYCLE">Cycle</option>
+              <option value="YEAR">Année</option>
+            </select>
+          </div>
+
+          <tc-input
+            label="Libellé période"
+            [(value)]="periodLabel"
+            hint="ex: Cycle #2 (Janvier - Mars 2026)"
+            [required]="true"
+          />
+
+          <div>
+            <p class="mb-1 text-xs font-medium text-gray-700">Décision</p>
+            <div class="space-y-1 text-sm">
+              <label class="flex items-center gap-2">
+                <input
+                  type="radio"
+                  class="h-4 w-4 text-violet-600 focus:ring-violet-500"
+                  [checked]="decision() === 'CERTIFIED'"
+                  (change)="decision.set('CERTIFIED')"
+                />
+                ✅ Certifier sans réserve
+              </label>
+              <label class="flex items-center gap-2">
+                <input
+                  type="radio"
+                  class="h-4 w-4 text-violet-600 focus:ring-violet-500"
+                  [checked]="decision() === 'CERTIFIED_WITH_RESERVES'"
+                  (change)="decision.set('CERTIFIED_WITH_RESERVES')"
+                />
+                ⚠ Certifier avec réserves
+              </label>
+              <label class="flex items-center gap-2">
+                <input
+                  type="radio"
+                  class="h-4 w-4 text-violet-600 focus:ring-violet-500"
+                  [checked]="decision() === 'REFUSED'"
+                  (change)="decision.set('REFUSED')"
+                />
+                ❌ Refuser la certification
+              </label>
+            </div>
+          </div>
+
+          @if (decision() !== 'CERTIFIED') {
+            <div>
+              <label class="text-xs font-medium text-gray-700">Réserves / motif</label>
+              <textarea
+                class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                rows="3"
+                [value]="reserves()"
+                (input)="reserves.set($any($event.target).value)"
+              ></textarea>
+            </div>
+          }
+
+          <tc-input
+            label="Code OTP"
+            [(value)]="otp"
+            hint="Code à 4-6 chiffres reçu par SMS"
+            [required]="true"
+          />
+
+          <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
+            ✍ Signer et certifier
+          </tc-button>
+        </form>
+      </tc-card>
+    </aside>
+
+    <div class="space-y-3 lg:col-span-2">
+      @if (resource.isLoading()) {
+        <p class="text-sm text-gray-500">Chargement…</p>
+      } @else if (certifications().length === 0) {
+        <tc-card>
+          <tc-empty-state title="Aucune certification" icon="📜" />
+        </tc-card>
+      } @else {
+        @for (c of certifications(); track c.id) {
+          <tc-card>
+            <div class="space-y-3">
+              <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <p class="font-semibold text-gray-900">{{ c.reference }}</p>
+                    <tc-badge [kind]="decisionBadge(c.decision)">{{ decisionLabel(c.decision) }}</tc-badge>
+                    @if (c.signedDigitally) {
+                      <tc-badge kind="success">✓ Signé</tc-badge>
+                    }
+                  </div>
+                  <p class="mt-1 text-xs text-gray-500">
+                    {{ c.periodLabel }} · émis le {{ c.emittedAt | tcDate: true }}
+                  </p>
+                </div>
+                <button class="text-xs text-blue-600 hover:underline">📥 PDF</button>
+              </div>
+
+              <div class="grid gap-3 text-sm sm:grid-cols-2">
+                <div class="rounded-lg border border-gray-100 p-3">
+                  <p class="font-medium text-gray-700">ACTIF (Emplois)</p>
+                  <ul class="mt-1 space-y-1 text-xs">
+                    @for (l of c.assets; track l.label) {
+                      <li class="flex justify-between">
+                        <span>{{ l.label }}</span>
+                        <span class="font-semibold">{{ l.amount | xaf }}</span>
+                      </li>
+                    }
+                  </ul>
+                  <p class="mt-2 flex justify-between border-t border-gray-200 pt-1 text-xs font-bold">
+                    <span>TOTAL</span>
+                    <span>{{ c.totalAssets | xaf }}</span>
+                  </p>
+                </div>
+                <div class="rounded-lg border border-gray-100 p-3">
+                  <p class="font-medium text-gray-700">PASSIF (Ressources)</p>
+                  <ul class="mt-1 space-y-1 text-xs">
+                    @for (l of c.liabilities; track l.label) {
+                      <li class="flex justify-between">
+                        <span>{{ l.label }}</span>
+                        <span class="font-semibold">{{ l.amount | xaf }}</span>
+                      </li>
+                    }
+                  </ul>
+                  <p class="mt-2 flex justify-between border-t border-gray-200 pt-1 text-xs font-bold">
+                    <span>TOTAL</span>
+                    <span>{{ c.totalLiabilities | xaf }}</span>
+                  </p>
+                </div>
+              </div>
+
+              @if (c.balanced) {
+                <p class="text-xs text-green-600">✅ Équilibre vérifié : ACTIF = PASSIF</p>
+              } @else {
+                <p class="text-xs text-red-600">⚠ Déséquilibre détecté</p>
+              }
+
+              @if (c.reserves) {
+                <div class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm">
+                  <p class="font-medium text-amber-900">Réserves / observations</p>
+                  <p class="mt-1 text-amber-900">{{ c.reserves }}</p>
+                </div>
+              }
+            </div>
+          </tc-card>
+        }
+      }
+    </div>
+  </div>
+</div>

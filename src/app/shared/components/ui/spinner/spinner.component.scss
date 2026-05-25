@@ -1,0 +1,16 @@
+:host { display: inline-flex; }
+
+.tc-spinner {
+  display: inline-block;
+  border-radius: 50%;
+  border-style: solid;
+  border-color: var(--brand-600);
+  border-right-color: transparent;
+  animation: tc-spin 0.75s linear infinite;
+}
+
+.tc-spinner--sm { width: 1rem; height: 1rem; border-width: 2px; }
+.tc-spinner--md { width: 1.5rem; height: 1.5rem; border-width: 2px; }
+.tc-spinner--lg { width: 2.5rem; height: 2.5rem; border-width: 3px; }
+
+@keyframes tc-spin { to { transform: rotate(360deg); } }

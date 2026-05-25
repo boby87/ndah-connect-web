@@ -1,0 +1,43 @@
+<div class="space-y-6">
+  <header>
+    <h1 class="text-2xl font-bold text-gray-900">Procès-verbaux</h1>
+    <p class="text-sm text-gray-500">
+      Rédigez le PV dans les 3 jours suivant la séance (RM-PV01). Double signature requise : Secrétaire + Président.
+    </p>
+  </header>
+
+  @if (resource.isLoading()) {
+    <div class="flex justify-center py-12"><tc-spinner size="lg" /></div>
+  } @else if (drafts().length === 0) {
+    <tc-card>
+      <tc-empty-state title="Aucun PV" icon="📝" />
+    </tc-card>
+  } @else {
+    <ul class="space-y-3">
+      @for (d of drafts(); track d.id) {
+        <li>
+          <a
+            [routerLink]="['/secretary/minutes', d.id]"
+            class="block rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:border-blue-300"
+          >
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  <p class="font-semibold text-gray-900">PV — Séance #{{ d.sessionNumber }}</p>
+                  <tc-badge [kind]="statusKind(d.status)">{{ STATUS_LABELS[d.status] }}</tc-badge>
+                </div>
+                <p class="mt-1 text-xs text-gray-500">
+                  Séance du {{ d.sessionDate | tcDate: true }}
+                </p>
+                <p class="mt-1 text-xs text-gray-500">
+                  {{ d.sections.length }} sections · {{ d.attachments.length }} pièces jointes
+                </p>
+              </div>
+              <span class="text-sm font-medium text-blue-600">Ouvrir →</span>
+            </div>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</div>

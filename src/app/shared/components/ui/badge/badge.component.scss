@@ -1,0 +1,19 @@
+:host { display: inline-flex; }
+
+.tc-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.tc-badge--neutral { background: var(--surface-muted); color: var(--text-default); }
+.tc-badge--info { background: var(--brand-100); color: var(--brand-800); }
+.tc-badge--success { background: rgba(22, 163, 74, 0.10); color: #15803d; }
+.tc-badge--warning { background: rgba(217, 119, 6, 0.10); color: #b45309; }
+.tc-badge--danger { background: rgba(220, 38, 38, 0.10); color: #b91c1c; }

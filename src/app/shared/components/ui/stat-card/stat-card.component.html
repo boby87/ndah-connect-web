@@ -1,0 +1,17 @@
+<div class="tc-stat">
+  <div class="tc-stat__header">
+    <p class="tc-stat__label">{{ label() }}</p>
+    @if (icon()) {
+      <span class="tc-stat__icon">{{ icon() }}</span>
+    }
+  </div>
+  <p [class]="valueClass()">{{ value() }}</p>
+  @if (sublabel(); as sub) {
+    <p [class]="trendClass()">
+      @if (trend() && trend() !== 'FLAT') {
+        <span class="tc-stat__trend-arrow">{{ trend() === 'UP' ? '↗' : '↘' }}</span>
+      }
+      {{ sub }}
+    </p>
+  }
+</div>

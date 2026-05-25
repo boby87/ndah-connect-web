@@ -1,0 +1,120 @@
+<div class="space-y-6">
+  <header>
+    <h1 class="text-2xl font-bold text-gray-900">Convocations</h1>
+    <p class="text-sm text-gray-500">
+      Envoyez les convocations au moins 5 jours avant la séance (RM-CV01). L'ODJ doit être validé par le Président
+      (RM-CV02).
+    </p>
+  </header>
+
+  @if (errorMessage(); as err) {
+    <tc-alert kind="error">{{ err }}</tc-alert>
+  }
+
+  <div class="grid gap-6 lg:grid-cols-3">
+    <div class="space-y-3 lg:col-span-2">
+      @if (resource.isLoading()) {
+        <p class="text-sm text-gray-500">Chargement…</p>
+      } @else if (convocations().length === 0) {
+        <tc-card>
+          <tc-empty-state title="Aucune convocation" icon="📨" />
+        </tc-card>
+      } @else {
+        @for (c of convocations(); track c.id) {
+          <tc-card>
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  <p class="font-semibold text-gray-900">Convocation Séance #{{ c.sessionNumber }}</p>
+                  <tc-badge [kind]="statusKind(c.status)">{{ statusLabel(c.status) }}</tc-badge>
+                </div>
+                <p class="mt-1 text-xs text-gray-500">
+                  Séance prévue {{ c.scheduledFor | tcDate: true }}
+                </p>
+                <p class="mt-2 whitespace-pre-wrap text-sm text-gray-700">{{ c.message }}</p>
+                <div class="mt-3 flex flex-wrap gap-1">
+                  @for (ch of c.channels; track ch) {
+                    <tc-badge kind="info">{{ CONVOCATION_CHANNEL_LABELS[ch] }}</tc-badge>
+                  }
+                </div>
+              </div>
+              <div class="shrink-0 text-right text-xs text-gray-500">
+                <p>{{ c.totalRecipients }} destinataires</p>
+                @if (c.sentAt) {
+                  <p>Envoyée {{ c.sentAt | tcDate: true }}</p>
+                } @else if (c.scheduledAt) {
+                  <p>Programmée {{ c.scheduledAt | tcDate: true }}</p>
+                }
+                @if (c.status === 'SENT') {
+                  <p class="text-green-600">{{ c.totalDelivered }} livrées</p>
+                  @if (c.totalFailed > 0) {
+                    <p class="text-red-600">{{ c.totalFailed }} échouées</p>
+                  }
+                }
+              </div>
+            </div>
+          </tc-card>
+        }
+      }
+    </div>
+
+    <aside>
+      <tc-card title="Nouvelle convocation">
+        <form class="space-y-4" (submit)="onSubmit($event)">
+          <tc-input
+            label="ID de la séance"
+            [(value)]="sessionId"
+            hint="ex: session-2"
+            [(touched)]="sessionTouched"
+            [error]="sessionError()"
+            [required]="true"
+          />
+          <tc-textarea
+            label="Message"
+            [(value)]="message"
+            [(touched)]="messageTouched"
+            [error]="messageError()"
+            [rows]="4"
+            [required]="true"
+          />
+          <div>
+            <p class="mb-1 text-sm font-medium text-gray-700">Canaux</p>
+            <div class="space-y-1">
+              @for (ch of channels; track ch) {
+                <label class="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    class="h-4 w-4 rounded text-violet-600 focus:ring-violet-500"
+                    [checked]="selectedChannels().includes(ch)"
+                    (change)="toggleChannel(ch, $event)"
+                  />
+                  {{ CONVOCATION_CHANNEL_LABELS[ch] }}
+                </label>
+              }
+            </div>
+            @if (channelsError()) {
+              <p class="mt-1 text-xs text-red-600">{{ channelsError() }}</p>
+            }
+          </div>
+          <label class="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              class="h-4 w-4 rounded text-violet-600 focus:ring-violet-500"
+              [checked]="includeCandidates()"
+              (change)="includeCandidates.set(checked($event))"
+            />
+            Inclure les candidats à l'adhésion
+          </label>
+          <tc-input
+            label="Programmer pour (optionnel, YYYY-MM-DDTHH:mm)"
+            [(value)]="scheduleFor"
+            hint="Vide = envoi immédiat."
+          />
+          <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
+            Envoyer la convocation
+          </tc-button>
+        </form>
+      </tc-card>
+    </aside>
+  </div>
+</div>

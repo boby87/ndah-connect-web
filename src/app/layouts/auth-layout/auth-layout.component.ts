@@ -1,13 +1,12 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { ToastComponent } from '../../shared/components/ui/toast/toast.component';
+import { ToastContainerComponent } from '../../shared/components/ui/toast-container/toast-container.component';
 
 @Component({
-  selector: 'app-auth-layout',
-  standalone: true,
-  imports: [RouterOutlet, ToastComponent],
-  templateUrl: './auth-layout.component.html',
-  styleUrl: './auth-layout.component.css',
+  selector: 'tc-auth-layout',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterOutlet, ToastContainerComponent],
+  templateUrl: './auth-layout.component.html',
+  styleUrl: './auth-layout.component.scss',
 })
 export class AuthLayoutComponent {}

@@ -1,0 +1,99 @@
+<section class="tc-page">
+  <header class="tc-page__hero">
+    <div>
+      <p class="tc-eyebrow">Audit</p>
+      <h1 class="tc-page__title">Bonjour {{ auth.user()?.firstName }} 👋</h1>
+      <p class="tc-page__subtitle">Commissaire aux Comptes — Vous garantissez la transparence financière.</p>
+    </div>
+  </header>
+
+  @if (dashboardResource.isLoading()) {
+    <div class="tc-page__loading"><tc-spinner size="lg" /></div>
+  } @else if (data(); as d) {
+    @if (d.validations.opinionPending + d.anomalies.open + d.controls.planned > 0) {
+      <tc-alert kind="warning" title="🔔 Alertes et tâches urgentes">
+        <ul class="tc-alert-list">
+          @if (d.validations.opinionPending > 0) { <li>{{ d.validations.opinionPending }} validation(s) en attente de votre opinion</li> }
+          @if (d.anomalies.open > 0) { <li>{{ d.anomalies.open }} anomalie(s) ouverte(s)</li> }
+          @if (d.controls.planned > 0) { <li>{{ d.controls.planned }} contrôle(s) périodique(s) à effectuer</li> }
+          @if (d.recommendations.active > 0) { <li>{{ d.recommendations.active }} recommandation(s) actives</li> }
+        </ul>
+      </tc-alert>
+    }
+
+    <tc-card eyebrow="Trésorerie" title="État des caisses (temps réel)">
+      <div class="tc-cash-grid">
+        @for (cb of d.cashBoxes; track cb.id) {
+          <div class="tc-cash-grid__item">
+            <p class="tc-eyebrow">{{ cb.name }}</p>
+            <p class="tc-cash-grid__amount">{{ cb.balance | xaf }}</p>
+            <p class="tc-cash-grid__type">{{ cb.type }}</p>
+          </div>
+        }
+      </div>
+      <p class="tc-cash-total">TOTAL GÉNÉRAL : <strong>{{ d.totalBalance | xaf }}</strong></p>
+    </tc-card>
+
+    <section class="tc-grid tc-grid--stats">
+      <tc-stat-card label="Validations en attente" [value]="d.validations.opinionPending" icon="✅" [tone]="d.validations.opinionPending > 0 ? 'warning' : 'neutral'" />
+      <tc-stat-card label="Anomalies ouvertes" [value]="d.anomalies.open" icon="⚠" [tone]="d.anomalies.severityHigh > 0 ? 'danger' : d.anomalies.open > 0 ? 'warning' : 'success'" [sublabel]="d.anomalies.severityHigh + ' graves'" />
+      <tc-stat-card label="Contrôles à effectuer" [value]="d.controls.planned" icon="🔍" [tone]="d.controls.planned > 0 ? 'info' : 'neutral'" />
+      <tc-stat-card label="Recommandations actives" [value]="d.recommendations.active" icon="💡" tone="info" [sublabel]="'Mise en œuvre : ' + d.recommendations.implementedRate + '%'" />
+    </section>
+
+    <section class="tc-grid tc-grid--split">
+      <tc-card eyebrow="Activité" title="Derniers mouvements">
+        @if (d.recentMovements.length === 0) {
+          <p class="tc-empty-line">Aucun mouvement récent.</p>
+        } @else {
+          <ul class="tc-movements">
+            @for (mv of d.recentMovements; track mv.id) {
+              <li>
+                <div class="tc-movements__left">
+                  <p class="tc-movements__desc">{{ mv.description }}</p>
+                  <p class="tc-movements__meta">{{ mv.recordedAt | tcDate: true }} · {{ mv.cashBoxName }}</p>
+                </div>
+                <span class="tc-movements__amount" [class.tc-movements__amount--in]="mv.direction === 'IN'" [class.tc-movements__amount--out]="mv.direction !== 'IN'">
+                  {{ mv.direction === 'IN' ? '+' : '-' }}{{ mv.amount | xaf }}
+                </span>
+              </li>
+            }
+          </ul>
+        }
+      </tc-card>
+
+      <tc-card eyebrow="Prêts" title="Encours">
+        <ul class="tc-loans-mini">
+          <li>
+            <span>Prêts actifs</span>
+            <tc-badge kind="info">{{ d.loans.active }}</tc-badge>
+          </li>
+          <li>
+            <span>Encours total</span>
+            <strong>{{ d.loans.totalOutstanding | xaf }}</strong>
+          </li>
+        </ul>
+      </tc-card>
+    </section>
+
+    <section>
+      <tc-card eyebrow="Actions" title="Raccourcis">
+        <div class="tc-quick-actions">
+          <a routerLink="/auditor/validations" class="tc-quick-actions__item"><tc-icon name="check-square" [size]="16" /> Validations</a>
+          <a routerLink="/auditor/financial-data" class="tc-quick-actions__item"><tc-icon name="database" [size]="16" /> Données financières</a>
+          <a routerLink="/auditor/balance-reviews" class="tc-quick-actions__item"><tc-icon name="clipboard-check" [size]="16" /> Bilans séance</a>
+          <a routerLink="/auditor/controls" class="tc-quick-actions__item"><tc-icon name="search" [size]="16" /> Contrôles</a>
+          <a routerLink="/auditor/audits" class="tc-quick-actions__item"><tc-icon name="file-search" [size]="16" /> Audits</a>
+          <a routerLink="/auditor/anomalies" class="tc-quick-actions__item"><tc-icon name="alert-triangle" [size]="16" /> Signalements</a>
+          <a routerLink="/auditor/clarifications" class="tc-quick-actions__item"><tc-icon name="help-circle" [size]="16" /> Éclaircissements</a>
+          <a routerLink="/auditor/recommendations" class="tc-quick-actions__item"><tc-icon name="lightbulb" [size]="16" /> Recommandations</a>
+          <a routerLink="/auditor/certifications" class="tc-quick-actions__item"><tc-icon name="award" [size]="16" /> Certifier</a>
+          <a routerLink="/auditor/reports" class="tc-quick-actions__item"><tc-icon name="bar-chart" [size]="16" /> Rapports</a>
+          <a routerLink="/auditor/export" class="tc-quick-actions__item"><tc-icon name="download" [size]="16" /> Export</a>
+        </div>
+      </tc-card>
+    </section>
+  } @else {
+    <tc-card>Impossible de charger le tableau de bord.</tc-card>
+  }
+</section>

@@ -1,14 +1,15 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 @Component({
-  selector: 'app-card',
-  standalone: true,
-  templateUrl: './card.component.html',
-  styleUrl: './card.component.css',
+  selector: 'tc-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './card.component.html',
+  styleUrl: './card.component.scss',
 })
 export class CardComponent {
-  readonly variant = input<'default' | 'outlined' | 'flat'>('default');
-  readonly padding = input<'none' | 'sm' | 'md' | 'lg'>('md');
-  readonly shadow = input<'none' | 'sm' | 'md' | 'lg'>('sm');
+  readonly title = input<string>('');
+  readonly subtitle = input<string>('');
+  readonly eyebrow = input<string>('');
+  readonly padded = input(true);
+  readonly tone = input<'default' | 'soft' | 'accent'>('default');
 }

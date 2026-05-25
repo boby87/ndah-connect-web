@@ -2,13 +2,12 @@ export interface PaginationParams {
   page?: number;
   pageSize?: number;
   sortBy?: string;
-  sortDirection?: 'asc' | 'desc';
+  sortDir?: 'asc' | 'desc';
   search?: string;
+  filters?: Record<string, string | number | boolean | undefined>;
 }
 
-export interface PaginationMeta {
-  page: number;
-  pageSize: number;
-  totalItems: number;
-  totalPages: number;
-}
+export const DEFAULT_PAGINATION: Required<Pick<PaginationParams, 'page' | 'pageSize'>> = {
+  page: 1,
+  pageSize: 20,
+};

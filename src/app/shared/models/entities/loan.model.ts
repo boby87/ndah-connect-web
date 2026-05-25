@@ -1,38 +1,47 @@
-import { LoanStatus, PaymentMethod } from '../../../core/enums';
-import { Member } from './member.model';
+import { LoanStatus } from '../../../core/enums/loan-status.enum';
 
 export interface Loan {
   id: string;
-  memberId: string;
-  member: Member;
   tontineId: string;
-  amount: number;
+  memberId: string;
+  principal: number;
   interestRate: number;
   durationMonths: number;
-  totalToRepay: number;
   monthlyPayment: number;
+  totalDue: number;
+  totalRepaid: number;
   status: LoanStatus;
-  requestReason?: string;
-  guarantors: LoanGuarantor[];
-  auditorApproved?: boolean;
-  auditorComment?: string;
-  auditorApprovedAt?: string;
-  presidentApproved?: boolean;
-  presidentComment?: string;
-  presidentApprovedAt?: string;
-  disbursementMethod?: PaymentMethod;
-  disbursementReference?: string;
+  purpose: string;
+  guarantorIds: string[];
+  requestedAt: string;
+  approvedAt?: string;
   disbursedAt?: string;
-  nextPaymentDate?: string;
-  remainingAmount: number;
-  createdAt: string;
+  dueDate?: string;
 }
 
-export interface LoanGuarantor {
+export interface LoanRepayment {
   id: string;
   loanId: string;
-  guarantorId: string;
-  guarantor: Member;
-  status: 'pending' | 'accepted' | 'refused';
-  respondedAt?: string;
+  amount: number;
+  paidAt: string;
+  installmentNumber: number;
+  remainingBalance: number;
+}
+
+export interface LoanSimulation {
+  principal: number;
+  interestRate: number;
+  durationMonths: number;
+  monthlyPayment: number;
+  totalInterest: number;
+  totalDue: number;
+  schedule: LoanSimulationRow[];
+}
+
+export interface LoanSimulationRow {
+  month: number;
+  principal: number;
+  interest: number;
+  payment: number;
+  remainingBalance: number;
 }

@@ -1,57 +1,29 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from '../../../../core/auth/services/auth.service';
 import { UiStore } from '../../../../store/ui/ui.store';
-import { TontineStore } from '../../../../store/tontine/tontine.store';
-import { SIDEBAR_MENU, SidebarMenuItem } from './sidebar-menu.config';
-import { UserRole } from '../../../../core/enums/user-role.enum';
+import { IconComponent } from '../../../../shared/components/ui/icon/icon.component';
+import { SIDEBAR_MENU, MenuSection } from './sidebar-menu.config';
 
 @Component({
-  selector: 'app-sidebar',
-  standalone: true,
-  imports: [RouterLink, RouterLinkActive],
-  templateUrl: './sidebar.component.html',
-  styleUrl: './sidebar.component.css',
+  selector: 'tc-sidebar',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink, RouterLinkActive, IconComponent],
+  templateUrl: './sidebar.component.html',
+  styleUrl: './sidebar.component.scss',
 })
 export class SidebarComponent {
-  protected readonly uiStore = inject(UiStore);
-  private readonly tontineStore = inject(TontineStore);
+  protected readonly ui = inject(UiStore);
+  protected readonly auth = inject(AuthService);
 
-  private readonly expandedGroups = signal<Set<string>>(new Set());
+  readonly visibleSections = computed<MenuSection[]>(() =>
+    SIDEBAR_MENU.map((section) => ({
+      ...section,
+      items: section.items.filter((item) => !item.roles || this.auth.hasAnyRole(item.roles)),
+    })).filter((section) => section.items.length > 0),
+  );
 
-  get menuItems(): SidebarMenuItem[] {
-    return this.filterByRole(SIDEBAR_MENU);
-  }
-
-  isExpanded(id: string): boolean {
-    return this.expandedGroups().has(id);
-  }
-
-  toggleGroup(id: string): void {
-    this.expandedGroups.update(set => {
-      const next = new Set(set);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  }
-
-  private filterByRole(items: SidebarMenuItem[]): SidebarMenuItem[] {
-    const role = this.tontineStore.currentMemberRole();
-    return items
-      .filter(item => {
-        if (!item.roles) return true;
-        return role ? item.roles.includes(role) : false;
-      })
-      .map(item => {
-        if (!item.children) return item;
-        const filtered = this.filterByRole(item.children);
-        if (filtered.length === 0) return null;
-        return { ...item, children: filtered };
-      })
-      .filter((item): item is SidebarMenuItem => item !== null);
+  logout(): void {
+    this.auth.logout();
   }
 }

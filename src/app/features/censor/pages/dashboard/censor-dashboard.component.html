@@ -1,0 +1,96 @@
+<section class="tc-page">
+  <header class="tc-page__hero">
+    <div>
+      <p class="tc-eyebrow">Discipline</p>
+      <h1 class="tc-page__title">Bonjour {{ auth.user()?.firstName }} 👋</h1>
+      <p class="tc-page__subtitle">Tableau de bord du Censeur — discipline, sanctions, validations.</p>
+    </div>
+  </header>
+
+  @if (dashboardResource.isLoading()) {
+    <div class="tc-page__loading"><tc-spinner size="lg" /></div>
+  } @else if (data(); as d) {
+    @if (d.alerts.pendingAttendance + d.alerts.pendingJustifications + d.alerts.pendingContestations > 0) {
+      <tc-alert kind="warning" title="🔔 Alertes et tâches">
+        <ul class="tc-alert-list">
+          @if (d.alerts.pendingAttendance > 0) { <li>{{ d.alerts.pendingAttendance }} modification(s) de présence à valider</li> }
+          @if (d.alerts.pendingJustifications > 0) { <li>{{ d.alerts.pendingJustifications }} justificatif(s) à valider</li> }
+          @if (d.alerts.pendingContestations > 0) { <li>{{ d.alerts.pendingContestations }} contestation(s) à traiter</li> }
+          @if (d.alerts.unpaidCount > 0) { <li>{{ d.alerts.unpaidCount }} sanction(s) impayée(s) — total : {{ d.alerts.unpaidAmount | xaf }}</li> }
+        </ul>
+      </tc-alert>
+    }
+
+    @if (d.session; as s) {
+      <tc-alert kind="success" title="📅 Séance en cours">
+        Séance #{{ s.number }} ({{ s.status }}) — vous pouvez appliquer des sanctions en temps réel (RM-AS01).
+      </tc-alert>
+    } @else {
+      <tc-alert kind="info">
+        Aucune séance active actuellement. Les sanctions ne peuvent être appliquées que pendant une séance (RM-AS01).
+      </tc-alert>
+    }
+
+    <section class="tc-grid tc-grid--stats">
+      <tc-stat-card label="Sanctions (période)" [value]="d.sanctionsThisPeriod.count" icon="⚖" tone="info" [sublabel]="d.sanctionsThisPeriod.amount + ' XAF total'" />
+      <tc-stat-card label="Montant collecté" [value]="(d.sanctionsThisPeriod.collected | xaf) ?? ''" icon="💰" tone="success" />
+      <tc-stat-card label="Sanctions impayées" [value]="d.alerts.unpaidCount" icon="⏳" [tone]="d.alerts.unpaidCount > 0 ? 'warning' : 'neutral'" [sublabel]="d.alerts.unpaidAmount + ' XAF'" />
+      <tc-stat-card label="Validations en attente" [value]="d.alerts.pendingAttendance + d.alerts.pendingJustifications + d.alerts.pendingContestations" icon="📋" [tone]="(d.alerts.pendingAttendance + d.alerts.pendingJustifications + d.alerts.pendingContestations) > 0 ? 'warning' : 'neutral'" />
+    </section>
+
+    <section class="tc-grid tc-grid--split">
+      <tc-card eyebrow="Statistiques" title="Répartition des sanctions">
+        @if (d.sanctionsThisPeriod.breakdown.length === 0) {
+          <p class="tc-empty-line">Aucune sanction enregistrée.</p>
+        } @else {
+          <ul class="tc-breakdown">
+            @for (b of d.sanctionsThisPeriod.breakdown; track b.type) {
+              <li>
+                <span class="tc-breakdown__type">{{ typeLabel(b.type) }}</span>
+                <span class="tc-breakdown__right">
+                  <tc-badge kind="info">{{ b.count }}</tc-badge>
+                  <span class="tc-breakdown__amount">{{ b.amount | xaf }}</span>
+                </span>
+              </li>
+            }
+          </ul>
+        }
+      </tc-card>
+
+      <tc-card eyebrow="Surveillance" title="Membres les plus sanctionnés">
+        @if (d.topSanctioned.length === 0) {
+          <p class="tc-empty-line">Aucun membre sanctionné.</p>
+        } @else {
+          <ol class="tc-rank">
+            @for (t of d.topSanctioned; track t.memberId; let i = $index) {
+              <li>
+                <div>
+                  <p class="tc-rank__name">{{ i + 1 }}. {{ t.name }}</p>
+                  <p class="tc-rank__count">{{ t.count }} sanction(s)</p>
+                </div>
+                <span class="tc-rank__amount">{{ t.amount | xaf }}</span>
+              </li>
+            }
+          </ol>
+        }
+      </tc-card>
+    </section>
+
+    <section>
+      <tc-card eyebrow="Actions" title="Raccourcis">
+        <div class="tc-quick-actions">
+          <a routerLink="/censor/sanctions" class="tc-quick-actions__item"><tc-icon name="gavel" [size]="16" /> Appliquer sanction</a>
+          <a routerLink="/censor/auto-confirm" class="tc-quick-actions__item"><tc-icon name="check-square" [size]="16" /> Confirmer sanctions auto</a>
+          <a routerLink="/censor/contestations" class="tc-quick-actions__item"><tc-icon name="shield" [size]="16" /> Contestations</a>
+          <a routerLink="/censor/attendance-modifications" class="tc-quick-actions__item"><tc-icon name="edit" [size]="16" /> Modifications présence</a>
+          <a routerLink="/censor/justifications" class="tc-quick-actions__item"><tc-icon name="file-text" [size]="16" /> Justificatifs</a>
+          <a routerLink="/censor/unpaid" class="tc-quick-actions__item"><tc-icon name="clock" [size]="16" /> Impayés</a>
+          <a routerLink="/censor/communications" class="tc-quick-actions__item"><tc-icon name="mail" [size]="16" /> Communications</a>
+          <a routerLink="/censor/reports" class="tc-quick-actions__item"><tc-icon name="bar-chart" [size]="16" /> Rapports</a>
+        </div>
+      </tc-card>
+    </section>
+  } @else {
+    <tc-card>Impossible de charger le tableau de bord.</tc-card>
+  }
+</section>

@@ -1,57 +1,59 @@
-<aside class="sidebar" [class.collapsed]="!uiStore.sidebarOpen()">
-  <div class="sidebar-header">
-    <span class="sidebar-logo">🏦</span>
-    @if (uiStore.sidebarOpen()) {
-      <span class="sidebar-brand">NdahConnect</span>
+<aside class="tc-sidebar" [class.tc-sidebar--collapsed]="!ui.sidebarOpen()">
+  <header class="tc-sidebar__brand">
+    <span class="tc-sidebar__logo">TC</span>
+    @if (ui.sidebarOpen()) {
+      <div class="tc-sidebar__brand-text">
+        <p class="tc-sidebar__brand-name">TontineConnect</p>
+        <p class="tc-sidebar__brand-sub">Gestion de tontine</p>
+      </div>
     }
-  </div>
+  </header>
 
-  <nav class="sidebar-nav">
-    @for (item of menuItems; track item.id) {
-      @if (item.children && item.children.length > 0) {
-        <!-- Group with children -->
-        <div class="nav-group" [class.expanded]="isExpanded(item.id)">
-          <button
-            class="nav-item nav-group-toggle"
-            type="button"
-            (click)="toggleGroup(item.id)"
-          >
-            <span class="nav-icon">{{ item.icon }}</span>
-            @if (uiStore.sidebarOpen()) {
-              <span class="nav-label">{{ item.label }}</span>
-              <span class="nav-chevron">›</span>
-            }
-          </button>
-
-          @if (uiStore.sidebarOpen() && isExpanded(item.id)) {
-            <div class="nav-children">
-              @for (child of item.children; track child.id) {
-                <a
-                  class="nav-item nav-child"
-                  [routerLink]="child.route"
-                  routerLinkActive="active"
-                >
-                  <span class="nav-icon child-icon">{{ child.icon }}</span>
-                  <span class="nav-label">{{ child.label }}</span>
-                </a>
-              }
-            </div>
+  <nav class="tc-sidebar__nav">
+    @for (section of visibleSections(); track $index) {
+      <div class="tc-sidebar__section">
+        @if (section.title && ui.sidebarOpen()) {
+          <p class="tc-sidebar__section-title">{{ section.title }}</p>
+        }
+        <ul class="tc-sidebar__list">
+          @for (item of section.items; track item.route) {
+            <li>
+              <a
+                class="tc-sidebar__link"
+                [routerLink]="item.route"
+                routerLinkActive="tc-sidebar__link--active"
+                [routerLinkActiveOptions]="{ exact: false }"
+                [title]="item.label"
+              >
+                <tc-icon [name]="item.icon" [size]="18" />
+                @if (ui.sidebarOpen()) {
+                  <span class="tc-sidebar__link-label">{{ item.label }}</span>
+                }
+              </a>
+            </li>
           }
-        </div>
-      } @else {
-        <!-- Single item (no children) -->
-        <a
-          class="nav-item"
-          [routerLink]="item.route"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
-        >
-          <span class="nav-icon">{{ item.icon }}</span>
-          @if (uiStore.sidebarOpen()) {
-            <span class="nav-label">{{ item.label }}</span>
-          }
-        </a>
-      }
+        </ul>
+      </div>
     }
   </nav>
+
+  @if (auth.user(); as user) {
+    <footer class="tc-sidebar__footer">
+      @if (ui.sidebarOpen()) {
+        <div class="tc-sidebar__profile">
+          <span class="tc-sidebar__avatar">{{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}</span>
+          <div class="tc-sidebar__profile-text">
+            <p class="tc-sidebar__profile-name">{{ user.firstName }} {{ user.lastName }}</p>
+            <p class="tc-sidebar__profile-mail">{{ user.email }}</p>
+          </div>
+        </div>
+      }
+      <button class="tc-sidebar__logout" type="button" (click)="logout()" [title]="'Se déconnecter'">
+        <tc-icon name="log-out" [size]="18" />
+        @if (ui.sidebarOpen()) {
+          <span>Se déconnecter</span>
+        }
+      </button>
+    </footer>
+  }
 </aside>

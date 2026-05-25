@@ -1,0 +1,84 @@
+<section class="tc-page">
+  <header class="tc-page__hero">
+    <div>
+      <p class="tc-eyebrow">Trésorerie</p>
+      <h1 class="tc-page__title">Bonjour {{ auth.user()?.firstName }} 👋</h1>
+      <p class="tc-page__subtitle">Vue d'ensemble de la trésorerie de la tontine.</p>
+    </div>
+  </header>
+
+  @if (dashboardResource.isLoading()) {
+    <div class="tc-page__loading"><tc-spinner size="lg" /></div>
+  } @else if (data(); as d) {
+    <section class="tc-grid tc-grid--stats">
+      <tc-stat-card label="Solde total" [value]="(d.totalBalance | xaf) ?? ''" icon="🏦" tone="info" />
+      <tc-stat-card label="Mobile Money à approuver" [value]="d.pendingMobileMoney" icon="📱" [tone]="d.pendingMobileMoney > 0 ? 'warning' : 'neutral'" />
+      <tc-stat-card label="Transferts en attente" [value]="d.pendingTransfers" icon="↔" [tone]="d.pendingTransfers > 0 ? 'warning' : 'neutral'" />
+      <tc-stat-card label="Dépenses à valider" [value]="d.pendingExpenses" icon="💸" [tone]="d.pendingExpenses > 0 ? 'warning' : 'neutral'" />
+      <tc-stat-card label="Sanctions à encaisser" [value]="d.sanctionsToCollect" icon="⚖" [tone]="d.sanctionsToCollect > 0 ? 'info' : 'neutral'" />
+      <tc-stat-card label="Distributions à faire" [value]="d.pendingDistributions" icon="🎁" [tone]="d.pendingDistributions > 0 ? 'info' : 'neutral'" />
+      <tc-stat-card label="Prêts à suivre" [value]="d.upcomingRepayments" icon="💳" />
+      <tc-stat-card label="Caisses actives" [value]="d.cashBoxes.length" icon="📦" />
+    </section>
+
+    <section class="tc-grid tc-grid--split">
+      <tc-card eyebrow="Trésorerie" title="État des caisses">
+        <ul class="tc-cashboxes">
+          @for (box of d.cashBoxes; track box.id) {
+            <li>
+              <div>
+                <p class="tc-cashboxes__name">{{ box.name }}</p>
+                <p class="tc-cashboxes__type">{{ box.type }}</p>
+              </div>
+              <div class="tc-cashboxes__right">
+                <p class="tc-cashboxes__balance">{{ box.balance | xaf }}</p>
+                @if (box.thresholdMin && box.balance < box.thresholdMin) {
+                  <tc-badge kind="warning">Sous le seuil</tc-badge>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      </tc-card>
+
+      <tc-card eyebrow="Activité" title="Mouvements récents">
+        @if (d.recentMovements.length === 0) {
+          <p class="tc-empty-line">Aucun mouvement récent.</p>
+        } @else {
+          <ul class="tc-movements">
+            @for (mv of d.recentMovements; track mv.id) {
+              <li>
+                <div class="tc-movements__left">
+                  <p class="tc-movements__desc">{{ mv.description }}</p>
+                  <p class="tc-movements__meta">{{ mv.recordedAt | tcDate: true }} · {{ mv.cashBoxName }}</p>
+                </div>
+                <span class="tc-movements__amount" [class.tc-movements__amount--in]="mv.direction === 'IN'" [class.tc-movements__amount--out]="mv.direction !== 'IN'">
+                  {{ mv.direction === 'IN' ? '+' : '-' }}{{ mv.amount | xaf }}
+                </span>
+              </li>
+            }
+          </ul>
+        }
+      </tc-card>
+    </section>
+
+    <section>
+      <tc-card eyebrow="Actions" title="Raccourcis">
+        <div class="tc-quick-actions">
+          <a routerLink="/treasurer/contributions" class="tc-quick-actions__item"><tc-icon name="coins" [size]="16" /> Encaisser cotisations</a>
+          <a routerLink="/treasurer/mobile-money" class="tc-quick-actions__item"><tc-icon name="smartphone" [size]="16" /> Mobile Money</a>
+          <a routerLink="/treasurer/cashboxes" class="tc-quick-actions__item"><tc-icon name="piggy-bank" [size]="16" /> Caisses</a>
+          <a routerLink="/treasurer/transfers" class="tc-quick-actions__item"><tc-icon name="arrow-right-left" [size]="16" /> Transferts</a>
+          <a routerLink="/treasurer/expenses" class="tc-quick-actions__item"><tc-icon name="receipt" [size]="16" /> Dépenses</a>
+          <a routerLink="/treasurer/distributions" class="tc-quick-actions__item"><tc-icon name="gift" [size]="16" /> Distribution cagnotte</a>
+          <a routerLink="/treasurer/loans" class="tc-quick-actions__item"><tc-icon name="landmark" [size]="16" /> Prêts</a>
+          <a routerLink="/treasurer/sanctions" class="tc-quick-actions__item"><tc-icon name="scale" [size]="16" /> Sanctions</a>
+          <a routerLink="/treasurer/bilan" class="tc-quick-actions__item"><tc-icon name="pie-chart" [size]="16" /> Bilan séance</a>
+          <a routerLink="/treasurer/reports" class="tc-quick-actions__item"><tc-icon name="bar-chart" [size]="16" /> Rapports</a>
+        </div>
+      </tc-card>
+    </section>
+  } @else {
+    <tc-card>Impossible de charger le tableau de bord.</tc-card>
+  }
+</section>

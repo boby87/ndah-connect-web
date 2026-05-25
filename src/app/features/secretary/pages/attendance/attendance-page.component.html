@@ -1,0 +1,73 @@
+<div class="space-y-6">
+  <a routerLink="/secretary/dashboard" class="inline-flex items-center text-sm text-blue-600 hover:underline">
+    ← Retour
+  </a>
+
+  @if (errorMessage(); as err) {
+    <tc-alert kind="error">{{ err }}</tc-alert>
+  }
+
+  @if (sessionResource.isLoading()) {
+    <div class="flex justify-center py-12"><tc-spinner size="lg" /></div>
+  } @else if (session(); as s) {
+    <header class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Pointage — Séance #{{ s.number }}</h1>
+        <p class="text-sm text-gray-500">{{ s.scheduledAt | tcDate: true }}</p>
+      </div>
+      <tc-button variant="success" [loading]="finalizing()" (clicked)="finalize()">
+        Finaliser la feuille de présence
+      </tc-button>
+    </header>
+
+    <section class="grid gap-4 sm:grid-cols-4">
+      <tc-card>
+        <p class="text-xs uppercase text-gray-500">Présents</p>
+        <p class="text-2xl font-bold text-green-600">{{ countByStatus('PRESENT') }}</p>
+      </tc-card>
+      <tc-card>
+        <p class="text-xs uppercase text-gray-500">Retards</p>
+        <p class="text-2xl font-bold text-amber-600">{{ countByStatus('LATE') }}</p>
+      </tc-card>
+      <tc-card>
+        <p class="text-xs uppercase text-gray-500">Excusés</p>
+        <p class="text-2xl font-bold text-blue-600">{{ countByStatus('EXCUSED') }}</p>
+      </tc-card>
+      <tc-card>
+        <p class="text-xs uppercase text-gray-500">Absents</p>
+        <p class="text-2xl font-bold text-red-600">{{ countByStatus('ABSENT') }}</p>
+      </tc-card>
+    </section>
+
+    <tc-card title="Liste des membres" subtitle="Cochez le statut au passage de chacun">
+      @if (membersResource.isLoading()) {
+        <p class="text-sm text-gray-500">Chargement des membres…</p>
+      } @else {
+        <ul class="divide-y divide-gray-100">
+          @for (member of activeMembers(); track member.id) {
+            <li class="flex flex-wrap items-center justify-between gap-3 py-3">
+              <div>
+                <p class="font-medium text-gray-900">{{ member.firstName }} {{ member.lastName }}</p>
+                <p class="text-xs text-gray-500">{{ member.matricule }}</p>
+              </div>
+              <div class="flex flex-wrap gap-1">
+                @for (st of statuses; track st) {
+                  <button
+                    type="button"
+                    [class]="buttonClass(member.id, st)"
+                    [disabled]="actingId() === member.id"
+                    (click)="setStatus(member.id, st)"
+                  >
+                    {{ statusLabels[st] }}
+                  </button>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </tc-card>
+  } @else {
+    <tc-card>Séance introuvable.</tc-card>
+  }
+</div>

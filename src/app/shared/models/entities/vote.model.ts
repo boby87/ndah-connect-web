@@ -1,29 +1,31 @@
-export interface Vote {
-  id: string;
-  tontineId: string;
-  sessionId?: string;
-  title: string;
-  description: string;
-  type: 'majority' | 'unanimous' | 'two_thirds';
-  status: 'draft' | 'open' | 'closed';
-  options: VoteOption[];
-  startedAt?: string;
-  closedAt?: string;
-  createdBy: string;
-  createdAt: string;
-}
+export type VoteStatus = 'DRAFT' | 'OPEN' | 'CLOSED' | 'CANCELLED';
+export type VoteAudience = 'ALL' | 'BUREAU' | 'MEMBERS_ACTIVE';
+export type VoteScope = 'STANDARD' | 'ASSEMBLY';
 
 export interface VoteOption {
   id: string;
-  voteId: string;
   label: string;
-  votes: number;
+  count: number;
 }
 
-export interface VoteBallot {
+export interface Vote {
   id: string;
-  voteId: string;
-  optionId: string;
-  memberId: string;
-  castedAt: string;
+  tontineId: string;
+  question: string;
+  description?: string;
+  options: VoteOption[];
+  isAnonymous: boolean;
+  hideResultsUntilClose: boolean;
+  scope: VoteScope;
+  audience: VoteAudience;
+  status: VoteStatus;
+  opensAt: string;
+  closesAt: string;
+  createdByUserId: string;
+  createdByFullName: string;
+  createdAt: string;
+  totalVoters: number;
+  totalVoted: number;
+  quorumPercent: number;
+  passed?: boolean;
 }

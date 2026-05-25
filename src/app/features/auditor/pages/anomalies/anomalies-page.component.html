@@ -1,0 +1,215 @@
+<div class="space-y-6">
+  <header>
+    <h1 class="text-2xl font-bold text-gray-900">Signalements d'anomalies</h1>
+    <p class="text-sm text-gray-500">
+      Signalez à différents niveaux : Président, Bureau ou Assemblée (RM-SA01). Tous les signalements sont tracés
+      (RM-SA02).
+    </p>
+  </header>
+
+  @if (errorMessage(); as err) {
+    <tc-alert kind="error">{{ err }}</tc-alert>
+  }
+
+  <div class="grid gap-6 lg:grid-cols-3">
+    <aside>
+      <tc-card title="Nouveau signalement">
+        <form class="space-y-3" (submit)="onSubmit($event)">
+          <div>
+            <label class="text-xs font-medium text-gray-700">Catégorie</label>
+            <select
+              class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              [value]="category()"
+              (change)="category.set($any($event.target).value)"
+            >
+              <option value="CASH_DISCREPANCY">Écart de caisse</option>
+              <option value="MISSING_RECEIPT">Justificatif manquant</option>
+              <option value="UNAUTHORIZED_OPERATION">Opération non autorisée</option>
+              <option value="PROCEDURE_BREACH">Non-respect des procédures</option>
+              <option value="CALCULATION_ERROR">Erreur de calcul</option>
+              <option value="OTHER">Autre</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="text-xs font-medium text-gray-700">Gravité</label>
+            <div class="mt-1 flex gap-3 text-sm">
+              <label class="flex items-center gap-1">
+                <input
+                  type="radio"
+                  class="h-4 w-4 text-violet-600 focus:ring-violet-500"
+                  [checked]="severity() === 'LOW'"
+                  (change)="severity.set('LOW')"
+                />
+                🟢 Faible
+              </label>
+              <label class="flex items-center gap-1">
+                <input
+                  type="radio"
+                  class="h-4 w-4 text-violet-600 focus:ring-violet-500"
+                  [checked]="severity() === 'MEDIUM'"
+                  (change)="severity.set('MEDIUM')"
+                />
+                🟡 Moyenne
+              </label>
+              <label class="flex items-center gap-1">
+                <input
+                  type="radio"
+                  class="h-4 w-4 text-violet-600 focus:ring-violet-500"
+                  [checked]="severity() === 'HIGH'"
+                  (change)="severity.set('HIGH')"
+                />
+                🔴 Élevée
+              </label>
+            </div>
+          </div>
+
+          <tc-input label="Titre" [(value)]="title" [required]="true" />
+
+          <div>
+            <label class="text-xs font-medium text-gray-700">Description détaillée</label>
+            <textarea
+              class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              rows="4"
+              [value]="description()"
+              (input)="description.set($any($event.target).value)"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="text-xs font-medium text-gray-700">Destinataire</label>
+            <div class="mt-1 space-y-1 text-sm">
+              <label class="flex items-center gap-2">
+                <input
+                  type="radio"
+                  class="h-4 w-4 text-violet-600 focus:ring-violet-500"
+                  [checked]="audience() === 'PRESIDENT'"
+                  (change)="audience.set('PRESIDENT')"
+                />
+                Président uniquement
+              </label>
+              <label class="flex items-center gap-2">
+                <input
+                  type="radio"
+                  class="h-4 w-4 text-violet-600 focus:ring-violet-500"
+                  [checked]="audience() === 'BUREAU'"
+                  (change)="audience.set('BUREAU')"
+                />
+                Bureau
+              </label>
+              <label class="flex items-center gap-2">
+                <input
+                  type="radio"
+                  class="h-4 w-4 text-violet-600 focus:ring-violet-500"
+                  [checked]="audience() === 'ASSEMBLY'"
+                  (change)="audience.set('ASSEMBLY')"
+                />
+                Assemblée
+              </label>
+            </div>
+          </div>
+
+          <div class="space-y-1 text-sm">
+            <label class="flex items-center gap-2">
+              <input
+                type="checkbox"
+                class="h-4 w-4 rounded text-violet-600 focus:ring-violet-500"
+                [checked]="requestsResponse()"
+                (change)="requestsResponse.set($any($event.target).checked)"
+              />
+              Demander une réponse / explication
+            </label>
+            <label class="flex items-center gap-2">
+              <input
+                type="checkbox"
+                class="h-4 w-4 rounded text-violet-600 focus:ring-violet-500"
+                [checked]="copyToTreasurer()"
+                (change)="copyToTreasurer.set($any($event.target).checked)"
+              />
+              Copie au Trésorier
+            </label>
+          </div>
+
+          <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
+            ✈ Envoyer le signalement
+          </tc-button>
+        </form>
+      </tc-card>
+    </aside>
+
+    <div class="lg:col-span-2">
+      <tc-card title="Historique des signalements">
+        @if (resource.isLoading()) {
+          <p class="text-sm text-gray-500">Chargement…</p>
+        } @else if (anomalies().length === 0) {
+          <tc-empty-state title="Aucun signalement" icon="⚠" />
+        } @else {
+          <ul class="space-y-3">
+            @for (a of anomalies(); track a.id) {
+              <li>
+                <div class="space-y-2 rounded-lg border border-gray-100 p-3">
+                  <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div class="flex flex-wrap items-center gap-2">
+                        <p class="font-semibold text-gray-900">{{ a.reference }} — {{ a.title }}</p>
+                        <tc-badge [kind]="severityBadge(a.severity)">{{ severityLabel(a.severity) }}</tc-badge>
+                        <tc-badge [kind]="statusBadge(a.status)">{{ statusLabel(a.status) }}</tc-badge>
+                      </div>
+                      <p class="mt-1 text-xs text-gray-500">
+                        Émis le {{ a.raisedAt | tcDate: true }} · → {{ a.audience }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <p class="text-sm text-gray-700">{{ a.description }}</p>
+
+                  @if (a.response) {
+                    <div class="rounded-lg border border-blue-100 bg-blue-50 p-3">
+                      <p class="text-xs font-medium text-blue-900">
+                        Réponse — {{ a.responseAt | tcDate: true }} · {{ a.responseByFullName }}
+                      </p>
+                      <p class="mt-1 text-sm text-blue-900">{{ a.response }}</p>
+                    </div>
+                  }
+
+                  <details class="text-xs text-gray-600">
+                    <summary class="cursor-pointer hover:underline">Chronologie ({{ a.history.length }})</summary>
+                    <ul class="mt-2 space-y-1 pl-2">
+                      @for (h of a.history; track $index) {
+                        <li>
+                          {{ h.at | tcDate: true }} — <strong>{{ h.actor }}</strong> : {{ h.action }}
+                        </li>
+                      }
+                    </ul>
+                  </details>
+
+                  <div class="flex gap-2">
+                    @if (a.status !== 'CLOSED') {
+                      <tc-button
+                        variant="outline"
+                        size="sm"
+                        [loading]="acting() === a.id + ':close'"
+                        (clicked)="close(a)"
+                      >
+                        ✓ Clôturer
+                      </tc-button>
+                    } @else {
+                      <tc-button
+                        variant="outline"
+                        size="sm"
+                        [loading]="acting() === a.id + ':reopen'"
+                        (clicked)="reopen(a)"
+                      >
+                        ↩ Rouvrir
+                      </tc-button>
+                    }
+                  </div>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </tc-card>
+    </div>
+  </div>
+</div>

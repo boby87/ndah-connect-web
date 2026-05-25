@@ -1,45 +1,26 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
-import { StorageService } from '../../core/services/storage.service';
-import { STORAGE_KEYS } from '../../core/constants';
+import { Injectable, signal } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class UiStore {
-  private readonly storage = inject(StorageService);
+  private readonly sidebarOpenSignal = signal(true);
+  private readonly mobileNavOpenSignal = signal(false);
 
-  private readonly _sidebarOpen = signal(
-    this.storage.get(STORAGE_KEYS.SIDEBAR_STATE) !== 'closed'
-  );
-  private readonly _theme = signal<'light' | 'dark'>('light');
-  private readonly _isMobile = signal(false);
-  private readonly _currentRoute = signal('');
-
-  readonly sidebarOpen = this._sidebarOpen.asReadonly();
-  readonly theme = this._theme.asReadonly();
-  readonly isMobile = this._isMobile.asReadonly();
-  readonly currentRoute = this._currentRoute.asReadonly();
+  readonly sidebarOpen = this.sidebarOpenSignal.asReadonly();
+  readonly mobileNavOpen = this.mobileNavOpenSignal.asReadonly();
 
   toggleSidebar(): void {
-    this._sidebarOpen.update(open => {
-      const newState = !open;
-      this.storage.set(STORAGE_KEYS.SIDEBAR_STATE, newState ? 'open' : 'closed');
-      return newState;
-    });
+    this.sidebarOpenSignal.update((open) => !open);
   }
 
   setSidebarOpen(open: boolean): void {
-    this._sidebarOpen.set(open);
-    this.storage.set(STORAGE_KEYS.SIDEBAR_STATE, open ? 'open' : 'closed');
+    this.sidebarOpenSignal.set(open);
   }
 
-  setTheme(theme: 'light' | 'dark'): void {
-    this._theme.set(theme);
+  toggleMobileNav(): void {
+    this.mobileNavOpenSignal.update((open) => !open);
   }
 
-  setIsMobile(isMobile: boolean): void {
-    this._isMobile.set(isMobile);
-  }
-
-  setCurrentRoute(route: string): void {
-    this._currentRoute.set(route);
+  closeMobileNav(): void {
+    this.mobileNavOpenSignal.set(false);
   }
 }

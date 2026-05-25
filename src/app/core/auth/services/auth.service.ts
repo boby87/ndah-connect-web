@@ -1,140 +1,136 @@
-import { inject, Injectable } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { AuthApiService, LoginRequest, RegisterRequest, ResetPasswordRequest, VerifyOtpRequest } from '../../api/services/auth-api.service';
-import { TokenService } from './token.service';
-import { StorageService } from '../../services/storage.service';
-import { STORAGE_KEYS } from '../../constants';
-import { NotificationService } from '../../services/notification.service';
-import { User } from '../../../shared/models/entities';
-import { environment } from '../../../../environments/environment';
-import { UserRole } from '../../enums/user-role.enum';
 
-export interface MockProfile {
-  id: string;
-  user: User;
-  role: UserRole;
-  label: string;
-  emoji: string;
+import { API_CONFIG, API_ENDPOINTS } from '../../config/api.config';
+import { STORAGE_KEYS } from '../../constants/storage-keys.constants';
+import { UserRole } from '../../enums/user-role.enum';
+import { StorageService } from '../../services/storage.service';
+import { TokenService } from './token.service';
+import type { ApiResponse } from '../../api/models/api-response.model';
+import type { AuthSession, User } from '../../../shared/models/entities/user.model';
+
+export interface LoginPayload {
+  identifier: string;
+  password: string;
+  rememberMe?: boolean;
 }
 
-export const MOCK_PROFILES: MockProfile[] = [
-  {
-    id: 'u-001', role: UserRole.PRESIDENT, label: 'Président', emoji: '👑',
-    user: {
-      id: 'u-001', phoneNumber: '677100100', firstName: 'Alain', lastName: 'NKOMO',
-      email: 'alain.nkomo@email.cm', gender: 'male', profession: 'Ingénieur Informatique',
-      address: 'Douala, Bonanjo', kycStatus: 'verified', isActive: true,
-      createdAt: '2024-06-15T10:00:00Z', updatedAt: '2026-03-01T08:00:00Z',
-    },
-  },
-  {
-    id: 'u-003', role: UserRole.SECRETARY, label: 'Secrétaire', emoji: '📋',
-    user: {
-      id: 'u-003', phoneNumber: '677300300', firstName: 'Marie', lastName: 'NGUEMO',
-      email: 'marie.nguemo@email.cm', gender: 'female', profession: 'Juriste',
-      address: 'Douala, Akwa', kycStatus: 'verified', isActive: true,
-      createdAt: '2024-06-15T10:00:00Z', updatedAt: '2026-03-01T08:00:00Z',
-    },
-  },
-  {
-    id: 'u-004', role: UserRole.TREASURER, label: 'Trésorier', emoji: '💰',
-    user: {
-      id: 'u-004', phoneNumber: '677400400', firstName: 'Paul', lastName: 'FOTSO',
-      email: 'paul.fotso@email.cm', gender: 'male', profession: 'Comptable',
-      address: 'Douala, Bonapriso', kycStatus: 'verified', isActive: true,
-      createdAt: '2024-06-15T10:00:00Z', updatedAt: '2026-03-01T08:00:00Z',
-    },
-  },
-  {
-    id: 'u-005', role: UserRole.CENSOR, label: 'Censeur', emoji: '⚖️',
-    user: {
-      id: 'u-005', phoneNumber: '677500500', firstName: 'Berthe', lastName: 'EYENGA',
-      email: 'berthe.eyenga@email.cm', gender: 'female', profession: 'Enseignante',
-      address: 'Douala, Deido', kycStatus: 'verified', isActive: true,
-      createdAt: '2024-06-15T10:00:00Z', updatedAt: '2026-03-01T08:00:00Z',
-    },
-  },
-];
+export interface RegisterPayload {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  password: string;
+}
+
+export interface OtpPayload {
+  identifier: string;
+  code: string;
+}
+
+export interface ResetPasswordPayload {
+  identifier: string;
+  code: string;
+  newPassword: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly authApi = inject(AuthApiService);
-  private readonly tokenService = inject(TokenService);
+  private readonly http = inject(HttpClient);
+  private readonly tokens = inject(TokenService);
   private readonly storage = inject(StorageService);
   private readonly router = inject(Router);
-  private readonly notification = inject(NotificationService);
 
-  async login(credentials: LoginRequest): Promise<User> {
-    if (environment.useMock) {
-      return this.mockLogin(credentials);
-    }
-    const response = await firstValueFrom(this.authApi.login(credentials));
-    this.tokenService.setTokens(response.data.accessToken, response.data.refreshToken);
-    this.storage.setObject(STORAGE_KEYS.USER, response.data.user);
-    return response.data.user;
+  private readonly userSignal = signal<User | null>(this.storage.get<User>(STORAGE_KEYS.currentUser));
+
+  readonly user = this.userSignal.asReadonly();
+  readonly isAuthenticated = computed(() => !!this.userSignal() && this.tokens.isAuthenticated());
+  readonly roles = computed<UserRole[]>(() => this.userSignal()?.roles ?? []);
+
+  hasRole(role: UserRole): boolean {
+    return this.roles().includes(role);
   }
 
-  mockLoginAs(profileId: string): User {
-    const profile = MOCK_PROFILES.find(p => p.id === profileId) ?? MOCK_PROFILES[0];
-    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-    const payload = btoa(JSON.stringify({ sub: profile.user.id, role: profile.role, exp: Math.floor(Date.now() / 1000) + 86400 }));
-    const fakeToken = `${header}.${payload}.mock-signature`;
-    this.tokenService.setTokens(fakeToken, fakeToken);
-    this.storage.setObject(STORAGE_KEYS.USER, profile.user);
-    this.storage.set('mock_role', profile.role);
-    return profile.user;
+  hasAnyRole(roles: UserRole[]): boolean {
+    return roles.some((role) => this.hasRole(role));
   }
 
-  getMockRole(): UserRole {
-    return (this.storage.get('mock_role') as UserRole) ?? UserRole.PRESIDENT;
-  }
-
-  private mockLogin(credentials: LoginRequest): User {
-    return this.mockLoginAs('u-001');
-  }
-
-  async register(data: RegisterRequest): Promise<void> {
-    await firstValueFrom(this.authApi.register(data));
-  }
-
-  async verifyOtp(data: VerifyOtpRequest): Promise<User> {
-    const response = await firstValueFrom(this.authApi.verifyOtp(data));
-    this.tokenService.setTokens(response.data.accessToken, response.data.refreshToken);
-    this.storage.setObject(STORAGE_KEYS.USER, response.data.user);
-    return response.data.user;
-  }
-
-  async resendOtp(phoneNumber: string): Promise<void> {
-    await firstValueFrom(this.authApi.resendOtp(phoneNumber));
-  }
-
-  async forgotPassword(phoneNumber: string): Promise<void> {
-    await firstValueFrom(this.authApi.forgotPassword(phoneNumber));
-  }
-
-  async resetPassword(data: ResetPasswordRequest): Promise<void> {
-    await firstValueFrom(this.authApi.resetPassword(data));
-  }
-
-  async getCurrentUser(): Promise<User> {
-    const response = await firstValueFrom(this.authApi.getCurrentUser());
-    this.storage.setObject(STORAGE_KEYS.USER, response.data);
+  async login(payload: LoginPayload): Promise<AuthSession> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<AuthSession>>(`${API_CONFIG.baseUrl}${API_ENDPOINTS.auth.login}`, payload),
+    );
+    this.persistSession(response.data);
     return response.data;
   }
 
-  logout(): void {
-    this.authApi.logout().subscribe();
-    this.tokenService.clearTokens();
-    this.storage.remove(STORAGE_KEYS.USER);
-    this.router.navigate(['/auth/login']);
+  async register(payload: RegisterPayload): Promise<{ identifier: string }> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<{ identifier: string }>>(
+        `${API_CONFIG.baseUrl}${API_ENDPOINTS.auth.register}`,
+        payload,
+      ),
+    );
+    return response.data;
   }
 
-  isAuthenticated(): boolean {
-    return !this.tokenService.isTokenExpired();
+  async verifyOtp(payload: OtpPayload): Promise<AuthSession> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<AuthSession>>(
+        `${API_CONFIG.baseUrl}${API_ENDPOINTS.auth.verifyOtp}`,
+        payload,
+      ),
+    );
+    this.persistSession(response.data);
+    return response.data;
   }
 
-  getStoredUser(): User | null {
-    return this.storage.getObject<User>(STORAGE_KEYS.USER);
+  async forgotPassword(identifier: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post<ApiResponse<void>>(`${API_CONFIG.baseUrl}${API_ENDPOINTS.auth.forgotPassword}`, {
+        identifier,
+      }),
+    );
+  }
+
+  async resetPassword(payload: ResetPasswordPayload): Promise<void> {
+    await firstValueFrom(
+      this.http.post<ApiResponse<void>>(`${API_CONFIG.baseUrl}${API_ENDPOINTS.auth.resetPassword}`, payload),
+    );
+  }
+
+  async loadCurrentUser(): Promise<User | null> {
+    if (!this.tokens.isAuthenticated()) return null;
+    try {
+      const response = await firstValueFrom(
+        this.http.get<ApiResponse<User>>(`${API_CONFIG.baseUrl}${API_ENDPOINTS.auth.me}`),
+      );
+      this.userSignal.set(response.data);
+      this.storage.set(STORAGE_KEYS.currentUser, response.data);
+      return response.data;
+    } catch {
+      this.logout();
+      return null;
+    }
+  }
+
+  logout(redirectToLogin = true): void {
+    this.tokens.clearTokens();
+    this.storage.remove(STORAGE_KEYS.currentUser);
+    this.storage.remove(STORAGE_KEYS.currentTontineId);
+    this.userSignal.set(null);
+    if (redirectToLogin) {
+      void this.router.navigateByUrl('/auth/login');
+    }
+  }
+
+  private persistSession(session: AuthSession): void {
+    this.tokens.setTokens(session.tokens);
+    this.userSignal.set(session.user);
+    this.storage.set(STORAGE_KEYS.currentUser, session.user);
+    if (session.activeTontineId) {
+      this.storage.set(STORAGE_KEYS.currentTontineId, session.activeTontineId);
+    }
   }
 }

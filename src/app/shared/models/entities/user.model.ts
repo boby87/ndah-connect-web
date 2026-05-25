@@ -1,16 +1,28 @@
+import { UserRole } from '../../../core/enums/user-role.enum';
+
 export interface User {
   id: string;
-  phoneNumber: string;
-  email?: string;
   firstName: string;
   lastName: string;
+  email: string;
+  phone: string;
   avatarUrl?: string;
-  dateOfBirth?: string;
-  gender?: 'male' | 'female';
-  address?: string;
-  profession?: string;
-  kycStatus: 'pending' | 'verified' | 'rejected';
+  roles: UserRole[];
   isActive: boolean;
+  isPhoneVerified: boolean;
+  isEmailVerified: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+}
+
+export interface AuthSession {
+  user: User;
+  tokens: AuthTokens;
+  activeTontineId?: string;
 }

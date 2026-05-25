@@ -1,52 +1,44 @@
-import { inject, Injectable } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { STORAGE_KEYS } from '../../constants/storage-keys.constants';
 import { StorageService } from '../../services/storage.service';
-import { STORAGE_KEYS } from '../../constants';
+import type { AuthTokens } from '../../../shared/models/entities/user.model';
 
 @Injectable({ providedIn: 'root' })
 export class TokenService {
   private readonly storage = inject(StorageService);
 
-  getAccessToken(): string | null {
-    return this.storage.get(STORAGE_KEYS.ACCESS_TOKEN);
-  }
+  private readonly tokensSignal = signal<AuthTokens | null>(this.readFromStorage());
 
-  getRefreshToken(): string | null {
-    return this.storage.get(STORAGE_KEYS.REFRESH_TOKEN);
-  }
+  readonly tokens = this.tokensSignal.asReadonly();
 
-  setTokens(accessToken: string, refreshToken: string): void {
-    this.storage.set(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
-    this.storage.set(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
+  setTokens(tokens: AuthTokens): void {
+    this.storage.set(STORAGE_KEYS.accessToken, tokens.accessToken);
+    this.storage.set(STORAGE_KEYS.refreshToken, tokens.refreshToken);
+    this.tokensSignal.set(tokens);
   }
 
   clearTokens(): void {
-    this.storage.remove(STORAGE_KEYS.ACCESS_TOKEN);
-    this.storage.remove(STORAGE_KEYS.REFRESH_TOKEN);
+    this.storage.remove(STORAGE_KEYS.accessToken);
+    this.storage.remove(STORAGE_KEYS.refreshToken);
+    this.tokensSignal.set(null);
   }
 
-  isTokenExpired(): boolean {
-    const token = this.getAccessToken();
-    if (!token) return true;
-
-    try {
-      const payload = this.getTokenPayload();
-      if (!payload?.['exp']) return true;
-      return Date.now() >= (payload['exp'] as number) * 1000;
-    } catch {
-      return true;
-    }
+  getAccessToken(): string | null {
+    return this.tokensSignal()?.accessToken ?? null;
   }
 
-  getTokenPayload(): Record<string, unknown> | null {
-    const token = this.getAccessToken();
-    if (!token) return null;
+  getRefreshToken(): string | null {
+    return this.tokensSignal()?.refreshToken ?? null;
+  }
 
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      return JSON.parse(atob(base64));
-    } catch {
-      return null;
-    }
+  isAuthenticated(): boolean {
+    return !!this.tokensSignal()?.accessToken;
+  }
+
+  private readFromStorage(): AuthTokens | null {
+    const accessToken = this.storage.get<string>(STORAGE_KEYS.accessToken);
+    const refreshToken = this.storage.get<string>(STORAGE_KEYS.refreshToken);
+    if (!accessToken || !refreshToken) return null;
+    return { accessToken, refreshToken, expiresIn: 0 };
   }
 }

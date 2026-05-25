@@ -1,21 +1,14 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+
+export type BadgeKind = 'neutral' | 'info' | 'success' | 'warning' | 'danger';
 
 @Component({
-  selector: 'app-badge',
-  standalone: true,
-  template: `
-    <span [class]="'badge badge-' + variant() + ' badge-' + size()" [class.badge-dot]="dot()">
-      @if (dot()) {
-        <span class="dot"></span>
-      }
-      <ng-content />
-    </span>
-  `,
-  styleUrl: './badge.component.css',
+  selector: 'tc-badge',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './badge.component.html',
+  styleUrl: './badge.component.scss',
 })
 export class BadgeComponent {
-  readonly variant = input<'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info'>('primary');
-  readonly size = input<'sm' | 'md'>('md');
-  readonly dot = input(false);
+  readonly kind = input<BadgeKind>('neutral');
+  readonly classes = computed(() => `tc-badge tc-badge--${this.kind()}`);
 }

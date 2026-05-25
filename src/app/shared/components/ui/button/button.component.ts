@@ -1,27 +1,27 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+
+export type ButtonVariant = 'primary' | 'secondary' | 'success' | 'danger' | 'ghost' | 'outline';
+export type ButtonSize = 'sm' | 'md' | 'lg';
 
 @Component({
-  selector: 'app-button',
-  standalone: true,
-  templateUrl: './button.component.html',
-  styleUrl: './button.component.css',
+  selector: 'tc-button',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './button.component.html',
+  styleUrl: './button.component.scss',
 })
 export class ButtonComponent {
-  readonly variant = input<'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success'>('primary');
-  readonly size = input<'sm' | 'md' | 'lg'>('md');
+  readonly variant = input<ButtonVariant>('primary');
+  readonly size = input<ButtonSize>('md');
+  readonly type = input<'button' | 'submit' | 'reset'>('button');
   readonly disabled = input(false);
   readonly loading = input(false);
-  readonly icon = input<string>();
-  readonly iconOnly = input(false);
   readonly fullWidth = input(false);
-  readonly type = input<'button' | 'submit' | 'reset'>('button');
 
   readonly clicked = output<MouseEvent>();
 
-  onClick(event: MouseEvent): void {
-    if (!this.disabled() && !this.loading()) {
-      this.clicked.emit(event);
-    }
-  }
+  readonly hostClasses = computed(() => {
+    const parts = ['tc-btn', `tc-btn--${this.variant()}`, `tc-btn--${this.size()}`];
+    if (this.fullWidth()) parts.push('tc-btn--block');
+    return parts.join(' ');
+  });
 }

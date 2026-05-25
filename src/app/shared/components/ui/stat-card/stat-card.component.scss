@@ -1,0 +1,69 @@
+:host { display: block; }
+
+.tc-stat {
+  background: var(--surface-card);
+  border: 1px solid rgba(28, 26, 47, 0.06);
+  border-radius: var(--radius-lg);
+  padding: 1.1rem 1.25rem;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+
+  &:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-1px);
+  }
+}
+
+.tc-stat__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.tc-stat__label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.tc-stat__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-md);
+  background: var(--brand-100);
+  color: var(--brand-700);
+  font-size: 1rem;
+}
+
+.tc-stat__value {
+  margin: 0.7rem 0 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+.tc-stat__value--neutral { color: var(--text-strong); }
+.tc-stat__value--success { color: #15803d; }
+.tc-stat__value--warning { color: #b45309; }
+.tc-stat__value--danger  { color: #b91c1c; }
+.tc-stat__value--info    { color: var(--brand-700); }
+
+.tc-stat__trend {
+  margin: 0.3rem 0 0;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.tc-stat__trend--pos { color: #15803d; }
+.tc-stat__trend--neg { color: #b91c1c; }
+.tc-stat__trend-arrow { font-weight: 700; }

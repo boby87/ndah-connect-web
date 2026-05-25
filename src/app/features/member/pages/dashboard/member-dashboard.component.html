@@ -1,0 +1,139 @@
+<section class="tc-page">
+  <header class="tc-page__hero">
+    <div>
+      <p class="tc-eyebrow">Mon espace</p>
+      <h1 class="tc-page__title">Tableau de bord</h1>
+      <p class="tc-page__subtitle">Vue d'ensemble de votre activité dans la tontine.</p>
+    </div>
+
+    @if (summary()?.tontine; as t) {
+      <tc-card tone="accent" class="tc-page__hero-card">
+        <div class="tc-hero-card">
+          <div class="tc-hero-card__icon"><tc-icon name="sparkles" [size]="22" /></div>
+          <div>
+            <p class="tc-eyebrow">Tontine active</p>
+            <p class="tc-hero-card__name">{{ t.name }}</p>
+            <p class="tc-hero-card__hint">Cotisation : {{ t.contributionAmount | xaf }} · {{ t.memberCount }} / {{ t.maxMembers }} membres</p>
+          </div>
+        </div>
+      </tc-card>
+    }
+  </header>
+
+  @if (summaryResource.isLoading()) {
+    <div class="tc-page__loading"><tc-spinner size="lg" /></div>
+  } @else if (summary(); as s) {
+    <section class="tc-grid tc-grid--stats">
+      <tc-stat-card
+        label="Total contribué"
+        [value]="(s.totalContributed | xaf) ?? '0'"
+        icon="💰"
+        tone="success"
+        [sublabel]="s.tontine?.name ?? ''"
+      />
+      <tc-stat-card
+        label="Arriérés"
+        [value]="(s.totalArrears | xaf) ?? '0'"
+        icon="⏳"
+        [tone]="s.totalArrears > 0 ? 'danger' : 'neutral'"
+        [sublabel]="s.totalArrears > 0 ? 'À régulariser au plus vite' : 'Aucun arriéré'"
+      />
+      <tc-stat-card
+        label="Prêts actifs"
+        [value]="s.activeLoans"
+        icon="💳"
+        tone="info"
+      />
+      <tc-stat-card
+        label="Position du tour"
+        [value]="s.tourPosition ? ('#' + s.tourPosition) : '—'"
+        icon="🎯"
+        tone="info"
+      />
+    </section>
+
+    <section class="tc-grid tc-grid--split">
+      <tc-card eyebrow="À venir" title="Prochaine séance" subtitle="Préparez votre cotisation à temps">
+        @if (s.nextSession; as session) {
+          <div class="tc-next-session">
+            <div class="tc-next-session__top">
+              <div>
+                <p class="tc-next-session__title">Séance #{{ session.number }}</p>
+                <p class="tc-next-session__date">{{ session.scheduledAt | tcDate: true }}</p>
+              </div>
+              <tc-badge kind="info">À venir</tc-badge>
+            </div>
+            @if (session.location) {
+              <p class="tc-next-session__meta">
+                <tc-icon name="home" [size]="16" /> {{ session.location }}
+              </p>
+            }
+            <p class="tc-next-session__meta">
+              <tc-icon name="wallet" [size]="16" />
+              Cotisation attendue : <strong>{{ s.tontine?.contributionAmount | xaf }}</strong>
+            </p>
+          </div>
+        } @else {
+          <p class="tc-empty-line">Aucune séance planifiée pour le moment.</p>
+        }
+      </tc-card>
+
+      <tc-card eyebrow="Raccourcis" title="Accès rapide">
+        <ul class="tc-quick-list">
+          <li>
+            <a routerLink="/member/contributions" class="tc-quick-list__item">
+              <span class="tc-quick-list__icon"><tc-icon name="wallet" [size]="18" /></span>
+              <span class="tc-quick-list__text">
+                <span class="tc-quick-list__title">Mes cotisations</span>
+                <span class="tc-quick-list__hint">Historique et paiements à venir</span>
+              </span>
+              <tc-icon name="chevron-down" [size]="16" />
+            </a>
+          </li>
+          <li>
+            <a routerLink="/member/planning" class="tc-quick-list__item">
+              <span class="tc-quick-list__icon"><tc-icon name="calendar" [size]="18" /></span>
+              <span class="tc-quick-list__text">
+                <span class="tc-quick-list__title">Mon planning de tours</span>
+                <span class="tc-quick-list__hint">Ordre de passage et dates clés</span>
+              </span>
+              <tc-icon name="chevron-down" [size]="16" />
+            </a>
+          </li>
+          <li>
+            <a routerLink="/member/loans" class="tc-quick-list__item">
+              <span class="tc-quick-list__icon"><tc-icon name="banknote" [size]="18" /></span>
+              <span class="tc-quick-list__text">
+                <span class="tc-quick-list__title">Mes prêts</span>
+                <span class="tc-quick-list__hint">Encours, échéances et remboursements</span>
+              </span>
+              <tc-icon name="chevron-down" [size]="16" />
+            </a>
+          </li>
+          <li>
+            <a routerLink="/member/loan-simulator" class="tc-quick-list__item">
+              <span class="tc-quick-list__icon"><tc-icon name="calculator" [size]="18" /></span>
+              <span class="tc-quick-list__text">
+                <span class="tc-quick-list__title">Simuler un nouveau prêt</span>
+                <span class="tc-quick-list__hint">Estimez votre mensualité</span>
+              </span>
+              <tc-icon name="chevron-down" [size]="16" />
+            </a>
+          </li>
+          <li>
+            <a routerLink="/member/create-tontine" class="tc-quick-list__item tc-quick-list__item--accent">
+              <span class="tc-quick-list__icon tc-quick-list__icon--accent"><tc-icon name="plus-circle" [size]="18" /></span>
+              <span class="tc-quick-list__text">
+                <span class="tc-quick-list__title">Créer une tontine</span>
+                <span class="tc-quick-list__hint">Lancez votre propre tontine en 5 étapes</span>
+              </span>
+              <tc-icon name="chevron-down" [size]="16" />
+            </a>
+          </li>
+        </ul>
+      </tc-card>
+    </section>
+  } @else {
+    <tc-card>Impossible de charger vos informations.</tc-card>
+  }
+</section>
