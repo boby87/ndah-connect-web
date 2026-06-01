@@ -29,4 +29,5 @@ export const API_ENDPOINTS = {
   notifications: '/notifications',
   votes: '/votes',
   treasury: '/treasury',
+  files: '/files',
 } as const;
