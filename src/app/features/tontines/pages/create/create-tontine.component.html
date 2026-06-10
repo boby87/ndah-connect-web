@@ -195,6 +195,11 @@
   <!-- Step 4 -->
   @if (step() === 4) {
     <tc-card eyebrow="Étape 4 / 5" title="Membres fondateurs" subtitle="Invitez votre bureau (Secrétaire, Trésorier, Censeur, Commissaire)">
+      <tc-alert kind="success">
+        <strong>{{ creatorFullName() }}</strong> sera automatiquement
+        <strong>Président</strong> de cette tontine. Vous ne pouvez pas attribuer ce rôle à un autre
+        fondateur. Pour le déléguer, utilisez le module <em>Délégations</em> après création.
+      </tc-alert>
       <div class="tc-founders">
         @for (f of founders(); track $index) {
           <div class="tc-founder">
@@ -294,18 +299,27 @@
         </section>
 
         <section>
-          <h3 class="tc-section__title">Bureau et fondateurs ({{ founders().length }})</h3>
+          <h3 class="tc-section__title">Bureau et fondateurs ({{ founders().length + 1 }})</h3>
+          <ul class="tc-recap__list">
+            <li>
+              <span>
+                <strong>{{ creatorFullName() }}</strong>
+                <span class="tc-recap__phone">— créateur de la tontine</span>
+              </span>
+              <tc-badge kind="success">Président</tc-badge>
+            </li>
+            @for (f of founders(); track $index) {
+              <li>
+                <span>{{ f.fullName }} <span class="tc-recap__phone">— {{ f.phone }}</span></span>
+                <tc-badge kind="info">{{ roleLabel(f.role) }}</tc-badge>
+              </li>
+            }
+          </ul>
           @if (founders().length === 0) {
-            <p class="tc-empty-line">Aucun fondateur invité. Vous serez seul au démarrage.</p>
-          } @else {
-            <ul class="tc-recap__list">
-              @for (f of founders(); track $index) {
-                <li>
-                  <span>{{ f.fullName }} <span class="tc-recap__phone">— {{ f.phone }}</span></span>
-                  <tc-badge kind="info">{{ roleLabel(f.role) }}</tc-badge>
-                </li>
-              }
-            </ul>
+            <p class="tc-empty-line">
+              Vous démarrez seul. Vous pourrez inviter d'autres membres depuis
+              <em>/president/invitations</em>.
+            </p>
           }
         </section>
 

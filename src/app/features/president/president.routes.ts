@@ -51,6 +51,22 @@ export const PRESIDENT_ROUTES: Routes = [
         title: 'Présidence · Membres',
       },
       {
+        path: 'invitations',
+        loadComponent: () =>
+          import('./pages/invitations/invitations-page.component').then(
+            (m) => m.InvitationsPageComponent,
+          ),
+        title: 'Présidence · Invitations',
+      },
+      {
+        path: 'presidency-transfer',
+        loadComponent: () =>
+          import('./pages/presidency-transfer/presidency-transfer-page.component').then(
+            (m) => m.PresidencyTransferPageComponent,
+          ),
+        title: 'Présidence · Transfert',
+      },
+      {
         path: 'membership/:id',
         loadComponent: () =>
           import('./pages/membership/membership-detail.component').then(

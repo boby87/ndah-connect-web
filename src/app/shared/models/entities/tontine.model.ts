@@ -22,11 +22,20 @@ export type FounderRole =
   | 'AUDITOR'
   | 'MEMBER';
 
+/**
+ * Rôle assignable à un fondateur **autre que le créateur**.
+ *
+ * Le créateur d'une tontine devient automatiquement PRESIDENT (règle backend dans
+ * `TontineService.buildCreatorMember()`). Aucun autre fondateur ne peut être déclaré
+ * PRESIDENT — ce type l'exprime au niveau du compilateur.
+ */
+export type InvitableFounderRole = Exclude<FounderRole, 'PRESIDENT'>;
+
 export interface FounderInvite {
   fullName: string;
   phone: string;
   email?: string;
-  role: FounderRole;
+  role: InvitableFounderRole;
 }
 
 export interface Tontine {

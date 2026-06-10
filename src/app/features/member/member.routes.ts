@@ -30,6 +30,20 @@ export const MEMBER_ROUTES: Routes = [
     title: 'Mes prêts · TontineConnect',
   },
   {
+    path: 'votes',
+    loadComponent: () =>
+      import('./pages/votes/my-votes.component').then((m) => m.MyVotesComponent),
+    title: 'Mes votes · TontineConnect',
+  },
+  {
+    path: 'presidency-transfer',
+    loadComponent: () =>
+      import('./pages/presidency-transfer/presidency-transfer-page.component').then(
+        (m) => m.MemberPresidencyTransferPageComponent,
+      ),
+    title: 'Proposition de présidence · TontineConnect',
+  },
+  {
     path: 'loan-simulator',
     loadComponent: () =>
       import('./pages/loan-simulator/loan-simulator.component').then(

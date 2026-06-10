@@ -29,6 +29,12 @@ import type {
   MembershipFile,
   MembershipFileKind,
 } from '../../../shared/models/entities/membership.model';
+import type {
+  InvitationChannel,
+  MembershipInvitation,
+} from '../../../shared/models/entities/membership-invitation.model';
+import type { PresidencyTransfer } from '../../../shared/models/entities/presidency-transfer.model';
+import type { InvitableFounderRole } from '../../../shared/models/entities/tontine.model';
 import type { ReportEntry, ReportCategory } from '../../../shared/models/entities/report.model';
 import type { Sanction } from '../../../shared/models/entities/sanction.model';
 import type { SessionLive } from '../../../shared/models/entities/session-live.model';
@@ -82,6 +88,20 @@ export interface CreateDelegationPayload {
 export interface CreateEmergencyBlockPayload {
   target: EmergencyBlockTarget;
   targetRef?: string;
+  reason: string;
+}
+
+export interface InviteMemberPayload {
+  candidateFullName: string;
+  candidatePhone: string;
+  candidateEmail?: string;
+  proposedRole: InvitableFounderRole;
+  channels: InvitationChannel[];
+  message?: string;
+}
+
+export interface InitiatePresidencyTransferPayload {
+  targetMemberId: string;
   reason: string;
 }
 
@@ -235,6 +255,74 @@ export class PresidentService {
         decision,
         comment,
       }),
+    );
+    return response.data;
+  }
+
+  // ─── Invitations (Flow 5b — invite new members) ────────────────────────
+  async inviteMember(payload: InviteMemberPayload): Promise<MembershipInvitation> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<MembershipInvitation>>(
+        `${this.base}/membership/invite`,
+        payload,
+      ),
+    );
+    return response.data;
+  }
+
+  async getInvitations(): Promise<MembershipInvitation[]> {
+    const response = await firstValueFrom(
+      this.http.get<ApiResponse<MembershipInvitation[]>>(`${this.base}/membership/invitations`),
+    );
+    return response.data;
+  }
+
+  async resendInvitation(id: string): Promise<MembershipInvitation> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<MembershipInvitation>>(
+        `${this.base}/membership/invitations/${id}/resend`,
+        {},
+      ),
+    );
+    return response.data;
+  }
+
+  async cancelInvitation(id: string, reason?: string): Promise<MembershipInvitation> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<MembershipInvitation>>(
+        `${this.base}/membership/invitations/${id}/cancel`,
+        { reason },
+      ),
+    );
+    return response.data;
+  }
+
+  // ─── Presidency Transfer (Option B — bilateral handover) ──────────────
+  async initiatePresidencyTransfer(
+    payload: InitiatePresidencyTransferPayload,
+  ): Promise<PresidencyTransfer> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<PresidencyTransfer>>(
+        `${this.base}/presidency-transfer`,
+        payload,
+      ),
+    );
+    return response.data;
+  }
+
+  async getPresidencyTransfers(): Promise<PresidencyTransfer[]> {
+    const response = await firstValueFrom(
+      this.http.get<ApiResponse<PresidencyTransfer[]>>(`${this.base}/presidency-transfers`),
+    );
+    return response.data;
+  }
+
+  async cancelPresidencyTransfer(id: string, reason?: string): Promise<PresidencyTransfer> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<PresidencyTransfer>>(
+        `${this.base}/presidency-transfers/${id}/cancel`,
+        { reason },
+      ),
     );
     return response.data;
   }

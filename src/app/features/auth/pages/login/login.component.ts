@@ -12,6 +12,16 @@ import { InputComponent } from '../../../../shared/components/ui/input/input.com
   imports: [RouterLink, InputComponent, ButtonComponent, AlertComponent],
   template: `
     <div>
+      <div class="flex items-center gap-3 mb-6 lg:hidden">
+        <img
+          src="/assets/images/logos/logo-concept-1-cycle.svg"
+          alt=""
+          width="48"
+          height="48"
+          class="rounded-xl"
+        />
+        <span class="text-lg font-bold text-gray-900">TontineConnect</span>
+      </div>
       <h1 class="text-2xl font-bold text-gray-900">Connexion</h1>
       <p class="text-sm text-gray-500 mt-1">
         Accédez à votre espace TontineConnect.

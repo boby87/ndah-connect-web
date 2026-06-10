@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Tontine Connect — Confiance">
+  <!--
+    Concept 3 — « Confiance » : deux demi-cercles qui se rejoignent + jeton central.
+    Symbolise l'entraide, la pièce de cotisation, le pacte mutuel.
+  -->
+  <rect width="256" height="256" rx="56" fill="#7c3aed"/>
+
+  <!-- Demi-cercle gauche (les contributeurs) -->
+  <path d="M 128 48 A 80 80 0 0 0 128 208"
+        fill="none" stroke="#ede9fe" stroke-width="18" stroke-linecap="round"/>
+
+  <!-- Demi-cercle droit décalé (les bénéficiaires) -->
+  <path d="M 128 48 A 80 80 0 0 1 128 208"
+        fill="none" stroke="#fbbf24" stroke-width="18" stroke-linecap="round"
+        transform="translate(0 0)"/>
+
+  <!-- Jeton/pièce central -->
+  <circle cx="128" cy="128" r="34" fill="#ffffff"/>
+  <circle cx="128" cy="128" r="34" fill="none" stroke="#4c1d95" stroke-width="3" stroke-dasharray="3 4"/>
+
+  <!-- Symbole FCFA stylisé -->
+  <g fill="#4c1d95" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="28" text-anchor="middle">
+    <text x="128" y="138">F</text>
+  </g>
+</svg>

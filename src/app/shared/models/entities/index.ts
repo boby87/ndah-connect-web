@@ -24,3 +24,5 @@ export * from './rsvp.model';
 export * from './minutes-draft.model';
 export * from './archive-document.model';
 export * from './treasury.model';
+export * from './membership-invitation.model';
+export * from './presidency-transfer.model';

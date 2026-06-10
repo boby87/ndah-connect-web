@@ -7,11 +7,12 @@ import { CardComponent } from '../../../../shared/components/ui/card/card.compon
 import { IconComponent } from '../../../../shared/components/ui/icon/icon.component';
 import { InputComponent } from '../../../../shared/components/ui/input/input.component';
 import { CurrencyXafPipe } from '../../../../shared/pipes/currency-xaf.pipe';
+import { AuthService } from '../../../../core/auth/services/auth.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import type {
   ContributionFrequency,
   FounderInvite,
-  FounderRole,
+  InvitableFounderRole,
   TontineRules,
 } from '../../../../shared/models/entities/tontine.model';
 import { TontineService } from '../../services/tontine.service';
@@ -23,7 +24,7 @@ interface FounderDraft {
   fullName: string;
   phone: string;
   email: string;
-  role: FounderRole;
+  role: InvitableFounderRole;
 }
 
 @Component({
@@ -45,8 +46,16 @@ export class CreateTontineComponent {
   private readonly service = inject(TontineService);
   private readonly router = inject(Router);
   private readonly notifications = inject(NotificationService);
+  private readonly auth = inject(AuthService);
 
   protected readonly stepLabels = ['Infos', 'Finances', 'Règlement', 'Fondateurs', 'Récap.'];
+
+  /** Nom complet du créateur (utilisé dans les bannières "Vous serez Président"). */
+  readonly creatorFullName = computed(() => {
+    const u = this.auth.user();
+    if (!u) return 'Vous';
+    return `${u.firstName} ${u.lastName}`.trim() || u.email;
+  });
 
   readonly step = signal(1);
   readonly errorMessage = signal<string | null>(null);
@@ -124,10 +133,9 @@ export class CreateTontineComponent {
     return map[this.frequency()];
   });
 
-  roleLabel(r: FounderRole): string {
-    const map = {
+  roleLabel(r: InvitableFounderRole): string {
+    const map: Record<InvitableFounderRole, string> = {
       MEMBER: 'Membre',
-      PRESIDENT: 'Président',
       SECRETARY: 'Secrétaire',
       TREASURER: 'Trésorier',
       CENSOR: 'Censeur',
@@ -196,7 +204,7 @@ export class CreateTontineComponent {
         return;
       }
     }
-    const bureauRoles: FounderRole[] = ['SECRETARY', 'TREASURER', 'CENSOR', 'AUDITOR'];
+    const bureauRoles: InvitableFounderRole[] = ['SECRETARY', 'TREASURER', 'CENSOR', 'AUDITOR'];
     for (const role of bureauRoles) {
       const count = list.filter((f) => f.role === role).length;
       if (count > 1) {
@@ -231,7 +239,8 @@ export class CreateTontineComponent {
       const tontine = await this.service.create({
         name: this.name().trim(),
         description: this.description().trim() || undefined,
-        startDate: new Date(this.startDate()).toISOString(),
+        // Backend attend une LocalDate au format YYYY-MM-DD ; <input type="date"> le fournit déjà.
+        startDate: this.startDate(),
         contributionAmount: this.contributionAmount(),
         frequency: this.frequency(),
         maxMembers: this.maxMembers(),
