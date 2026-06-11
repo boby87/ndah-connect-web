@@ -10,6 +10,7 @@ import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import type { CensorReport } from '../../../../shared/models/entities/sanction.model';
 import { CensorService } from '../../services/censor.service';
+import { formatApiError } from '../../../../core/utils';
 
 type Scope = 'LAST_SESSION' | 'CUSTOM_RANGE' | 'CYCLE';
 
@@ -223,7 +224,7 @@ export class CensorReportsPageComponent {
       this.observations.set('');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }
@@ -247,7 +248,7 @@ export class CensorReportsPageComponent {
       this.editingId.set(null);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }

@@ -11,6 +11,7 @@ import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import type { CashBoxTransferStatus } from '../../../../shared/models/entities/treasury.model';
 import { TreasurerService } from '../../services/treasurer.service';
+import { formatApiError } from '../../../../core/utils';
 
 const TRANSFER_STATUS_LABELS: Record<CashBoxTransferStatus, string> = {
   DRAFT: 'Brouillon',
@@ -210,7 +211,7 @@ export class TransfersPageComponent {
       this.transfersResource.reload();
       this.boxesResource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }

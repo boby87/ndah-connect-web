@@ -14,6 +14,7 @@ import type {
   RecommendationStatus,
 } from '../../../../shared/models/entities/auditor.model';
 import { AuditorService } from '../../services/auditor.service';
+import { formatApiError } from '../../../../core/utils';
 
 @Component({
   selector: 'tc-auditor-recommendations',
@@ -257,7 +258,7 @@ export class AuditorRecommendationsPageComponent {
       this.dueDate.set('');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }
@@ -270,7 +271,7 @@ export class AuditorRecommendationsPageComponent {
       this.notifications.success('Mise à jour.');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }
@@ -283,7 +284,7 @@ export class AuditorRecommendationsPageComponent {
       this.notifications.success('Mise en œuvre.');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }
@@ -296,7 +297,7 @@ export class AuditorRecommendationsPageComponent {
       this.notifications.success('Clôturée.');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }

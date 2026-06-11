@@ -11,6 +11,7 @@ import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { MemberVoteService } from '../../services/vote.service';
 import type { Vote, VoteOption } from '../../../../shared/models/entities/vote.model';
+import { formatApiError } from '../../../../core/utils';
 
 interface VoteSelectionState {
   selectedOptionId: string | null;
@@ -217,8 +218,7 @@ export class MyVotesComponent {
       this.resource.reload();
     } catch (error: unknown) {
       const msg =
-        (error as { error?: { message?: string } })?.error?.message ??
-        'Impossible d\'enregistrer votre vote.';
+        formatApiError(error, 'Impossible d\'enregistrer votre vote.');
       this.errorMessage.set(msg);
       this.patchSelection(vote.id, { submitting: false });
     }

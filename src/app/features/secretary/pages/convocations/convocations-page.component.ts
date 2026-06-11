@@ -14,6 +14,7 @@ import {
   type ConvocationChannel,
 } from '../../../../shared/models/entities/convocation.model';
 import { SecretaryService } from '../../services/secretary.service';
+import { formatApiError } from '../../../../core/utils';
 
 const CHANNELS: ConvocationChannel[] = ['IN_APP', 'SMS', 'EMAIL', 'WHATSAPP'];
 
@@ -105,7 +106,7 @@ export class ConvocationsPageComponent {
       this.scheduleFor.set('');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }

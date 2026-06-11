@@ -10,6 +10,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
 import { SANCTION_TYPE_LABELS } from '../../../../core/enums/sanction-type.enum';
 import type { Sanction } from '../../../../shared/models/entities/sanction.model';
 import { CensorService } from '../../services/censor.service';
+import { formatApiError } from '../../../../core/utils';
 
 type Decision = 'ACCEPT' | 'REJECT' | 'TRANSFER_PRESIDENT';
 
@@ -173,7 +174,7 @@ export class CensorContestationsPageComponent {
       this.openId.set(null);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }

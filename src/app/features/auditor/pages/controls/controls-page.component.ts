@@ -13,6 +13,7 @@ import type {
   ControlKind,
 } from '../../../../shared/models/entities/auditor.model';
 import { AuditorService } from '../../services/auditor.service';
+import { formatApiError } from '../../../../core/utils';
 
 @Component({
   selector: 'tc-auditor-controls',
@@ -73,7 +74,7 @@ export class AuditorControlsPageComponent {
       this.notifications.success('Contrôle démarré.');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.creating.set(false);
     }
@@ -107,7 +108,7 @@ export class AuditorControlsPageComponent {
       this.completing.set(null);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }

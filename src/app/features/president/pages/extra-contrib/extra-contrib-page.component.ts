@@ -6,12 +6,16 @@ import { ButtonComponent } from '../../../../shared/components/ui/button/button.
 import { CardComponent } from '../../../../shared/components/ui/card/card.component';
 import { EmptyStateComponent } from '../../../../shared/components/ui/empty-state/empty-state.component';
 import { InputComponent } from '../../../../shared/components/ui/input/input.component';
+import { SpinnerComponent } from '../../../../shared/components/ui/spinner/spinner.component';
 import { TextareaComponent } from '../../../../shared/components/ui/textarea/textarea.component';
 import { CurrencyXafPipe } from '../../../../shared/pipes/currency-xaf.pipe';
 import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { PresidentService } from '../../services/president.service';
+import { SecretaryService } from '../../../secretary/services/secretary.service';
 import type { ExtraordinaryContribution } from '../../../../shared/models/entities/extraordinary-contribution.model';
+import type { Member } from '../../../../shared/models/entities/member.model';
+import { formatApiError } from '../../../../core/utils';
 
 @Component({
   selector: 'tc-extra-contrib',
@@ -24,6 +28,7 @@ import type { ExtraordinaryContribution } from '../../../../shared/models/entiti
     CardComponent,
     EmptyStateComponent,
     InputComponent,
+    SpinnerComponent,
     TextareaComponent,
     CurrencyXafPipe,
     DateFormatPipe,
@@ -134,11 +139,53 @@ import type { ExtraordinaryContribution } from '../../../../shared/models/entiti
                 hint="Évènement (décès, mariage, urgence…)"
                 [required]="true"
               />
-              <tc-input
-                label="Bénéficiaire (ID membre)"
-                [(value)]="beneficiaryId"
-                hint="Optionnel — ex: member-1"
-              />
+              <div class="relative">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Bénéficiaire</label>
+                <input
+                  type="text"
+                  [value]="beneficiaryQuery()"
+                  (input)="onBeneficiaryInput($event)"
+                  (focus)="beneficiaryOpen.set(true)"
+                  (blur)="beneficiaryOpen.set(false)"
+                  placeholder="Rechercher un membre par nom ou téléphone…"
+                  autocomplete="off"
+                  class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+                @if (selectedBeneficiary(); as b) {
+                  <p class="mt-1 text-xs text-green-600">
+                    Sélectionné : <span class="font-medium">{{ b.firstName }} {{ b.lastName }}</span>
+                    · <button type="button" class="text-blue-600 underline" (click)="clearBeneficiary()">retirer</button>
+                  </p>
+                } @else {
+                  <p class="mt-1 text-xs text-gray-500">Optionnel — laissez vide pour une collecte générale.</p>
+                }
+
+                @if (beneficiaryOpen()) {
+                  <ul
+                    class="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+                  >
+                    @if (membersResource.isLoading()) {
+                      <li class="px-3 py-2"><tc-spinner size="sm" /></li>
+                    } @else if (filteredMembers().length === 0) {
+                      <li class="px-3 py-2 text-sm text-gray-500">Aucun membre trouvé.</li>
+                    } @else {
+                      @for (m of filteredMembers(); track m.id) {
+                        <li>
+                          <button
+                            type="button"
+                            (mousedown)="selectBeneficiary(m, $event)"
+                            class="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50"
+                            [class.bg-blue-50]="m.id === beneficiaryId()"
+                          >
+                            <span class="font-medium text-gray-900">{{ m.firstName }} {{ m.lastName }}</span>
+                            <span class="text-xs text-gray-500">{{ m.phone }}</span>
+                          </button>
+                        </li>
+                      }
+                    }
+                  </ul>
+                }
+              </div>
               <label class="flex items-center gap-2 text-sm">
                 <input type="checkbox" [checked]="exempt()" (change)="exempt.set(checked($event))" />
                 Exempter le bénéficiaire
@@ -151,13 +198,29 @@ import type { ExtraordinaryContribution } from '../../../../shared/models/entiti
                 [error]="amountError()"
                 [required]="true"
               />
-              <tc-input
-                label="Date d'échéance (YYYY-MM-DD)"
-                [(value)]="dueDate"
-                [(touched)]="dueDateTouched"
-                [error]="dueDateError()"
-                [required]="true"
-              />
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  Date d'échéance <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  [value]="dueDate()"
+                  [min]="todayIso"
+                  (input)="onDueDateInput($event)"
+                  (blur)="dueDateTouched.set(true)"
+                  class="block w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1"
+                  [class.border-gray-300]="!(dueDateTouched() && dueDateError())"
+                  [class.focus:border-blue-500]="!(dueDateTouched() && dueDateError())"
+                  [class.focus:ring-blue-500]="!(dueDateTouched() && dueDateError())"
+                  [class.border-red-500]="dueDateTouched() && dueDateError()"
+                  [class.focus:ring-red-500]="dueDateTouched() && dueDateError()"
+                />
+                @if (dueDateTouched() && dueDateError()) {
+                  <p class="mt-1 text-xs text-red-600">{{ dueDateError() }}</p>
+                } @else {
+                  <p class="mt-1 text-xs text-gray-500">Doit être aujourd'hui ou une date ultérieure.</p>
+                }
+              </div>
               <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
                 Lancer la collecte
               </tc-button>
@@ -170,22 +233,51 @@ import type { ExtraordinaryContribution } from '../../../../shared/models/entiti
 })
 export class ExtraContribComponent {
   private readonly service = inject(PresidentService);
+  private readonly secretary = inject(SecretaryService);
   private readonly notifications = inject(NotificationService);
 
   readonly resource = resource({
     loader: () => this.service.getExtraordinaryContributions(),
   });
 
+  readonly membersResource = resource({
+    loader: () => this.secretary.getMembers(),
+  });
+
   readonly items = computed(() => this.resource.value() ?? []);
+
+  /** Date du jour au format YYYY-MM-DD (heure locale) — borne minimale de l'échéance. */
+  readonly todayIso = this.localIsoDate();
 
   readonly motive = signal('');
   readonly motiveTouched = signal(false);
-  readonly beneficiaryId = signal('');
   readonly exempt = signal(true);
   readonly amount = signal('10000');
   readonly amountTouched = signal(false);
   readonly dueDate = signal('');
   readonly dueDateTouched = signal(false);
+
+  // ─── Combobox bénéficiaire ─────────────────────────────────────────────
+  /** ID du membre sélectionné — n'est renseigné qu'à la sélection explicite. */
+  readonly beneficiaryId = signal('');
+  /** Texte saisi dans la recherche. */
+  readonly beneficiaryQuery = signal('');
+  readonly beneficiaryOpen = signal(false);
+
+  readonly members = computed<Member[]>(() => this.membersResource.value() ?? []);
+
+  readonly selectedBeneficiary = computed<Member | undefined>(() =>
+    this.members().find((m) => m.id === this.beneficiaryId()),
+  );
+
+  readonly filteredMembers = computed<Member[]>(() => {
+    const q = this.beneficiaryQuery().trim().toLowerCase();
+    const all = this.members();
+    if (!q) return all;
+    return all.filter((m) =>
+      `${m.firstName} ${m.lastName} ${m.phone} ${m.matricule}`.toLowerCase().includes(q),
+    );
+  });
 
   readonly submitting = signal(false);
   readonly errorMessage = signal<string | null>(null);
@@ -196,9 +288,43 @@ export class ExtraContribComponent {
     const n = Number(this.amount());
     return Number.isFinite(n) && n > 0 ? '' : 'Montant invalide.';
   });
-  readonly dueDateError = computed(() =>
-    /^\d{4}-\d{2}-\d{2}$/.test(this.dueDate()) ? '' : 'Format YYYY-MM-DD requis.',
-  );
+  readonly dueDateError = computed(() => {
+    const v = this.dueDate();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return 'Date d\'échéance requise.';
+    if (v < this.todayIso) return 'La date doit être aujourd\'hui ou ultérieure.';
+    return '';
+  });
+
+  private localIsoDate(): string {
+    const d = new Date();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${month}-${day}`;
+  }
+
+  onBeneficiaryInput(event: Event): void {
+    this.beneficiaryQuery.set((event.target as HTMLInputElement).value);
+    // Toute saisie invalide la sélection précédente : l'ID n'est stocké qu'au clic.
+    this.beneficiaryId.set('');
+    this.beneficiaryOpen.set(true);
+  }
+
+  selectBeneficiary(member: Member, event: Event): void {
+    // mousedown se déclenche avant le blur : on empêche le défaut pour garder le focus.
+    event.preventDefault();
+    this.beneficiaryId.set(member.id);
+    this.beneficiaryQuery.set(`${member.firstName} ${member.lastName}`);
+    this.beneficiaryOpen.set(false);
+  }
+
+  clearBeneficiary(): void {
+    this.beneficiaryId.set('');
+    this.beneficiaryQuery.set('');
+  }
+
+  onDueDateInput(event: Event): void {
+    this.dueDate.set((event.target as HTMLInputElement).value);
+  }
 
   checked(event: Event): boolean {
     return (event.target as HTMLInputElement).checked;
@@ -249,13 +375,13 @@ export class ExtraContribComponent {
       });
       this.notifications.success('Cotisation extraordinaire lancée.');
       this.motive.set('');
-      this.beneficiaryId.set('');
+      this.clearBeneficiary();
       this.motiveTouched.set(false);
       this.dueDate.set('');
       this.dueDateTouched.set(false);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }
@@ -268,7 +394,7 @@ export class ExtraContribComponent {
       this.notifications.success('Collecte clôturée.');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }
@@ -281,7 +407,7 @@ export class ExtraContribComponent {
       this.notifications.success('Distribution ordonnée.');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }

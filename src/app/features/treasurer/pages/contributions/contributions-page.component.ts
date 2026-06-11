@@ -16,6 +16,7 @@ import {
 import { ContributionStatus } from '../../../../core/enums/contribution-status.enum';
 import { TreasurerService } from '../../services/treasurer.service';
 import type { Contribution } from '../../../../shared/models/entities/contribution.model';
+import { formatApiError } from '../../../../core/utils';
 
 const PAYMENT_METHODS: PaymentMethod[] = [
   PaymentMethod.CASH,
@@ -263,7 +264,7 @@ export class ContributionsCollectComponent {
       this.paying.set(null);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }
@@ -299,7 +300,7 @@ export class ContributionsCollectComponent {
       this.advanceAmountTouched.set(false);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.advanceSubmitting.set(false);
     }

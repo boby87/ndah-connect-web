@@ -11,6 +11,7 @@ import { TextareaComponent } from '../../../../shared/components/ui/textarea/tex
 import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { PresidentService } from '../../services/president.service';
+import type { CandidateLookup } from '../../services/president.service';
 import type {
   InvitationChannel,
   InvitationStatus,
@@ -20,6 +21,7 @@ import {
   INVITATION_STATUS_LABELS,
 } from '../../../../shared/models/entities/membership-invitation.model';
 import type { InvitableFounderRole } from '../../../../shared/models/entities/tontine.model';
+import { formatApiError } from '../../../../core/utils';
 
 const PHONE_RE = /^\+237\d{9}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -63,12 +65,57 @@ const ROLE_LABELS: Record<InvitableFounderRole, string> = {
         <aside class="lg:col-span-1">
           <tc-card title="Nouvelle invitation">
             <form class="space-y-4" (submit)="onSubmit($event)">
+              <!-- Recherche d'un utilisateur existant par lien/UUID ou téléphone -->
+              <div class="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3">
+                <label class="mb-1 block text-sm font-medium text-gray-700">
+                  Rechercher un utilisateur existant
+                </label>
+                <div class="flex gap-2">
+                  <input
+                    type="text"
+                    class="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Lien / UUID ou +2376XXXXXXXX"
+                    autocomplete="off"
+                    [value]="lookupQuery()"
+                    (input)="lookupQuery.set($any($event.target).value)"
+                    (keydown.enter)="runLookup($event)"
+                  />
+                  <tc-button
+                    type="button"
+                    variant="secondary"
+                    [loading]="lookingUp()"
+                    [disabled]="!lookupQuery().trim()"
+                    (clicked)="runLookup($event)"
+                  >
+                    Rechercher
+                  </tc-button>
+                </div>
+                <p class="mt-1 text-xs text-gray-500">
+                  Collez le lien de profil (ou l'UUID) du candidat, ou son numéro de téléphone.
+                </p>
+                @if (lookupError(); as le) {
+                  <p class="mt-1 text-xs text-red-600">{{ le }}</p>
+                }
+                @if (lookupWarning(); as lw) {
+                  <p class="mt-1 text-xs text-amber-600">{{ lw }}</p>
+                }
+                @if (lockedFromLookup()) {
+                  <p class="mt-1 text-xs text-green-700">
+                    ✓ Utilisateur trouvé · champs pré-remplis ·
+                    <button type="button" class="text-blue-600 hover:underline" (click)="unlockManualEntry()">
+                      Saisir manuellement
+                    </button>
+                  </p>
+                }
+              </div>
+
               <tc-input
                 label="Nom complet"
                 [(value)]="fullName"
                 [(touched)]="fullNameTouched"
                 [error]="fullNameError()"
                 [required]="true"
+                [disabled]="lockedFromLookup()"
               />
               <tc-input
                 label="Téléphone"
@@ -77,6 +124,7 @@ const ROLE_LABELS: Record<InvitableFounderRole, string> = {
                 [(touched)]="phoneTouched"
                 [error]="phoneError()"
                 [required]="true"
+                [disabled]="lockedFromLookup()"
               />
               <tc-input
                 label="Email (optionnel)"
@@ -84,6 +132,7 @@ const ROLE_LABELS: Record<InvitableFounderRole, string> = {
                 [(value)]="email"
                 [(touched)]="emailTouched"
                 [error]="emailError()"
+                [disabled]="lockedFromLookup()"
               />
 
               <div>
@@ -277,6 +326,14 @@ export class InvitationsPageComponent {
   readonly channels = signal<InvitationChannel[]>(['SMS']);
   readonly message = signal('');
 
+  // ── Recherche d'un utilisateur existant (lookup) ──────────────────────────
+  readonly lookupQuery = signal('');
+  readonly lookingUp = signal(false);
+  readonly lookupError = signal<string | null>(null);
+  readonly lookupWarning = signal<string | null>(null);
+  /** Vrai quand un utilisateur a été trouvé : nom/téléphone/email verrouillés. */
+  readonly lockedFromLookup = signal(false);
+
   readonly submitting = signal(false);
   readonly resendingId = signal<string | null>(null);
   readonly cancellingId = signal<string | null>(null);
@@ -293,6 +350,52 @@ export class InvitationsPageComponent {
   readonly channelsError = computed(() =>
     this.channels().length === 0 ? 'Choisissez au moins un canal.' : '',
   );
+
+  // ── Recherche d'un utilisateur ────────────────────────────────────────────
+  /** Extrait un UUID d'une chaîne (lien collé ou UUID brut), sinon null. */
+  private extractUuid(raw: string): string | null {
+    const m = raw.match(
+      /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/,
+    );
+    return m ? m[0] : null;
+  }
+
+  async runLookup(event: Event): Promise<void> {
+    event.preventDefault();
+    const raw = this.lookupQuery().trim();
+    if (!raw) return;
+
+    this.lookupError.set(null);
+    this.lookupWarning.set(null);
+    this.lookingUp.set(true);
+    try {
+      const uuid = this.extractUuid(raw);
+      const params = uuid ? { userId: uuid } : { phone: raw.replace(/\s+/g, '') };
+      const candidate: CandidateLookup = await this.service.lookupCandidate(params);
+
+      this.fullName.set(`${candidate.firstName} ${candidate.lastName}`.trim());
+      this.phone.set(candidate.phone || '+237');
+      this.email.set(candidate.email ?? '');
+      this.lockedFromLookup.set(true);
+
+      if (candidate.alreadyMember) {
+        this.lookupWarning.set(
+          'Cet utilisateur est déjà membre de la tontine. Une invitation est inutile.',
+        );
+      }
+    } catch (e: unknown) {
+      this.lookupError.set(
+        formatApiError(e, 'Aucun utilisateur trouvé. Vous pouvez saisir les informations manuellement.'),
+      );
+    } finally {
+      this.lookingUp.set(false);
+    }
+  }
+
+  unlockManualEntry(): void {
+    this.lockedFromLookup.set(false);
+    this.lookupWarning.set(null);
+  }
 
   // ── Actions ─────────────────────────────────────────────────────────────
   setRole(event: Event): void {
@@ -332,7 +435,7 @@ export class InvitationsPageComponent {
       this.resource.reload();
     } catch (e: unknown) {
       this.errorMessage.set(
-        (e as { error?: { message?: string } })?.error?.message ?? 'Erreur lors de l\'envoi.',
+        formatApiError(e, 'Erreur lors de l\'envoi.'),
       );
     } finally {
       this.submitting.set(false);
@@ -348,7 +451,7 @@ export class InvitationsPageComponent {
       this.resource.reload();
     } catch (e: unknown) {
       this.errorMessage.set(
-        (e as { error?: { message?: string } })?.error?.message ?? 'Relance impossible.',
+        formatApiError(e, 'Relance impossible.'),
       );
     } finally {
       this.resendingId.set(null);
@@ -366,7 +469,7 @@ export class InvitationsPageComponent {
       this.resource.reload();
     } catch (e: unknown) {
       this.errorMessage.set(
-        (e as { error?: { message?: string } })?.error?.message ?? 'Annulation impossible.',
+        formatApiError(e, 'Annulation impossible.'),
       );
     } finally {
       this.cancellingId.set(null);
@@ -383,6 +486,10 @@ export class InvitationsPageComponent {
     this.proposedRole.set('MEMBER');
     this.channels.set(['SMS']);
     this.message.set('');
+    this.lookupQuery.set('');
+    this.lookupError.set(null);
+    this.lookupWarning.set(null);
+    this.lockedFromLookup.set(false);
   }
 
   // ── Display helpers ─────────────────────────────────────────────────────

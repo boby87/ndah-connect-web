@@ -7,6 +7,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
 import { SanctionType } from '../../../../core/enums/sanction-type.enum';
 import type { SanctionSeverity } from '../../../../shared/models/entities/sanction.model';
 import { CensorService } from '../../services/censor.service';
+import { formatApiError } from '../../../../core/utils';
 
 interface SanctionLine {
   type: SanctionType;
@@ -207,7 +208,7 @@ export class CensorMultipleSanctionsPageComponent {
       this.lines.set([DEFAULT_LINE()]);
       this.memberId.set('');
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }

@@ -100,6 +100,18 @@ export interface InviteMemberPayload {
   message?: string;
 }
 
+/** Utilisateur retrouvé par recherche (UUID/lien ou téléphone) pour pré-remplir l'invitation. */
+export interface CandidateLookup {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email?: string;
+  /** Vrai si l'utilisateur est déjà membre actif/en attente/suspendu de la tontine. */
+  alreadyMember: boolean;
+  memberStatus?: string | null;
+}
+
 export interface InitiatePresidencyTransferPayload {
   targetMemberId: string;
   reason: string;
@@ -260,6 +272,23 @@ export class PresidentService {
   }
 
   // ─── Invitations (Flow 5b — invite new members) ────────────────────────
+  /**
+   * Retrouve un utilisateur existant à inviter, par identifiant (UUID) ou par téléphone.
+   * Sert au pré-remplissage du formulaire d'invitation.
+   */
+  async lookupCandidate(params: { userId?: string; phone?: string }): Promise<CandidateLookup> {
+    const httpParams: Record<string, string> = {};
+    if (params.userId) httpParams['userId'] = params.userId;
+    if (params.phone) httpParams['phone'] = params.phone;
+    const response = await firstValueFrom(
+      this.http.get<ApiResponse<CandidateLookup>>(
+        `${this.base}/membership/candidate-lookup`,
+        { params: httpParams },
+      ),
+    );
+    return response.data;
+  }
+
   async inviteMember(payload: InviteMemberPayload): Promise<MembershipInvitation> {
     const response = await firstValueFrom(
       this.http.post<ApiResponse<MembershipInvitation>>(

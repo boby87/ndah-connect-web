@@ -13,6 +13,7 @@ import type {
   AgendaDraft,
   AgendaDraftStatus,
 } from '../../../../shared/models/entities/agenda-draft.model';
+import { formatApiError } from '../../../../core/utils';
 
 const STANDARD_ITEMS: { title: string; duration: number }[] = [
   { title: 'Ouverture de la séance', duration: 5 },
@@ -131,7 +132,7 @@ export class AgendasPageComponent {
       this.dateTouched.set(false);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }
@@ -145,7 +146,7 @@ export class AgendasPageComponent {
       this.notifications.success('ODJ soumis au Président.');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }

@@ -22,6 +22,22 @@ export interface CreateTontinePayload {
   founders: FounderInvite[];
 }
 
+/**
+ * Champs modifiables d'une tontine après sa création.
+ *
+ * Les fondateurs ne sont pas inclus : la composition du bureau se gère via le module
+ * d'invitations (`/president/invitations`) et les dossiers d'adhésion, pas par édition directe.
+ */
+export interface UpdateTontinePayload {
+  name: string;
+  description?: string;
+  startDate: string;
+  contributionAmount: number;
+  frequency: ContributionFrequency;
+  maxMembers: number;
+  rules: TontineRules;
+}
+
 @Injectable({ providedIn: 'root' })
 export class TontineService {
   private readonly http = inject(HttpClient);
@@ -40,6 +56,21 @@ export class TontineService {
   async create(payload: CreateTontinePayload): Promise<Tontine> {
     const r = await firstValueFrom(
       this.http.post<ApiResponse<Tontine>>(this.base, payload),
+    );
+    return r.data;
+  }
+
+  async getById(id: string): Promise<Tontine> {
+    const r = await firstValueFrom(
+      this.http.get<ApiResponse<Tontine>>(`${this.base}/${id}`),
+    );
+    return r.data;
+  }
+
+  async update(id: string, payload: UpdateTontinePayload): Promise<Tontine> {
+    // Le backend expose un PATCH partiel (cf. TontineController.update), réservé au Président.
+    const r = await firstValueFrom(
+      this.http.patch<ApiResponse<Tontine>>(`${this.base}/${id}`, payload),
     );
     return r.data;
   }

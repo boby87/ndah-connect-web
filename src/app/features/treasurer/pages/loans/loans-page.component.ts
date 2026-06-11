@@ -13,6 +13,7 @@ import { LoanStatus } from '../../../../core/enums/loan-status.enum';
 import { PAYMENT_METHOD_LABELS, PaymentMethod } from '../../../../core/enums/payment-method.enum';
 import type { Loan } from '../../../../shared/models/entities/loan.model';
 import { TreasurerService } from '../../services/treasurer.service';
+import { formatApiError } from '../../../../core/utils';
 
 @Component({
   selector: 'tc-treasurer-loans',
@@ -191,7 +192,7 @@ export class TreasurerLoansPageComponent {
       this.notifications.success('Prêt décaissé.');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }
@@ -220,7 +221,7 @@ export class TreasurerLoansPageComponent {
       this.repaying.set(null);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }

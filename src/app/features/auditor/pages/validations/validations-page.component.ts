@@ -14,6 +14,7 @@ import {
 } from '../../../../core/enums/validation.enum';
 import type { PendingValidation, FinancialOperationValidation } from '../../../../shared/models/entities/validation.model';
 import { AuditorService } from '../../services/auditor.service';
+import { formatApiError } from '../../../../core/utils';
 
 type OpinionStatus = 'FAVORABLE' | 'RESERVED' | 'UNFAVORABLE';
 
@@ -261,7 +262,7 @@ export class AuditorValidationsPageComponent {
       this.openId.set(null);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }

@@ -19,6 +19,7 @@ import type {
   SanctionSeverity,
 } from '../../../../shared/models/entities/sanction.model';
 import { CensorService } from '../../services/censor.service';
+import { formatApiError } from '../../../../core/utils';
 
 interface SanctionDraft {
   type: SanctionType;
@@ -353,7 +354,7 @@ export class CensorSanctionsPageComponent {
       this.reasonTouched.set(false);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }
@@ -381,7 +382,7 @@ export class CensorSanctionsPageComponent {
       this.cancelling.set(null);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }

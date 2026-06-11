@@ -8,6 +8,7 @@ import { CurrencyXafPipe } from '../../../../shared/pipes/currency-xaf.pipe';
 import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { PresidentService } from '../../services/president.service';
+import { formatApiError } from '../../../../core/utils';
 
 @Component({
   selector: 'tc-cycle-close',
@@ -202,7 +203,7 @@ export class CycleClosePageComponent {
       await this.service.markCycleCheck(key);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     }
   }
 
@@ -217,7 +218,7 @@ export class CycleClosePageComponent {
       this.notifications.success('Cycle clôturé.');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.signing.set(false);
     }

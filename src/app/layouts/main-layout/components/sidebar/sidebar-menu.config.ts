@@ -92,6 +92,8 @@ export const SIDEBAR_MENU: MenuSection[] = [
       { label: 'Validations', icon: 'check-square', route: '/president/validations', roles: presidentOnly },
       { label: 'Séances', icon: 'calendar-check', route: '/president/sessions', roles: presidentOnly },
       { label: 'Membres (dossiers)', icon: 'user-check', route: '/president/membership', roles: presidentOnly },
+      { label: 'Inviter un membre', icon: 'user-plus', route: '/president/invitations', roles: presidentOnly },
+      { label: 'Paramètres tontine', icon: 'edit', route: '/president/tontine-settings', roles: presidentOnly },
       { label: 'Cotisations extraord.', icon: 'banknote', route: '/president/extra-contributions', roles: presidentOnly },
       { label: 'Médiation conflits', icon: 'handshake', route: '/president/conflicts', roles: presidentOnly },
       { label: 'Sanctions à arbitrer', icon: 'gavel', route: '/president/sanctions', roles: presidentOnly },

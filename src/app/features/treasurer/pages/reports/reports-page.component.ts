@@ -8,6 +8,7 @@ import { InputComponent } from '../../../../shared/components/ui/input/input.com
 import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { TreasurerService } from '../../services/treasurer.service';
+import { formatApiError } from '../../../../core/utils';
 
 @Component({
   selector: 'tc-treasurer-reports',
@@ -146,7 +147,7 @@ export class TreasurerReportsPageComponent {
       this.periodTouched.set(false);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }

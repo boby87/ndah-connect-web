@@ -10,6 +10,7 @@ import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { PresidentService } from '../../services/president.service';
 import type { Conflict, ConflictDecisionOutcome } from '../../../../shared/models/entities/conflict.model';
+import { formatApiError } from '../../../../core/utils';
 
 const OUTCOME_OPTIONS: { value: ConflictDecisionOutcome; label: string; hint: string }[] = [
   { value: 'MEDIATION', label: 'Conciliation actée', hint: 'Les parties acceptent la médiation.' },
@@ -242,7 +243,7 @@ export class ConflictsComponent {
       this.active.set(null);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }
@@ -259,7 +260,7 @@ export class ConflictsComponent {
       this.active.set(null);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }

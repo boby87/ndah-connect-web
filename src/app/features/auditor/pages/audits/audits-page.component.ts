@@ -8,6 +8,7 @@ import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import type { AuditFinding, AuditScope } from '../../../../shared/models/entities/auditor.model';
 import { AuditorService } from '../../services/auditor.service';
+import { formatApiError } from '../../../../core/utils';
 
 interface FindingDraft {
   area: string;
@@ -95,7 +96,7 @@ export class AuditorAuditsPageComponent {
       this.observations.set('');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }

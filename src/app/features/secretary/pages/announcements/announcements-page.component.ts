@@ -12,6 +12,7 @@ import { SecretaryService } from '../../services/secretary.service';
 import type {
   AnnouncementAudience,
 } from '../../../../shared/models/entities/announcement.model';
+import { formatApiError } from '../../../../core/utils';
 
 type Channel = 'IN_APP' | 'SMS' | 'EMAIL';
 
@@ -109,7 +110,7 @@ export class SecretaryAnnouncementsComponent {
       this.bodyTouched.set(false);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }

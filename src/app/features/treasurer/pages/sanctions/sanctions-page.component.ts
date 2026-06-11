@@ -15,6 +15,7 @@ import {
 import { PaymentMethod } from '../../../../core/enums/payment-method.enum';
 import { TreasurerService } from '../../services/treasurer.service';
 import type { Sanction } from '../../../../shared/models/entities/sanction.model';
+import { formatApiError } from '../../../../core/utils';
 
 @Component({
   selector: 'tc-treasurer-sanctions',
@@ -119,7 +120,7 @@ export class TreasurerSanctionsPageComponent {
       this.notifications.success('Sanction encaissée.');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }
@@ -133,7 +134,7 @@ export class TreasurerSanctionsPageComponent {
       this.notifications.success('Sanction remboursée.');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }

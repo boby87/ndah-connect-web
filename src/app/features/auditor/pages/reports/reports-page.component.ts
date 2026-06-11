@@ -9,6 +9,7 @@ import { CurrencyXafPipe } from '../../../../shared/pipes/currency-xaf.pipe';
 import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { AuditorService } from '../../services/auditor.service';
+import { formatApiError } from '../../../../core/utils';
 
 type Scope = 'LAST_SESSION' | 'PERIOD' | 'CYCLE';
 
@@ -175,7 +176,7 @@ export class AuditorReportsPageComponent {
       this.observations.set('');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }

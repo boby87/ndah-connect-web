@@ -5,6 +5,7 @@ import { isValidCameroonPhone, isValidEmail, isStrongPassword } from '../../../.
 import { AlertComponent } from '../../../../shared/components/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../shared/components/ui/button/button.component';
 import { InputComponent } from '../../../../shared/components/ui/input/input.component';
+import { formatApiError } from '../../../../core/utils';
 
 @Component({
   selector: 'tc-register-page',
@@ -120,7 +121,7 @@ export class RegisterPageComponent {
       await this.router.navigate(['/auth/verify-otp'], { queryParams: { identifier } });
     } catch (error: unknown) {
       const message =
-        (error as { error?: { message?: string } })?.error?.message ?? 'Inscription impossible.';
+        formatApiError(error, 'Inscription impossible.');
       this.errorMessage.set(message);
     } finally {
       this.submitting.set(false);

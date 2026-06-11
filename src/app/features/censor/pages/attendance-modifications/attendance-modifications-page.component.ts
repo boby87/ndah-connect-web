@@ -8,6 +8,7 @@ import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import type { AttendanceModificationRequest } from '../../../../shared/models/entities/sanction.model';
 import { CensorService } from '../../services/censor.service';
+import { formatApiError } from '../../../../core/utils';
 
 type Decision = 'APPROVE' | 'REJECT' | 'REQUEST_INFO';
 
@@ -209,7 +210,7 @@ export class CensorAttendanceModificationsPageComponent {
       this.openId.set(null);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }

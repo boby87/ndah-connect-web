@@ -5,6 +5,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
 import { AlertComponent } from '../../../../shared/components/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../shared/components/ui/button/button.component';
 import { InputComponent } from '../../../../shared/components/ui/input/input.component';
+import { formatApiError } from '../../../../core/utils';
 
 @Component({
   selector: 'tc-login-page',
@@ -128,8 +129,7 @@ export class LoginPageComponent {
       await this.router.navigateByUrl('/dashboard');
     } catch (error: unknown) {
       const message =
-        (error as { error?: { message?: string } })?.error?.message ??
-        'Connexion impossible. Vérifiez vos identifiants.';
+        formatApiError(error, 'Connexion impossible. Vérifiez vos identifiants.');
       this.errorMessage.set(message);
     } finally {
       this.submitting.set(false);

@@ -12,6 +12,7 @@ import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { AuthService } from '../../../../core/auth/services/auth.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { MemberPresidencyService } from '../../services/presidency.service';
+import { formatApiError } from '../../../../core/utils';
 
 @Component({
   selector: 'tc-member-presidency-transfer',
@@ -197,7 +198,7 @@ export class MemberPresidencyTransferPageComponent {
       await this.router.navigateByUrl('/president/dashboard');
     } catch (e: unknown) {
       this.errorMessage.set(
-        (e as { error?: { message?: string } })?.error?.message ?? 'Acceptation impossible.',
+        formatApiError(e, 'Acceptation impossible.'),
       );
     } finally {
       this.submitting.set(false);
@@ -221,7 +222,7 @@ export class MemberPresidencyTransferPageComponent {
       this.declineReasonTouched.set(false);
     } catch (e: unknown) {
       this.errorMessage.set(
-        (e as { error?: { message?: string } })?.error?.message ?? 'Refus impossible.',
+        formatApiError(e, 'Refus impossible.'),
       );
     } finally {
       this.submitting.set(false);

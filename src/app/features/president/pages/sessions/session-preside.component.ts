@@ -20,6 +20,7 @@ import { StatusLabelPipe } from '../../../../shared/pipes/status-label.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { SessionStatus } from '../../../../core/enums/session-status.enum';
 import { PresidentService } from '../../services/president.service';
+import { formatApiError } from '../../../../core/utils';
 
 @Component({
   selector: 'tc-session-preside',
@@ -291,7 +292,7 @@ export class SessionPresideComponent {
       this.notifications.success('Séance ouverte.');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }
@@ -302,7 +303,7 @@ export class SessionPresideComponent {
       await this.service.advanceAgenda(sessionId, agendaId);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     }
   }
 
@@ -314,7 +315,7 @@ export class SessionPresideComponent {
       this.notifications.success('Cagnotte signée.');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }
@@ -328,7 +329,7 @@ export class SessionPresideComponent {
       this.notifications.success('Séance clôturée.');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }

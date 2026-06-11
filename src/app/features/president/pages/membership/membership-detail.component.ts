@@ -10,6 +10,7 @@ import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { PresidentService } from '../../services/president.service';
 import type { MembershipFileKind } from '../../../../shared/models/entities/membership.model';
+import { formatApiError } from '../../../../core/utils';
 
 const KIND_LABELS: Record<MembershipFileKind, string> = {
   ADHESION: 'Adhésion',
@@ -190,7 +191,7 @@ export class MembershipDetailComponent {
       this.notifications.success(decision === 'APPROVE' ? 'Dossier approuvé.' : 'Dossier rejeté.');
       await this.router.navigateByUrl('/president/membership');
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
       this.acting.set(null);
     }
   }

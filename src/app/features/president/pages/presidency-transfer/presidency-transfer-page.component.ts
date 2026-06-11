@@ -17,6 +17,7 @@ import type {
 } from '../../../../shared/models/entities/presidency-transfer.model';
 import { PRESIDENCY_TRANSFER_STATUS_LABELS } from '../../../../shared/models/entities/presidency-transfer.model';
 import type { Member } from '../../../../shared/models/entities/member.model';
+import { formatApiError } from '../../../../core/utils';
 
 @Component({
   selector: 'tc-presidency-transfer-page',
@@ -266,7 +267,7 @@ export class PresidencyTransferPageComponent {
       this.resource.reload();
     } catch (e: unknown) {
       this.errorMessage.set(
-        (e as { error?: { message?: string } })?.error?.message ?? 'Erreur lors de l\'initiation.',
+        formatApiError(e, 'Erreur lors de l\'initiation.'),
       );
     } finally {
       this.submitting.set(false);
@@ -285,7 +286,7 @@ export class PresidencyTransferPageComponent {
       this.resource.reload();
     } catch (e: unknown) {
       this.errorMessage.set(
-        (e as { error?: { message?: string } })?.error?.message ?? 'Annulation impossible.',
+        formatApiError(e, 'Annulation impossible.'),
       );
     } finally {
       this.cancellingId.set(null);

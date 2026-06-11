@@ -16,6 +16,7 @@ import {
   SanctionType,
 } from '../../../../core/enums/sanction-type.enum';
 import { PresidentService } from '../../services/president.service';
+import { formatApiError } from '../../../../core/utils';
 
 @Component({
   selector: 'tc-sanctions-review',
@@ -189,7 +190,7 @@ export class SanctionsReviewComponent {
       this.resource.reload();
     } catch (error: unknown) {
       const msg =
-        (error as { error?: { message?: string } })?.error?.message ?? 'Impossible de confirmer la sanction.';
+        formatApiError(error, 'Impossible de confirmer la sanction.');
       this.errorMessage.set(msg);
     } finally {
       this.actingId.set(null);

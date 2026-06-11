@@ -13,6 +13,7 @@ import type {
   CertificationScope,
 } from '../../../../shared/models/entities/auditor.model';
 import { AuditorService } from '../../services/auditor.service';
+import { formatApiError } from '../../../../core/utils';
 
 @Component({
   selector: 'tc-auditor-certifications',
@@ -91,7 +92,7 @@ export class AuditorCertificationsPageComponent {
       this.otp.set('');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }

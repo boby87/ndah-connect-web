@@ -15,6 +15,7 @@ import {
   type MobileMoneyStatus,
 } from '../../../../shared/models/entities/treasury.model';
 import { TreasurerService } from '../../services/treasurer.service';
+import { formatApiError } from '../../../../core/utils';
 
 type Tab = 'INCOMING' | 'OUTGOING' | 'RECONCILIATION';
 
@@ -301,7 +302,7 @@ export class MobileMoneyPageComponent {
       this.notifications.success('Transaction approuvée.');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }
@@ -318,7 +319,7 @@ export class MobileMoneyPageComponent {
       this.rejectReason.set('');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
     }
@@ -348,7 +349,7 @@ export class MobileMoneyPageComponent {
       this.sendPin.set('');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.sending.set(false);
     }

@@ -11,6 +11,7 @@ import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { PresidentService } from '../../services/president.service';
 import type { Vote, VoteAudience, VoteScope } from '../../../../shared/models/entities/vote.model';
+import { formatApiError } from '../../../../core/utils';
 
 @Component({
   selector: 'tc-votes-page',
@@ -263,7 +264,7 @@ export class VotesPageComponent {
       this.optionsTouched.set(false);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }
@@ -276,7 +277,7 @@ export class VotesPageComponent {
       this.notifications.success('Vote clôturé.');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.closingId.set(null);
     }

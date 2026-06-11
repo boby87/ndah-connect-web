@@ -20,6 +20,7 @@ import {
   type RsvpStatus,
 } from '../../../../shared/models/entities/rsvp.model';
 import { SecretaryService } from '../../services/secretary.service';
+import { formatApiError } from '../../../../core/utils';
 
 @Component({
   selector: 'tc-rsvps-page',
@@ -75,7 +76,7 @@ export class RsvpsPageComponent {
       await this.service.setRsvp(this.id(), memberId, status);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.actingMember.set(null);
     }
@@ -87,7 +88,7 @@ export class RsvpsPageComponent {
       const result = await this.service.remindPendingRsvps(this.id());
       this.notifications.success(`${result.remindersSent} rappel(s) envoyé(s).`);
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.remindLoading.set(false);
     }

@@ -13,6 +13,7 @@ import {
   PaymentMethod,
 } from '../../../../core/enums/payment-method.enum';
 import { TreasurerService } from '../../services/treasurer.service';
+import { formatApiError } from '../../../../core/utils';
 
 @Component({
   selector: 'tc-distributions-page',
@@ -205,7 +206,7 @@ export class DistributionsPageComponent {
       this.distributionsResource.reload();
       this.sessionsResource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }

@@ -9,6 +9,7 @@ import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { REPORT_CATEGORY_LABELS } from '../../../../shared/models/entities/report.model';
 import { SecretaryService, type GenerateReportPayload } from '../../services/secretary.service';
+import { formatApiError } from '../../../../core/utils';
 
 const CATEGORIES: { value: GenerateReportPayload['category']; label: string }[] = [
   { value: 'ATTENDANCE', label: 'Rapport de présence' },
@@ -82,7 +83,7 @@ export class SecretaryReportsComponent {
       this.periodTouched.set(false);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }

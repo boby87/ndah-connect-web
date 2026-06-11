@@ -8,6 +8,7 @@ import { CurrencyXafPipe } from '../../../../shared/pipes/currency-xaf.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { SanctionType } from '../../../../core/enums/sanction-type.enum';
 import { CensorService } from '../../services/censor.service';
+import { formatApiError } from '../../../../core/utils';
 
 @Component({
   selector: 'tc-censor-auto-confirm',
@@ -202,7 +203,7 @@ export class CensorAutoConfirmPageComponent {
       this.selected.set(new Set());
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }

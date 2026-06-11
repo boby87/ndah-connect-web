@@ -12,6 +12,7 @@ import { StatusLabelPipe } from '../../../../shared/pipes/status-label.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { MemberStatus } from '../../../../core/enums/member-status.enum';
 import { SecretaryService } from '../../services/secretary.service';
+import { formatApiError } from '../../../../core/utils';
 
 @Component({
   selector: 'tc-members-registry',
@@ -81,7 +82,7 @@ export class MembersRegistryComponent {
       this.editingId.set(null);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.saving.set(false);
     }

@@ -16,6 +16,7 @@ import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { PresidentService } from '../../../president/services/president.service';
 import { SecretaryService } from '../../services/secretary.service';
+import { formatApiError } from '../../../../core/utils';
 
 const STATUSES: ('PRESENT' | 'LATE' | 'EXCUSED' | 'ABSENT')[] = ['PRESENT', 'LATE', 'EXCUSED', 'ABSENT'];
 
@@ -100,7 +101,7 @@ export class AttendancePageComponent {
       await this.secretary.setAttendance(this.id(), memberId, status);
       this.sessionResource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.actingId.set(null);
     }
@@ -112,7 +113,7 @@ export class AttendancePageComponent {
       await this.secretary.finalizeAttendance(this.id());
       this.notifications.success('Feuille de présence finalisée.');
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.finalizing.set(false);
     }

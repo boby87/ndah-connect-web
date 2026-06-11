@@ -14,6 +14,7 @@ import {
   type EmergencyBlockTarget,
 } from '../../../../shared/models/entities/emergency-block.model';
 import { PresidentService } from '../../services/president.service';
+import { formatApiError } from '../../../../core/utils';
 
 const TARGETS: EmergencyBlockTarget[] = [
   'CASH_BOX',
@@ -195,7 +196,7 @@ export class EmergencyBlocksPageComponent {
       this.reasonTouched.set(false);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }
@@ -211,7 +212,7 @@ export class EmergencyBlocksPageComponent {
       this.liftReason.set('');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.actingId.set(null);
     }

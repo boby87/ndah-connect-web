@@ -13,6 +13,7 @@ import type {
   AnnouncementAudience,
   AnnouncementChannel,
 } from '../../../../shared/models/entities/announcement.model';
+import { formatApiError } from '../../../../core/utils';
 
 const AUDIENCE_OPTIONS: { value: AnnouncementAudience; label: string }[] = [
   { value: 'ALL', label: 'Toute la tontine' },
@@ -212,7 +213,7 @@ export class AnnouncementsPageComponent {
       this.resource.reload();
     } catch (error: unknown) {
       const msg =
-        (error as { error?: { message?: string } })?.error?.message ?? 'Publication impossible.';
+        formatApiError(error, 'Publication impossible.');
       this.errorMessage.set(msg);
     } finally {
       this.submitting.set(false);

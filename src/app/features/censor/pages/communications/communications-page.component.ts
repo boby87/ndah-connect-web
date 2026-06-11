@@ -8,6 +8,7 @@ import { InputComponent } from '../../../../shared/components/ui/input/input.com
 import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { CensorService } from '../../services/censor.service';
+import { formatApiError } from '../../../../core/utils';
 
 type Channel = 'SMS' | 'EMAIL' | 'PUSH' | 'WHATSAPP';
 type CommKind = 'WARNING' | 'PAYMENT_REMINDER' | 'INFORMATION' | 'CALL_TO_ORDER';
@@ -279,7 +280,7 @@ export class CensorCommunicationsPageComponent {
       this.recipients.set(new Set());
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }

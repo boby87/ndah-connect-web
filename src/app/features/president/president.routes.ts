@@ -59,6 +59,14 @@ export const PRESIDENT_ROUTES: Routes = [
         title: 'Présidence · Invitations',
       },
       {
+        path: 'tontine-settings',
+        loadComponent: () =>
+          import('../tontines/pages/settings/tontine-settings.component').then(
+            (m) => m.TontineSettingsComponent,
+          ),
+        title: 'Présidence · Paramètres tontine',
+      },
+      {
         path: 'presidency-transfer',
         loadComponent: () =>
           import('./pages/presidency-transfer/presidency-transfer-page.component').then(

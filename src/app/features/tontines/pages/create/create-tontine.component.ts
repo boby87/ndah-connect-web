@@ -9,6 +9,7 @@ import { InputComponent } from '../../../../shared/components/ui/input/input.com
 import { CurrencyXafPipe } from '../../../../shared/pipes/currency-xaf.pipe';
 import { AuthService } from '../../../../core/auth/services/auth.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { formatApiError } from '../../../../core/utils';
 import type {
   ContributionFrequency,
   FounderInvite,
@@ -250,7 +251,7 @@ export class CreateTontineComponent {
       this.notifications.success(`Tontine "${tontine.name}" créée.`);
       await this.router.navigateByUrl('/dashboard');
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }

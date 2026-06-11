@@ -15,6 +15,7 @@ import {
   type ArchiveVisibility,
 } from '../../../../shared/models/entities/archive-document.model';
 import { SecretaryService } from '../../services/secretary.service';
+import { formatApiError } from '../../../../core/utils';
 
 type Filter = 'ALL' | ArchiveDocumentType;
 
@@ -136,7 +137,7 @@ export class ArchivesPageComponent {
       this.fileTouched.set(false);
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }

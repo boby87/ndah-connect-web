@@ -15,6 +15,7 @@ import {
   type ExpenseStatus,
 } from '../../../../shared/models/entities/treasury.model';
 import { TreasurerService } from '../../services/treasurer.service';
+import { formatApiError } from '../../../../core/utils';
 
 const CATEGORIES: ExpenseCategory[] = ['VENUE', 'SUPPLIES', 'TRANSPORT', 'COMMUNICATION', 'ADMIN_FEES', 'EVENT', 'OTHER'];
 
@@ -218,7 +219,7 @@ export class ExpensesPageComponent {
       this.receiptTouched.set(false);
       this.resource.reload();
     } catch (err: unknown) {
-      this.errorMessage.set((err as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(err, 'Erreur.'));
     } finally {
       this.submitting.set(false);
     }

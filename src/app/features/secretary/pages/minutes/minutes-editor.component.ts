@@ -20,6 +20,7 @@ import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { SecretaryService } from '../../services/secretary.service';
 import type { MinutesSection } from '../../../../shared/models/entities/minutes-draft.model';
+import { formatApiError } from '../../../../core/utils';
 
 @Component({
   selector: 'tc-minutes-editor',
@@ -78,7 +79,7 @@ export class MinutesEditorComponent {
       this.notifications.success('PV sauvegardé.');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.saving.set(false);
     }
@@ -93,7 +94,7 @@ export class MinutesEditorComponent {
       this.notifications.success('PV signé. En attente du Président.');
       this.resource.reload();
     } catch (e: unknown) {
-      this.errorMessage.set((e as { error?: { message?: string } })?.error?.message ?? 'Erreur.');
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.signing.set(false);
     }
