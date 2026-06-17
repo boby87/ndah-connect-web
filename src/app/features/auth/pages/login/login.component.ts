@@ -13,7 +13,8 @@ import { formatApiError } from '../../../../core/utils';
   imports: [RouterLink, InputComponent, ButtonComponent, AlertComponent],
   template: `
     <div>
-      <div class="flex items-center gap-3 mb-6 lg:hidden">
+      <!-- Logo + marque -->
+      <div class="flex flex-col items-center text-center gap-2 mb-5">
         <img
           src="/assets/images/logos/logo-concept-1-cycle.svg"
           alt=""
@@ -21,27 +22,30 @@ import { formatApiError } from '../../../../core/utils';
           height="48"
           class="rounded-xl"
         />
-        <span class="text-lg font-bold text-gray-900">TontineConnect</span>
+        <span class="text-base font-extrabold tracking-wide text-gray-900">TONTINE CONNECT</span>
       </div>
-      <h1 class="text-2xl font-bold text-gray-900">Connexion</h1>
-      <p class="text-sm text-gray-500 mt-1">
-        Accédez à votre espace TontineConnect.
+
+      <h1 class="text-2xl font-bold text-gray-900 text-center leading-tight">
+        Bienvenue !<br />Simplifiez vos tontines
+      </h1>
+      <p class="text-sm text-gray-500 mt-1 text-center">
+        Connectez-vous pour gérer vos cercles
       </p>
 
-      <form class="mt-8 space-y-4" (submit)="onSubmit($event)">
+      <form class="mt-6 space-y-4" (submit)="onSubmit($event)">
         @if (errorMessage()) {
           <tc-alert kind="error">{{ errorMessage() }}</tc-alert>
         }
 
         <tc-input
-          label="Email ou téléphone"
+          label="Numéro de téléphone ou Email"
           type="text"
           autocomplete="username"
           [(value)]="identifier"
           [required]="true"
           [error]="identifierError()"
           [(touched)]="identifierTouched"
-          placeholder="achille@example.cm ou +237699112233"
+          placeholder="+237699112233 ou achille@example.cm"
         />
 
         <tc-input
@@ -55,30 +59,53 @@ import { formatApiError } from '../../../../core/utils';
           placeholder="Votre mot de passe"
         />
 
-        <div class="flex items-center justify-between text-sm">
-          <label class="flex items-center gap-2 text-gray-600">
-            <input type="checkbox" [checked]="rememberMe()" (change)="onRememberToggle($event)" />
-            Se souvenir de moi
-          </label>
-          <a routerLink="/auth/forgot-password" class="text-blue-600 hover:underline">
-            Mot de passe oublié ?
-          </a>
-        </div>
-
         <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
           Se connecter
         </tc-button>
 
-        <p class="text-center text-sm text-gray-600">
-          Pas encore inscrit ?
-          <a routerLink="/auth/register" class="text-blue-600 hover:underline font-medium">Créer un compte</a>
+        <p class="text-center text-sm">
+          <a routerLink="/auth/forgot-password" class="text-gray-600 hover:underline">
+            Mot de passe oublié ?
+          </a>
         </p>
 
-        <div class="rounded-lg border border-dashed border-gray-300 p-3 text-xs text-gray-500">
-          <p class="font-semibold mb-1">Comptes de démonstration</p>
-          <p>achille&#64;example.cm / password (Président)</p>
-          <p>beatrice&#64;example.cm / password (Secrétaire)</p>
-          <p>joseph&#64;example.cm / password (Membre)</p>
+        <p class="text-center text-sm text-gray-600">
+          Pas encore membre ?
+          <a routerLink="/auth/register" class="font-medium hover:underline" style="color: var(--brand-700)">
+            S'inscrire
+          </a>
+        </p>
+
+        <div class="flex items-center gap-3 text-xs text-gray-400">
+          <span class="h-px flex-1 bg-gray-200"></span>
+          <span>Ou continuer avec :</span>
+          <span class="h-px flex-1 bg-gray-200"></span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            (click)="onSocial('Google')"
+            class="flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+              <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35 24 35c-6.1 0-11-4.9-11-11s4.9-11 11-11c2.8 0 5.4 1.1 7.3 2.8l5.7-5.7C33.6 6.1 29.1 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.3-.4-3.5z"/>
+              <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 13 24 13c2.8 0 5.4 1.1 7.3 2.8l5.7-5.7C33.6 6.1 29.1 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
+              <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35 26.7 36 24 36c-5.3 0-9.7-2.6-11.3-7l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
+              <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.6l6.2 5.2C40.9 35.7 44 30.3 44 24c0-1.3-.1-2.3-.4-3.5z"/>
+            </svg>
+            Google
+          </button>
+          <button
+            type="button"
+            (click)="onSocial('Facebook')"
+            class="flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true">
+              <path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07c0 6.02 4.39 11.01 10.13 11.93v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.69.24 2.69.24v2.97h-1.52c-1.49 0-1.96.93-1.96 1.89v2.25h3.33l-.53 3.49h-2.8V24C19.61 23.08 24 18.09 24 12.07z"/>
+            </svg>
+            Facebook
+          </button>
         </div>
       </form>
     </div>
@@ -104,8 +131,11 @@ export class LoginPageComponent {
     this.password().length === 0 ? 'Champ requis.' : '',
   );
 
-  onRememberToggle(event: Event): void {
-    this.rememberMe.set((event.target as HTMLInputElement).checked);
+  onSocial(provider: 'Google' | 'Facebook'): void {
+    this.notifications.info(
+      `La connexion via ${provider} sera bientôt disponible.`,
+      'Bientôt disponible',
+    );
   }
 
   async onSubmit(event: Event): Promise<void> {

@@ -1,32 +1,42 @@
 <div class="tc-auth">
-  <aside class="tc-auth__brand">
-    <div class="tc-auth__hero">
-      <div class="tc-auth__logo">
-        <img
-          src="/assets/images/logos/logo-concept-1-cycle.svg"
-          alt=""
-          class="tc-auth__logo-mark"
-          width="112"
-          height="112"
-        />
-        <span class="tc-auth__logo-name">TontineConnect</span>
+  <!-- Barre de navigation -->
+  <header class="tc-authbar">
+    <a class="tc-authbar__brand" routerLink="/auth/login">
+      <img
+        src="/assets/images/logos/logo-concept-1-cycle.svg"
+        alt=""
+        width="36"
+        height="36"
+        class="tc-authbar__logo"
+      />
+      <span class="tc-authbar__name">TONTINE<br />CONNECT</span>
+    </a>
+    <nav class="tc-authbar__nav">
+      <a routerLink="/auth/login">Tableau de Bord</a>
+      <a routerLink="/auth/login">Mes Cercles</a>
+      <a routerLink="/auth/login">Membres</a>
+      <a routerLink="/auth/login">Aide</a>
+    </nav>
+  </header>
+
+  <!-- Contenu -->
+  <div class="tc-auth__body">
+    <main class="tc-auth__panel">
+      <div class="tc-auth__card">
+        <router-outlet />
       </div>
-      <p class="tc-auth__title">
-        La plateforme moderne<br />
-        de gestion des tontines<br />
-        au Cameroun.
-      </p>
-      <p class="tc-auth__subtitle">
-        Cotisations, prêts, sessions, sanctions, audits — chaque rôle dispose
-        d'un espace dédié, sécurisé et conforme à votre règlement intérieur.
-      </p>
-    </div>
-    <p class="tc-auth__copy">© 2026 TontineConnect</p>
-  </aside>
-  <main class="tc-auth__main">
-    <div class="tc-auth__form">
-      <router-outlet />
-    </div>
-  </main>
+    </main>
+
+    <aside class="tc-auth__hero">
+      <div
+        class="tc-auth__hero-photo"
+        style="background-image: url('/assets/images/auth-hero.jpg')"
+      ></div>
+      <div class="tc-auth__hero-overlay"></div>
+      <div class="tc-auth__hero-caption">
+        <h2>Gérez vos économies ensemble</h2>
+      </div>
+    </aside>
+  </div>
 </div>
 <tc-toast-container />

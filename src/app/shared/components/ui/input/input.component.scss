@@ -36,7 +36,7 @@
   &::placeholder { color: var(--text-subtle); }
 
   &:hover:not(:disabled):not(:read-only) {
-    border-color: rgba(124, 58, 237, 0.30);
+    border-color: rgba(21, 111, 81, 0.30);
   }
 
   &:focus {

@@ -27,7 +27,7 @@
 
   &::placeholder { color: var(--text-subtle); }
 
-  &:hover:not(:disabled) { border-color: rgba(124, 58, 237, 0.30); }
+  &:hover:not(:disabled) { border-color: rgba(21, 111, 81, 0.30); }
 
   &:focus {
     border-color: var(--brand-400);
