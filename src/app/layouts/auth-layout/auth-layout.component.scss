@@ -52,9 +52,26 @@
 }
 
 .tc-authbar__nav a:hover { color: var(--brand-700); }
+.tc-authbar__nav a.tc-authbar__nav-active { color: var(--brand-600); font-weight: 700; }
 
 @media (min-width: 768px) {
   .tc-authbar__nav { display: flex; }
+}
+
+.tc-authbar__lang {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.tc-authbar__lang-active { color: var(--text-strong); }
+.tc-authbar__lang-sep { color: var(--text-muted); }
+.tc-authbar__lang-inactive {
+  color: var(--text-muted);
+  cursor: pointer;
+  &:hover { color: var(--brand-700); }
 }
 
 /* ─── Corps : carte + hero ────────────────────────────────────────────── */
@@ -84,16 +101,15 @@
   width: 100%;
   max-width: 26rem;
   background: var(--surface-card);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-pop);
-  border: 1px solid rgba(28, 26, 47, 0.05);
-  padding: 2.25rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 24px rgba(28, 26, 47, 0.10);
+  border: 1px solid rgba(28, 26, 47, 0.07);
+  padding: 2rem 2.25rem;
   position: relative;
   z-index: 2;
 }
 
 @media (min-width: 1024px) {
-  /* Léger chevauchement de la carte sur la photo, comme la maquette */
   .tc-auth__card { margin-right: -3rem; }
 }
 
@@ -144,4 +160,22 @@
   line-height: 1.2;
   letter-spacing: -0.02em;
   text-shadow: 0 2px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Footer */
+.tc-auth__footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border-top: 1px solid rgba(28, 26, 47, 0.06);
+}
+
+.tc-auth__footer-link {
+  color: var(--brand-700);
+  text-decoration: none;
+  &:hover { text-decoration: underline; }
 }

@@ -13,72 +13,70 @@ import { formatApiError } from '../../../../core/utils';
   imports: [RouterLink, InputComponent, ButtonComponent, AlertComponent],
   template: `
     <div>
-      <!-- Logo + marque -->
-      <div class="flex flex-col items-center text-center gap-2 mb-5">
+      <!-- Logo -->
+      <div class="flex justify-center mb-5">
         <img
-          src="/assets/images/logos/logo-concept-1-cycle.svg"
-          alt=""
-          width="48"
-          height="48"
-          class="rounded-xl"
+          src="/assets/images/logos/logo_tontine_connect.png"
+          alt="Tontine Connect"
+          width="160"
+          height="auto"
+          style="max-width: 160px;"
         />
-        <span class="text-base font-extrabold tracking-wide text-gray-900">TONTINE CONNECT</span>
       </div>
 
-      <h1 class="text-2xl font-bold text-gray-900 text-center leading-tight">
-        Bienvenue !<br />Simplifiez vos tontines
-      </h1>
-      <p class="text-sm text-gray-500 mt-1 text-center">
-        Connectez-vous pour gérer vos cercles
-      </p>
+      <div class="text-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 leading-tight">Bienvenue !</h1>
+        <p class="text-base text-gray-700 font-medium mt-0.5">Simplifiez vos tontines</p>
+        <p class="text-sm text-gray-500 mt-1">Connectez-vous pour gérer vos cercles.</p>
+      </div>
 
-      <form class="mt-6 space-y-4" (submit)="onSubmit($event)">
+      <form class="space-y-4" (submit)="onSubmit($event)">
         @if (errorMessage()) {
           <tc-alert kind="error">{{ errorMessage() }}</tc-alert>
         }
 
         <tc-input
-          label="Numéro de téléphone ou Email"
           type="text"
           autocomplete="username"
           [(value)]="identifier"
           [required]="true"
           [error]="identifierError()"
           [(touched)]="identifierTouched"
-          placeholder="+237699112233 ou achille@example.cm"
+          placeholder="Numéro de téléphone ou Email"
+          icon="user"
         />
 
         <tc-input
-          label="Mot de passe"
           type="password"
           autocomplete="current-password"
           [(value)]="password"
           [required]="true"
           [error]="passwordError()"
           [(touched)]="passwordTouched"
-          placeholder="Votre mot de passe"
+          placeholder="Mot de passe"
+          icon="lock"
         />
 
         <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
-          Se connecter
+          Se Connecter
         </tc-button>
 
-        <p class="text-center text-sm">
-          <a routerLink="/auth/forgot-password" class="text-gray-600 hover:underline">
+        <p class="text-center text-sm text-gray-600">
+          <a routerLink="/auth/forgot-password" class="hover:underline">
             Mot de passe oublié ?
           </a>
         </p>
 
         <p class="text-center text-sm text-gray-600">
           Pas encore membre ?
-          <a routerLink="/auth/register" class="font-medium hover:underline" style="color: var(--brand-700)">
+          <a routerLink="/auth/register" class="font-semibold hover:underline" style="color: var(--brand-700)">
             S'inscrire
           </a>
         </p>
 
-        <div class="flex items-center gap-3 text-xs text-gray-400">
+        <div class="flex items-center gap-3 my-2">
           <span class="h-px flex-1 bg-gray-200"></span>
-          <span>Ou continuer avec :</span>
+          <span class="text-xs text-gray-400 whitespace-nowrap">Ou continuer avec :</span>
           <span class="h-px flex-1 bg-gray-200"></span>
         </div>
 
@@ -86,7 +84,8 @@ import { formatApiError } from '../../../../core/utils';
           <button
             type="button"
             (click)="onSocial('Google')"
-            class="flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            style="border-radius: var(--radius-md); padding: 0.6rem 1.2rem; font-size: 0.9rem;"
+            class="flex w-full items-center justify-center gap-2 border border-gray-200 bg-white font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors cursor-pointer"
           >
             <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
               <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35 24 35c-6.1 0-11-4.9-11-11s4.9-11 11-11c2.8 0 5.4 1.1 7.3 2.8l5.7-5.7C33.6 6.1 29.1 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.3-.4-3.5z"/>
@@ -99,9 +98,10 @@ import { formatApiError } from '../../../../core/utils';
           <button
             type="button"
             (click)="onSocial('Facebook')"
-            class="flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            style="border-radius: var(--radius-md); padding: 0.6rem 1.2rem; font-size: 0.9rem; border: none;"
+            class="flex w-full items-center justify-center gap-2 bg-[#1877F2] font-semibold text-white shadow-sm hover:bg-[#166FE5] transition-colors cursor-pointer"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white" aria-hidden="true">
               <path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07c0 6.02 4.39 11.01 10.13 11.93v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.69.24 2.69.24v2.97h-1.52c-1.49 0-1.96.93-1.96 1.89v2.25h3.33l-.53 3.49h-2.8V24C19.61 23.08 24 18.09 24 12.07z"/>
             </svg>
             Facebook

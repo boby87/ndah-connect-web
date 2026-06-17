@@ -8,6 +8,9 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './button.component.html',
   styleUrl: './button.component.scss',
+  host: {
+    '[class.tc-host--block]': 'fullWidth()',
+  },
 })
 export class ButtonComponent {
   readonly variant = input<ButtonVariant>('primary');

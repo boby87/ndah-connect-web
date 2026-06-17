@@ -11,25 +11,43 @@ import { InputComponent } from '../../../../shared/components/ui/input/input.com
   imports: [RouterLink, InputComponent, ButtonComponent, AlertComponent],
   template: `
     <div>
-      <h1 class="text-2xl font-bold text-gray-900">Mot de passe oublié</h1>
-      <p class="text-sm text-gray-500 mt-1">
-        Indiquez votre email ou téléphone, nous vous enverrons un code de réinitialisation.
-      </p>
+      <!-- Logo -->
+      <div class="flex justify-center mb-5">
+        <img
+          src="/assets/images/logos/logo_tontine_connect.png"
+          alt="Tontine Connect"
+          width="160"
+          height="auto"
+          style="max-width: 160px;"
+        />
+      </div>
 
-      <form class="mt-8 space-y-4" (submit)="onSubmit($event)">
+      <div class="text-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 leading-tight">Mot de passe oublié</h1>
+        <p class="text-base text-gray-700 font-medium mt-0.5">Réinitialisez votre accès</p>
+        <p class="text-sm text-gray-500 mt-1">Nous vous enverrons un code de réinitialisation.</p>
+      </div>
+
+      <form class="space-y-4" (submit)="onSubmit($event)">
         @if (success()) {
           <tc-alert kind="success">{{ success() }}</tc-alert>
         }
+
         <tc-input
-          label="Email ou téléphone"
+          placeholder="Email ou numéro de téléphone"
           [(value)]="identifier"
           [required]="true"
+          icon="user"
         />
+
         <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
           Envoyer le code
         </tc-button>
+
         <p class="text-center text-sm text-gray-600">
-          <a routerLink="/auth/login" class="text-blue-600 hover:underline font-medium">Retour à la connexion</a>
+          <a routerLink="/auth/login" class="font-semibold hover:underline" style="color: var(--brand-700)">
+            Retour à la connexion
+          </a>
         </p>
       </form>
     </div>

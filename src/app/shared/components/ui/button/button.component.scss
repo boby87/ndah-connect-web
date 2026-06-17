@@ -1,4 +1,5 @@
 :host { display: inline-flex; }
+:host(.tc-host--block) { display: block; width: 100%; }
 
 .tc-btn {
   display: inline-flex;
@@ -17,15 +18,15 @@
 }
 
 .tc-btn--sm { padding: 0.375rem 0.75rem; font-size: 0.8125rem; }
-.tc-btn--md { padding: 0.55rem 1.1rem; font-size: 0.875rem; }
-.tc-btn--lg { padding: 0.75rem 1.5rem; font-size: 0.95rem; }
+.tc-btn--md { padding: 0.6rem 1.2rem; font-size: 0.9rem; }
+.tc-btn--lg { padding: 0.85rem 1.75rem; font-size: 1rem; font-weight: 700; letter-spacing: 0.01em; }
 .tc-btn--block { width: 100%; }
 
 .tc-btn--primary {
-  background: var(--brand-600);
+  background: var(--brand-400);
   color: #ffffff;
-  box-shadow: 0 1px 2px rgba(76, 29, 149, 0.10);
-  &:not(:disabled):hover { background: var(--brand-700); }
+  box-shadow: 0 2px 8px rgba(70, 168, 131, 0.25);
+  &:not(:disabled):hover { background: var(--brand-500); }
 }
 
 .tc-btn--secondary {

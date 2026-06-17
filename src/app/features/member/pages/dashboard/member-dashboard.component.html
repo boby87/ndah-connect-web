@@ -70,7 +70,7 @@
             }
             <p class="tc-next-session__meta">
               <tc-icon name="wallet" [size]="16" />
-              Cotisation attendue : <strong>{{ s.tontine?.contributionAmount | xaf }}</strong>
+              Cotisation attendue : <strong>{{ $safeNavigationMigration(s.tontine?.contributionAmount) | xaf }}</strong>
             </p>
           </div>
         } @else {

@@ -1,6 +1,12 @@
 <aside class="tc-sidebar" [class.tc-sidebar--collapsed]="!ui.sidebarOpen()">
   <header class="tc-sidebar__brand">
-    <span class="tc-sidebar__logo">TC</span>
+    <img
+      src="/assets/images/logos/logo_icon.svg"
+      alt="Tontine Connect"
+      width="36"
+      height="36"
+      class="tc-sidebar__logo"
+    />
     @if (ui.sidebarOpen()) {
       <div class="tc-sidebar__brand-text">
         <p class="tc-sidebar__brand-name">TontineConnect</p>

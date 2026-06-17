@@ -13,42 +13,70 @@ import { formatApiError } from '../../../../core/utils';
   imports: [RouterLink, InputComponent, ButtonComponent, AlertComponent],
   template: `
     <div>
-      <h1 class="text-2xl font-bold text-gray-900">Créer un compte</h1>
-      <p class="text-sm text-gray-500 mt-1">Rejoignez votre tontine en quelques minutes.</p>
+      <!-- Logo -->
+      <div class="flex justify-center mb-5">
+        <img
+          src="/assets/images/logos/logo_tontine_connect.png"
+          alt="Tontine Connect"
+          width="160"
+          height="auto"
+          style="max-width: 160px;"
+        />
+      </div>
 
-      <form class="mt-8 space-y-4" (submit)="onSubmit($event)">
+      <div class="text-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 leading-tight">Créer un compte</h1>
+        <p class="text-base text-gray-700 font-medium mt-0.5">Rejoignez votre tontine</p>
+        <p class="text-sm text-gray-500 mt-1">Inscrivez-vous en quelques minutes.</p>
+      </div>
+
+      <form class="space-y-4" (submit)="onSubmit($event)">
         @if (errorMessage()) {
           <tc-alert kind="error">{{ errorMessage() }}</tc-alert>
         }
+
         <div class="grid grid-cols-2 gap-3">
-          <tc-input label="Prénom" [(value)]="firstName" [required]="true" />
-          <tc-input label="Nom" [(value)]="lastName" [required]="true" />
+          <tc-input
+            placeholder="Prénom"
+            [(value)]="firstName"
+            [required]="true"
+            icon="user"
+          />
+          <tc-input
+            placeholder="Nom"
+            [(value)]="lastName"
+            [required]="true"
+          />
         </div>
+
         <tc-input
-          label="Téléphone"
           type="tel"
+          placeholder="+237 6XX XX XX XX"
           [(value)]="phone"
           [(touched)]="phoneTouched"
           [error]="phoneError()"
-          placeholder="+237 6XX XX XX XX"
           [required]="true"
+          icon="phone"
         />
+
         <tc-input
-          label="Email"
           type="email"
+          placeholder="Adresse email"
           [(value)]="email"
           [(touched)]="emailTouched"
           [error]="emailError()"
           [required]="true"
         />
+
         <tc-input
-          label="Mot de passe"
           type="password"
+          placeholder="Mot de passe"
           [(value)]="password"
           [(touched)]="passwordTouched"
           [error]="passwordError()"
           hint="Min. 8 caractères avec majuscule, minuscule et chiffre."
           [required]="true"
+          icon="lock"
         />
 
         <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
@@ -57,7 +85,9 @@ import { formatApiError } from '../../../../core/utils';
 
         <p class="text-center text-sm text-gray-600">
           Déjà inscrit ?
-          <a routerLink="/auth/login" class="text-blue-600 hover:underline font-medium">Se connecter</a>
+          <a routerLink="/auth/login" class="font-semibold hover:underline" style="color: var(--brand-700)">
+            Se connecter
+          </a>
         </p>
       </form>
     </div>

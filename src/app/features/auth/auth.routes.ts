@@ -35,5 +35,17 @@ export const AUTH_ROUTES: Routes = [
       ),
     title: 'Réinitialisation · TontineConnect',
   },
+  {
+    path: 'home',
+    loadComponent: () =>
+      import('./pages/home/home.component').then((m) => m.HomePageComponent),
+    title: 'Accueil · TontineConnect',
+  },
+  {
+    path: 'contact',
+    loadComponent: () =>
+      import('./pages/contact/contact.component').then((m) => m.ContactPageComponent),
+    title: 'Contact · TontineConnect',
+  },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 ];

@@ -3,8 +3,8 @@
   <header class="tc-authbar">
     <a class="tc-authbar__brand" routerLink="/auth/login">
       <img
-        src="/assets/images/logos/logo-concept-1-cycle.svg"
-        alt=""
+        src="/assets/images/logos/logo_tontine_connect.png"
+        alt="Tontine Connect"
         width="36"
         height="36"
         class="tc-authbar__logo"
@@ -12,11 +12,16 @@
       <span class="tc-authbar__name">TONTINE<br />CONNECT</span>
     </a>
     <nav class="tc-authbar__nav">
-      <a routerLink="/auth/login">Tableau de Bord</a>
-      <a routerLink="/auth/login">Mes Cercles</a>
-      <a routerLink="/auth/login">Membres</a>
-      <a routerLink="/auth/login">Aide</a>
+      <a routerLink="/auth/home" routerLinkActive="tc-authbar__nav-active">Accueil</a>
+      <a routerLink="/auth/login" routerLinkActive="tc-authbar__nav-active">Mes Cercles</a>
+      <a routerLink="/auth/contact" routerLinkActive="tc-authbar__nav-active">Contact Us</a>
+      <a routerLink="/auth/login" routerLinkActive="tc-authbar__nav-active">Aide</a>
     </nav>
+    <div class="tc-authbar__lang">
+      <span class="tc-authbar__lang-active">FR</span>
+      <span class="tc-authbar__lang-sep">/</span>
+      <span class="tc-authbar__lang-inactive">EN</span>
+    </div>
   </header>
 
   <!-- Contenu -->
@@ -30,7 +35,7 @@
     <aside class="tc-auth__hero">
       <div
         class="tc-auth__hero-photo"
-        style="background-image: url('/assets/images/auth-hero.jpg')"
+        style="background-image: url('/assets/images/Gemini_Generated_Image_o4iuweo4iuweo4iu.png')"
       ></div>
       <div class="tc-auth__hero-overlay"></div>
       <div class="tc-auth__hero-caption">
@@ -38,5 +43,11 @@
       </div>
     </aside>
   </div>
+
+  <!-- Footer -->
+  <footer class="tc-auth__footer">
+    <span>Tontine Connect &copy; 2024. All rights reserved.</span>
+    <a href="#" class="tc-auth__footer-link">Privacy Policy</a>
+  </footer>
 </div>
 <tc-toast-container />
