@@ -8,6 +8,7 @@ import { STORAGE_KEYS } from '../../constants/storage-keys.constants';
 import { UserRole } from '../../enums/user-role.enum';
 import { StorageService } from '../../services/storage.service';
 import { TokenService } from './token.service';
+import { WebSocketService } from '../../services/websocket.service';
 import type { ApiResponse } from '../../api/models/api-response.model';
 import type { AuthSession, User } from '../../../shared/models/entities/user.model';
 
@@ -43,6 +44,7 @@ export class AuthService {
   private readonly storage = inject(StorageService);
   private readonly router = inject(Router);
 
+  private readonly ws = inject(WebSocketService);
   private readonly userSignal = signal<User | null>(this.storage.get<User>(STORAGE_KEYS.currentUser));
 
   readonly user = this.userSignal.asReadonly();
@@ -116,6 +118,7 @@ export class AuthService {
   }
 
   logout(redirectToLogin = true): void {
+    this.ws.disconnect();
     this.tokens.clearTokens();
     this.storage.remove(STORAGE_KEYS.currentUser);
     this.storage.remove(STORAGE_KEYS.currentTontineId);

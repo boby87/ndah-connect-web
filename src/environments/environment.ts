@@ -1,6 +1,7 @@
 export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:8081/api',
+  production: true,
+  apiUrl: '/api',
+  wsUrl: '',
   appName: 'NdahConnect',
   useMock: false,
 };
