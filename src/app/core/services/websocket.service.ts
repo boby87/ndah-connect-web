@@ -73,7 +73,7 @@ export class WebSocketService implements OnDestroy {
         const notification = JSON.parse(msg.body) as WsNotification;
         this.lastNotification.set(notification);
       } catch {
-        // ignore malformed messages
+        // malformed frame — ignore
       }
     });
 
@@ -84,7 +84,7 @@ export class WebSocketService implements OnDestroy {
           this.unreadCount.set(event.payload);
         }
       } catch {
-        // ignore malformed messages
+        // malformed frame — ignore
       }
     });
   }

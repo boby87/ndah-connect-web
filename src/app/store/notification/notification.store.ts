@@ -1,9 +1,17 @@
 import { Injectable, computed, effect, inject } from '@angular/core';
 import { WebSocketService } from '../../core/services/websocket.service';
+import { NotificationService } from '../../core/services/notification.service';
+
+interface NotificationPayload {
+  title?: string;
+  message?: string;
+  kind?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class NotificationStore {
   private readonly ws = inject(WebSocketService);
+  private readonly toast = inject(NotificationService);
 
   readonly unreadCount = this.ws.unreadCount;
   readonly lastNotification = this.ws.lastNotification;
@@ -15,7 +23,10 @@ export class NotificationStore {
     effect(() => {
       const notification = this.lastNotification();
       if (notification?.type === 'notification.created') {
-        // signal pour déclencher un rafraichissement dans les composants abonnés
+        const payload = notification.payload as NotificationPayload;
+        const title = payload?.title ?? 'Nouvelle notification';
+        const message = payload?.message ?? '';
+        this.toast.info(message, title);
       }
     });
   }

@@ -77,6 +77,13 @@ export class NotificationsApiService {
   }
 
   async delete(id: string): Promise<void> {
-    await firstValueFrom(this.http.delete<ApiResponse<void>>(`${this.base}/${id}`));
+    await firstValueFrom(this.http.delete<void>(`${this.base}/${id}`));
+  }
+
+  async deleteAllRead(): Promise<number> {
+    const response = await firstValueFrom(
+      this.http.delete<ApiResponse<{ count: number }>>(`${this.base}/read-all`),
+    );
+    return response.data.count;
   }
 }

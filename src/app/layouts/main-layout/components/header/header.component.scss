@@ -36,15 +36,24 @@
 
 .tc-header__menu { color: var(--brand-700); }
 
-.tc-header__dot {
+.tc-header__badge {
   position: absolute;
-  top: 0.55rem;
-  right: 0.6rem;
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
+  top: 0.3rem;
+  right: 0.3rem;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  padding: 0 0.25rem;
+  border-radius: var(--radius-pill);
   background: var(--brand-600);
   border: 2px solid #ffffff;
+  color: #ffffff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
 }
 
 .tc-header__search {
@@ -93,6 +102,10 @@
 
 .tc-header__user-name { margin: 0; font-size: 0.85rem; font-weight: 600; color: var(--text-strong); }
 .tc-header__user-mail { margin: 0.1rem 0 0; font-size: 0.7rem; color: var(--text-muted); }
+
+.tc-notif-wrapper {
+  position: relative;
+}
 
 .tc-header__avatar {
   display: inline-flex;

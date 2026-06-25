@@ -103,6 +103,13 @@ export class SecretaryService {
   }
 
   // ─── Agendas ───────────────────────────────────────────────────────────
+  async getNextSessionNumber(): Promise<number> {
+    const response = await firstValueFrom(
+      this.http.get<ApiResponse<number>>(`${this.base}/agendas/next-session-number`),
+    );
+    return response.data;
+  }
+
   async getAgendas(): Promise<AgendaDraft[]> {
     const response = await firstValueFrom(
       this.http.get<ApiResponse<AgendaDraft[]>>(`${this.base}/agendas`),

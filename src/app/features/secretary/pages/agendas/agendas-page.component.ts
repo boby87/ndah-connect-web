@@ -6,6 +6,7 @@ import { CardComponent } from '../../../../shared/components/ui/card/card.compon
 import { EmptyStateComponent } from '../../../../shared/components/ui/empty-state/empty-state.component';
 import { InputComponent } from '../../../../shared/components/ui/input/input.component';
 import { TextareaComponent } from '../../../../shared/components/ui/textarea/textarea.component';
+import { LocationPickerComponent } from '../../../../shared/components/ui/location-picker/location-picker.component';
 import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { SecretaryService } from '../../services/secretary.service';
@@ -47,6 +48,7 @@ const STATUS_LABELS: Record<AgendaDraftStatus, string> = {
     EmptyStateComponent,
     InputComponent,
     TextareaComponent,
+    LocationPickerComponent,
     DateFormatPipe,
   ],
   templateUrl: './agendas-page.component.html',
@@ -62,9 +64,19 @@ export class AgendasPageComponent {
     loader: () => this.service.getAgendas(),
   });
 
-  readonly agendas = computed(() => this.resource.value() ?? []);
+  readonly membersResource = resource({
+    loader: () => this.service.getMembers(),
+  });
 
-  readonly sessionNumber = signal('7');
+  readonly nextSessionResource = resource({
+    loader: () => this.service.getNextSessionNumber(),
+  });
+
+  readonly agendas = computed(() => this.resource.value() ?? []);
+  readonly members = computed(() => this.membersResource.value() ?? []);
+  readonly nextSessionNumber = computed(() => this.nextSessionResource.value() ?? '…');
+
+  readonly sessionNumber = signal('');
   readonly scheduledAt = signal('');
   readonly location = signal('');
   readonly beneficiary = signal('');
@@ -75,11 +87,21 @@ export class AgendasPageComponent {
   readonly acting = signal<string | null>(null);
   readonly errorMessage = signal<string | null>(null);
 
-  readonly dateError = computed(() =>
-    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(this.scheduledAt())
-      ? ''
-      : 'Format YYYY-MM-DDTHH:mm requis.',
-  );
+  /** Valeur minimale pour le sélecteur de date (maintenant + 1 minute). */
+  readonly dateMin = computed(() => {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() + 1);
+    return d.toISOString().slice(0, 16);
+  });
+
+  readonly dateError = computed(() => {
+    const val = this.scheduledAt();
+    if (!val) return this.dateTouched() ? 'Date requise.' : '';
+    const selected = new Date(val);
+    if (isNaN(selected.getTime())) return 'Date invalide.';
+    if (selected <= new Date()) return 'La date doit être dans le futur.';
+    return '';
+  });
 
   statusKind(status: AgendaDraftStatus): 'neutral' | 'info' | 'warning' | 'success' {
     if (status === 'APPROVED' || status === 'PUBLISHED') return 'success';
@@ -95,9 +117,9 @@ export class AgendasPageComponent {
 
     if (this.dateError()) return;
 
-    const sessionNum = parseInt(this.sessionNumber(), 10);
-    if (!Number.isFinite(sessionNum) || sessionNum < 1) {
-      this.errorMessage.set('Numéro de séance invalide.');
+    const sessionNum = this.nextSessionResource.value();
+    if (!sessionNum || sessionNum < 1) {
+      this.errorMessage.set('Numéro de séance indisponible, veuillez réessayer.');
       return;
     }
 
@@ -121,7 +143,7 @@ export class AgendasPageComponent {
         sessionNumber: sessionNum,
         scheduledAt: new Date(this.scheduledAt()).toISOString(),
         location: this.location().trim() || undefined,
-        beneficiaryMemberId: this.beneficiary().trim() || undefined,
+        beneficiaryMemberId: this.beneficiary() || undefined,
         items,
       });
       this.notifications.success('Ordre du jour créé.');
@@ -131,6 +153,7 @@ export class AgendasPageComponent {
       this.customItems.set('');
       this.dateTouched.set(false);
       this.resource.reload();
+      this.nextSessionResource.reload();
     } catch (e: unknown) {
       this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {

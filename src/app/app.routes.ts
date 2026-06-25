@@ -54,6 +54,14 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/auditor/auditor.routes').then((m) => m.AUDITOR_ROUTES),
       },
+      {
+        path: 'notifications',
+        loadComponent: () =>
+          import('./features/notifications/pages/notification-list/notification-list.component').then(
+            (m) => m.NotificationListPageComponent,
+          ),
+        title: 'Notifications · TontineConnect',
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

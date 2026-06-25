@@ -1,9 +1,32 @@
 <div class="space-y-6">
-  <header>
-    <h1 class="text-2xl font-bold text-gray-900">Ordres du jour</h1>
-    <p class="text-sm text-gray-500">
-      Préparez l'ODJ au moins 5 jours avant la séance (règle RM-OJ01) puis soumettez-le au Président.
-    </p>
+
+  <!-- ── En-tête de page ───────────────────────────────────────────────── -->
+  <header class="rounded-xl border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
+    <div class="flex items-start gap-4">
+      <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-100 text-3xl">
+        📋
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Ordres du jour</h1>
+        <p class="mt-1 text-base text-gray-600">
+          En tant que <strong>Secrétaire</strong>, vous préparez l'ordre du jour (ODJ) de chaque
+          séance. Rédigez-le <strong>au moins 5 jours avant</strong> la réunion (règle RM-OJ01),
+          sélectionnez la date, le lieu sur la carte et le bénéficiaire de la cagnotte, puis
+          soumettez-le au Président pour approbation avant publication.
+        </p>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
+            📅 Date &gt; aujourd'hui
+          </span>
+          <span class="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+            📍 Géolocalisation Leaflet
+          </span>
+          <span class="inline-flex items-center gap-1 rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-800">
+            👥 10 points standards inclus
+          </span>
+        </div>
+      </div>
+    </div>
   </header>
 
   @if (errorMessage(); as err) {
@@ -11,6 +34,8 @@
   }
 
   <div class="grid gap-6 lg:grid-cols-3">
+
+    <!-- ── Liste des ODJ ─────────────────────────────────────────────── -->
     <div class="space-y-3 lg:col-span-2">
       @if (resource.isLoading()) {
         <p class="text-sm text-gray-500">Chargement…</p>
@@ -31,6 +56,9 @@
                   {{ a.scheduledAt | tcDate: true }}
                   @if (a.location) {
                     · 📍 {{ a.location }}
+                  }
+                  @if (a.beneficiaryFullName) {
+                    · 🎯 {{ a.beneficiaryFullName }}
                   }
                 </p>
                 <ol class="mt-3 list-decimal space-y-1 pl-5 text-sm text-gray-700">
@@ -65,19 +93,80 @@
       }
     </div>
 
+    <!-- ── Formulaire Nouvel ODJ ──────────────────────────────────────── -->
     <aside>
       <tc-card title="Nouveau ODJ">
-        <form class="space-y-4" (submit)="onSubmit($event)">
-          <tc-input label="Numéro de séance" type="number" [(value)]="sessionNumber" [required]="true" />
-          <tc-input
-            label="Date prévue (YYYY-MM-DDTHH:mm)"
-            [(value)]="scheduledAt"
-            [(touched)]="dateTouched"
-            [error]="dateError()"
-            [required]="true"
+        <form class="space-y-5" (submit)="onSubmit($event)">
+
+          <!-- Numéro de séance — calculé par le backend -->
+          <div class="space-y-1">
+            <label class="block text-sm font-medium text-gray-700">Numéro de séance</label>
+            <div class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+              @if (nextSessionResource.isLoading()) {
+                <span class="text-sm text-gray-400 italic">Calcul en cours…</span>
+              } @else {
+                <span class="text-lg font-bold text-blue-700"># {{ nextSessionNumber() }}</span>
+                <span class="text-xs text-gray-400">(généré automatiquement)</span>
+              }
+            </div>
+          </div>
+
+          <!-- Date prévue — datetime-local natif avec min = maintenant -->
+          <div class="space-y-1">
+            <label class="block text-sm font-medium text-gray-700">
+              Date prévue <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="datetime-local"
+              class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition
+                     focus:ring-2
+                     focus:ring-blue-500"
+              [class.border-red-400]="!!dateError() && dateTouched()"
+              [class.border-gray-300]="!dateError() || !dateTouched()"
+              [min]="dateMin()"
+              [value]="scheduledAt()"
+              (change)="scheduledAt.set($any($event.target).value); dateTouched.set(true)"
+              required
+            />
+            @if (dateError() && dateTouched()) {
+              <p class="text-xs text-red-600">{{ dateError() }}</p>
+            } @else {
+              <p class="text-xs text-gray-400">La date doit être supérieure à aujourd'hui.</p>
+            }
+          </div>
+
+          <!-- Lieu — carte Leaflet -->
+          <tc-location-picker
+            label="Lieu de la séance"
+            [(value)]="location"
           />
-          <tc-input label="Lieu" [(value)]="location" />
-          <tc-input label="Bénéficiaire (ID membre)" [(value)]="beneficiary" hint="ex: member-1" />
+
+          <!-- Bénéficiaire — liste des membres -->
+          <div class="space-y-1">
+            <label class="block text-sm font-medium text-gray-700">Bénéficiaire de la cagnotte</label>
+            @if (membersResource.isLoading()) {
+              <p class="text-xs text-gray-400 italic">Chargement des membres…</p>
+            } @else {
+              <select
+                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm
+                       outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                [value]="beneficiary()"
+                (change)="beneficiary.set($any($event.target).value)"
+              >
+                <option value="">— Aucun bénéficiaire —</option>
+                @for (m of members(); track m.id) {
+                  <option [value]="m.id">
+                    {{ m.firstName }} {{ m.lastName }} ({{ m.matricule }})
+                  </option>
+                }
+              </select>
+              @if (members().length === 0) {
+                <p class="text-xs text-gray-400 italic">Aucun membre actif dans cette tontine.</p>
+              }
+            }
+          </div>
+
+          <!-- Points standards -->
           <div>
             <p class="mb-1 text-sm font-medium text-gray-700">Points standards inclus</p>
             <p class="mb-2 text-xs text-gray-500">
@@ -92,17 +181,21 @@
               </ol>
             </details>
           </div>
+
+          <!-- Points supplémentaires -->
           <tc-textarea
             label="Points supplémentaires (un par ligne)"
             [(value)]="customItems"
             [rows]="4"
             hint="ex: Présentation candidat X — Vote cotisation extra…"
           />
+
           <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
             Créer l'ODJ
           </tc-button>
         </form>
       </tc-card>
     </aside>
+
   </div>
 </div>

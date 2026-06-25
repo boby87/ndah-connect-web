@@ -12,10 +12,26 @@
     <span class="tc-header__loading">Chargement…</span>
   }
 
-  <button class="tc-header__icon-btn" type="button" aria-label="Notifications">
-    <tc-icon name="bell" [size]="18" />
-    <span class="tc-header__dot" aria-hidden="true"></span>
-  </button>
+  <div class="tc-notif-wrapper" (click)="$event.stopPropagation()">
+    <button
+      class="tc-header__icon-btn"
+      type="button"
+      aria-label="Notifications"
+      [attr.aria-expanded]="panelOpen()"
+      (click)="togglePanel()"
+    >
+      <tc-icon name="bell" [size]="18" />
+      @if (notifications.hasUnread()) {
+        <span class="tc-header__badge" aria-label="{{ notifications.unreadCount() }} notifications non lues">
+          {{ notifications.unreadCount() > 99 ? '99+' : notifications.unreadCount() }}
+        </span>
+      }
+    </button>
+
+    @if (panelOpen()) {
+      <tc-notification-panel (close)="closePanel()" />
+    }
+  </div>
 
   <button class="tc-header__icon-btn" type="button" aria-label="Aide">
     <tc-icon name="help-circle" [size]="18" />

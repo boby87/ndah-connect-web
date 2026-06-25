@@ -47,5 +47,13 @@ export const AUTH_ROUTES: Routes = [
       import('./pages/contact/contact.component').then((m) => m.ContactPageComponent),
     title: 'Contact · TontineConnect',
   },
+  {
+    path: 'invitations/:token/accept',
+    loadComponent: () =>
+      import('./pages/invitation-accept/invitation-accept.component').then(
+        (m) => m.InvitationAcceptPageComponent,
+      ),
+    title: "Accepter l'invitation · TontineConnect",
+  },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 ];

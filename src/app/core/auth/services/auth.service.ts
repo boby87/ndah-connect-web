@@ -128,6 +128,10 @@ export class AuthService {
     }
   }
 
+  applySession(session: AuthSession): void {
+    this.persistSession(session);
+  }
+
   private persistSession(session: AuthSession): void {
     this.tokens.setTokens(session.tokens);
     this.userSignal.set(session.user);
