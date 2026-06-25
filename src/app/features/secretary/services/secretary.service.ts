@@ -15,7 +15,9 @@ import type {
   Convocation,
   ConvocationChannel,
 } from '../../../shared/models/entities/convocation.model';
+import type { Cycle } from '../../../shared/models/entities/cycle.model';
 import type { Member } from '../../../shared/models/entities/member.model';
+import type { Session } from '../../../shared/models/entities/session.model';
 import type {
   MembershipFile,
   MembershipFileKind,
@@ -89,10 +91,78 @@ export interface GenerateReportPayload {
   periodLabel: string;
 }
 
+export interface CreateCyclePayload {
+  startDate: string;
+}
+
+export interface CreateSessionPayload {
+  cycleId: string;
+  scheduledAt: string;
+  location?: string;
+}
+
+export interface UpdateSessionPayload {
+  scheduledAt?: string;
+  location?: string;
+}
+
+export interface BulkSessionItem {
+  scheduledAt: string;
+  location?: string;
+}
+
+export interface CreateBulkSessionsPayload {
+  cycleId: string;
+  sessions: BulkSessionItem[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class SecretaryService {
   private readonly http = inject(HttpClient);
   private readonly base = `${API_CONFIG.baseUrl}/secretary`;
+
+  // ─── Cycles & Sessions planning ───────────────────────────────────────
+  async getCycles(): Promise<Cycle[]> {
+    const response = await firstValueFrom(
+      this.http.get<ApiResponse<Cycle[]>>(`${this.base}/cycles`),
+    );
+    return response.data;
+  }
+
+  async createCycle(payload: CreateCyclePayload): Promise<Cycle> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<Cycle>>(`${this.base}/cycles`, payload),
+    );
+    return response.data;
+  }
+
+  async getSessionsByCycle(cycleId: string): Promise<Session[]> {
+    const response = await firstValueFrom(
+      this.http.get<ApiResponse<Session[]>>(`${this.base}/sessions`, { params: { cycleId } }),
+    );
+    return response.data;
+  }
+
+  async createSession(payload: CreateSessionPayload): Promise<Session> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<Session>>(`${this.base}/sessions`, payload),
+    );
+    return response.data;
+  }
+
+  async createBulkSessions(payload: CreateBulkSessionsPayload): Promise<Session[]> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<Session[]>>(`${this.base}/sessions/bulk`, payload),
+    );
+    return response.data;
+  }
+
+  async updateSession(id: string, payload: UpdateSessionPayload): Promise<Session> {
+    const response = await firstValueFrom(
+      this.http.put<ApiResponse<Session>>(`${this.base}/sessions/${id}`, payload),
+    );
+    return response.data;
+  }
 
   // ─── Dashboard ─────────────────────────────────────────────────────────
   async getDashboard(): Promise<SecretaryDashboard> {

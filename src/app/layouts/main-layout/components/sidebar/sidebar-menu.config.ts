@@ -44,6 +44,7 @@ export const SIDEBAR_MENU: MenuSection[] = [
     title: 'Secrétariat',
     items: [
       { label: 'Tableau Secrétaire', icon: 'clipboard', route: '/secretary/dashboard', roles: secretaryOnly },
+      { label: 'Planification séances', icon: 'calendar-days', route: '/secretary/sessions', roles: secretaryOnly },
       { label: 'Ordres du jour', icon: 'list', route: '/secretary/agendas', roles: secretaryOnly },
       { label: 'Convocations', icon: 'mail', route: '/secretary/convocations', roles: secretaryOnly },
       { label: 'Procès-verbaux', icon: 'file-text', route: '/secretary/minutes', roles: secretaryOnly },

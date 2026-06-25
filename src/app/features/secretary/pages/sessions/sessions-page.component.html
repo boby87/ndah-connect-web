@@ -1,0 +1,443 @@
+<div class="space-y-6">
+
+  <!-- ── En-tête ──────────────────────────────────────────────────────────── -->
+  <header class="rounded-xl border border-emerald-100 bg-gradient-to-r from-emerald-50 to-teal-50 p-6">
+    <div class="flex items-start gap-4">
+      <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-3xl">
+        📅
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Planification des séances</h1>
+        <p class="mt-1 text-base text-gray-600">
+          En tant que <strong>Secrétaire</strong>, vous organisez les <strong>cycles</strong>
+          (périodes annuelles ou semestrielles) et planifiez les <strong>séances</strong>
+          (réunions) qui les composent. Vous pouvez créer les séances une à une ou les
+          générer automatiquement selon une périodicité, puis les modifier au besoin.
+        </p>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-800">
+            🔄 Cycles &amp; séances
+          </span>
+          <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
+            ⚡ Planification en lot
+          </span>
+          <span class="inline-flex items-center gap-1 rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-800">
+            ✏️ Modification SCHEDULED uniquement
+          </span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  @if (errorMessage(); as err) {
+    <tc-alert kind="error">{{ err }}</tc-alert>
+  }
+
+  <div class="grid gap-6 lg:grid-cols-3">
+
+    <!-- ── Colonne gauche : liste des cycles ─────────────────────────────── -->
+    <div class="space-y-4 lg:col-span-2">
+
+      <!-- Entête liste cycles -->
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-gray-800">Cycles de la tontine</h2>
+        <button
+          type="button"
+          class="flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5
+                 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100"
+          (click)="showCycleForm.set(!showCycleForm())"
+        >
+          @if (showCycleForm()) {
+            ✕ Annuler
+          } @else {
+            + Nouveau cycle
+          }
+        </button>
+      </div>
+
+      <!-- Formulaire création cycle -->
+      @if (showCycleForm()) {
+        <tc-card>
+          <form class="flex flex-wrap items-end gap-3" (submit)="onCreateCycle($event)">
+            <div class="flex-1 space-y-1" style="min-width: 200px">
+              <label class="block text-sm font-medium text-gray-700">
+                Date de début du cycle <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm outline-none
+                       focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                [value]="newCycleStartDate()"
+                (change)="newCycleStartDate.set($any($event.target).value)"
+                required
+              />
+            </div>
+            <tc-button
+              type="submit"
+              variant="primary"
+              [loading]="creatingCycle()"
+            >
+              Créer le cycle
+            </tc-button>
+          </form>
+          <p class="mt-2 text-xs text-gray-400">
+            Le numéro de cycle est attribué automatiquement (cycle N+1).
+          </p>
+        </tc-card>
+      }
+
+      <!-- Liste cycles -->
+      @if (cyclesResource.isLoading()) {
+        <p class="text-sm text-gray-500">Chargement des cycles…</p>
+      } @else if (cycles().length === 0) {
+        <tc-card>
+          <tc-empty-state
+            title="Aucun cycle"
+            icon="🔄"
+          />
+        </tc-card>
+      } @else {
+        @for (cycle of cycles(); track cycle.id) {
+          <!-- Accordion cycle -->
+          <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+
+            <!-- En-tête du cycle (cliquable) -->
+            <button
+              type="button"
+              class="flex w-full items-center justify-between px-4 py-3 text-left
+                     transition hover:bg-gray-50"
+              (click)="toggleCycle(cycle.id)"
+            >
+              <div class="flex items-center gap-3">
+                <span class="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700">
+                  {{ cycle.number }}
+                </span>
+                <div>
+                  <p class="font-semibold text-gray-900">{{ cycleLabel(cycle) }}</p>
+                  <p class="text-xs text-gray-500">
+                    {{ cycle.completedSessions }}/{{ cycle.totalSessions }} séances terminées
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                @if (cycle.isActive) {
+                  <tc-badge kind="success">Actif</tc-badge>
+                }
+                <span class="text-gray-400 transition-transform"
+                      [class.rotate-180]="expandedCycleId() === cycle.id">▼</span>
+              </div>
+            </button>
+
+            <!-- Contenu accordéon — séances du cycle -->
+            @if (expandedCycleId() === cycle.id) {
+              <div class="border-t border-gray-100 px-4 pb-4 pt-3">
+                @if (sessionsResource.isLoading()) {
+                  <p class="text-sm text-gray-400 italic">Chargement des séances…</p>
+                } @else if (sessions().length === 0) {
+                  <p class="text-sm text-gray-400 italic">Aucune séance planifiée pour ce cycle.</p>
+                } @else {
+                  <div class="space-y-2">
+                    @for (s of sessions(); track s.id) {
+                      <div class="flex items-center justify-between rounded-lg border border-gray-100
+                                  bg-gray-50 px-3 py-2.5">
+                        <div class="min-w-0 flex-1">
+                          <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-sm font-semibold text-gray-800">
+                              Séance #{{ s.number }}
+                            </span>
+                            <tc-badge [kind]="statusKind(s.status)">
+                              {{ SESSION_STATUS_LABELS[s.status] }}
+                            </tc-badge>
+                          </div>
+                          <p class="mt-0.5 text-xs text-gray-500">
+                            {{ s.scheduledAt | tcDate: true }}
+                            @if (s.location) { · 📍 {{ s.location }} }
+                          </p>
+                        </div>
+                        @if (s.status === SessionStatus.SCHEDULED) {
+                          <button
+                            type="button"
+                            class="ml-3 shrink-0 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1
+                                   text-xs font-medium text-blue-700 transition hover:bg-blue-100"
+                            (click)="startEdit(s)"
+                          >
+                            ✏️ Modifier
+                          </button>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+
+    <!-- ── Colonne droite : formulaires ──────────────────────────────────── -->
+    <aside class="space-y-4">
+
+      <!-- Onglets de mode -->
+      @if (formMode() !== 'edit') {
+        <div class="flex rounded-lg border border-gray-200 bg-gray-100 p-1">
+          <button
+            type="button"
+            class="flex-1 rounded-md py-1.5 text-sm font-medium transition"
+            [class.bg-white]="formMode() === 'single'"
+            [class.text-gray-900]="formMode() === 'single'"
+            [class.shadow-sm]="formMode() === 'single'"
+            [class.text-gray-500]="formMode() !== 'single'"
+            (click)="formMode.set('single')"
+          >
+            Nouvelle séance
+          </button>
+          <button
+            type="button"
+            class="flex-1 rounded-md py-1.5 text-sm font-medium transition"
+            [class.bg-white]="formMode() === 'bulk'"
+            [class.text-gray-900]="formMode() === 'bulk'"
+            [class.shadow-sm]="formMode() === 'bulk'"
+            [class.text-gray-500]="formMode() !== 'bulk'"
+            (click)="formMode.set('bulk')"
+          >
+            Planification lot
+          </button>
+        </div>
+      }
+
+      <!-- ── Mode : nouvelle séance ── -->
+      @if (formMode() === 'single') {
+        <tc-card title="Nouvelle séance">
+          <form class="space-y-4" (submit)="onCreateSingle($event)">
+
+            <div class="space-y-1">
+              <label class="block text-sm font-medium text-gray-700">
+                Cycle <span class="text-red-500">*</span>
+              </label>
+              <select
+                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm
+                       outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                [value]="singleCycleId()"
+                (change)="singleCycleId.set($any($event.target).value)"
+                required
+              >
+                <option value="">— Choisir un cycle —</option>
+                @for (c of cycles(); track c.id) {
+                  <option [value]="c.id">{{ cycleLabel(c) }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="space-y-1">
+              <label class="block text-sm font-medium text-gray-700">
+                Date &amp; heure <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="datetime-local"
+                class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition
+                       focus:ring-2 focus:ring-emerald-500"
+                [class.border-red-400]="!!singleDateError() && singleDateTouched()"
+                [class.border-gray-300]="!singleDateError() || !singleDateTouched()"
+                [min]="singleDateMin()"
+                [value]="singleScheduledAt()"
+                (change)="singleScheduledAt.set($any($event.target).value); singleDateTouched.set(true)"
+                required
+              />
+              @if (singleDateError() && singleDateTouched()) {
+                <p class="text-xs text-red-600">{{ singleDateError() }}</p>
+              } @else {
+                <p class="text-xs text-gray-400">Doit être dans le futur.</p>
+              }
+            </div>
+
+            <tc-location-picker
+              label="Lieu de la séance"
+              [(value)]="singleLocation"
+            />
+
+            <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
+              Créer la séance
+            </tc-button>
+          </form>
+        </tc-card>
+      }
+
+      <!-- ── Mode : planification en lot ── -->
+      @if (formMode() === 'bulk') {
+        <tc-card title="Planification de cycle">
+          <form class="space-y-4" (submit)="onCreateBulk($event)">
+
+            <div class="space-y-1">
+              <label class="block text-sm font-medium text-gray-700">
+                Cycle <span class="text-red-500">*</span>
+              </label>
+              <select
+                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm
+                       outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                [value]="bulkCycleId()"
+                (change)="bulkCycleId.set($any($event.target).value)"
+                required
+              >
+                <option value="">— Choisir un cycle —</option>
+                @for (c of cycles(); track c.id) {
+                  <option [value]="c.id">{{ cycleLabel(c) }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="space-y-1">
+              <label class="block text-sm font-medium text-gray-700">
+                Date de la 1ʳᵉ séance <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="datetime-local"
+                class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition
+                       focus:ring-2 focus:ring-emerald-500"
+                [class.border-red-400]="!!bulkDateError() && bulkDateTouched()"
+                [class.border-gray-300]="!bulkDateError() || !bulkDateTouched()"
+                [min]="singleDateMin()"
+                [value]="bulkFirstDate()"
+                (change)="bulkFirstDate.set($any($event.target).value); bulkDateTouched.set(true)"
+                required
+              />
+              @if (bulkDateError() && bulkDateTouched()) {
+                <p class="text-xs text-red-600">{{ bulkDateError() }}</p>
+              }
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label class="block text-sm font-medium text-gray-700">Nombre de séances</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="52"
+                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm
+                         outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                  [value]="bulkCount()"
+                  (input)="bulkCount.set(+$any($event.target).value || 1)"
+                />
+              </div>
+              <div class="space-y-1">
+                <label class="block text-sm font-medium text-gray-700">Périodicité</label>
+                <select
+                  class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm
+                         outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                  [value]="bulkInterval()"
+                  (change)="bulkInterval.set($any($event.target).value)"
+                >
+                  <option value="MONTHLY">Mensuelle</option>
+                  <option value="BIMONTHLY">Bimensuelle</option>
+                  <option value="WEEKLY">Hebdomadaire</option>
+                  <option value="CUSTOM">Personnalisée</option>
+                </select>
+              </div>
+            </div>
+
+            @if (bulkInterval() === 'CUSTOM') {
+              <div class="space-y-1">
+                <label class="block text-sm font-medium text-gray-700">Intervalle (jours)</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="365"
+                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm
+                         outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                  [value]="bulkCustomDays()"
+                  (input)="bulkCustomDays.set(+$any($event.target).value || 1)"
+                />
+              </div>
+            }
+
+            <tc-location-picker
+              label="Lieu par défaut (optionnel)"
+              [(value)]="bulkDefaultLocation"
+            />
+
+            <!-- Aperçu des dates générées -->
+            @if (bulkPreview().length > 0) {
+              <details class="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+                <summary class="cursor-pointer text-sm font-medium text-emerald-700">
+                  Aperçu — {{ bulkPreview().length }} séances générées
+                </summary>
+                <ol class="mt-2 list-decimal space-y-1 pl-5 text-xs text-gray-600">
+                  @for (d of bulkPreview(); track d.toISOString()) {
+                    <li>{{ d | tcDate: true }}</li>
+                  }
+                </ol>
+              </details>
+            }
+
+            <tc-button
+              type="submit"
+              variant="primary"
+              [fullWidth]="true"
+              [loading]="submitting()"
+              [disabled]="bulkPreview().length === 0"
+            >
+              Planifier {{ bulkPreview().length > 0 ? bulkPreview().length + ' séances' : 'les séances' }}
+            </tc-button>
+          </form>
+        </tc-card>
+      }
+
+      <!-- ── Mode : modification séance ── -->
+      @if (formMode() === 'edit' && editingSession(); as session) {
+        <tc-card [title]="'Modifier séance #' + session.number">
+          <form class="space-y-4" (submit)="onUpdateSession($event)">
+
+            <p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+              ⚠️ Seules les séances <strong>PLANIFIÉES</strong> peuvent être modifiées.
+            </p>
+
+            <div class="space-y-1">
+              <label class="block text-sm font-medium text-gray-700">
+                Nouvelle date &amp; heure <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="datetime-local"
+                class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition
+                       focus:ring-2 focus:ring-emerald-500"
+                [class.border-red-400]="!!editDateError() && editDateTouched()"
+                [class.border-gray-300]="!editDateError() || !editDateTouched()"
+                [min]="singleDateMin()"
+                [value]="editScheduledAt()"
+                (change)="editScheduledAt.set($any($event.target).value); editDateTouched.set(true)"
+                required
+              />
+              @if (editDateError() && editDateTouched()) {
+                <p class="text-xs text-red-600">{{ editDateError() }}</p>
+              }
+            </div>
+
+            <tc-location-picker
+              label="Lieu"
+              [(value)]="editLocation"
+            />
+
+            <div class="flex gap-2">
+              <tc-button
+                type="button"
+                variant="secondary"
+                [fullWidth]="true"
+                (clicked)="cancelEdit()"
+              >
+                Annuler
+              </tc-button>
+              <tc-button
+                type="submit"
+                variant="primary"
+                [fullWidth]="true"
+                [loading]="submitting()"
+              >
+                Enregistrer
+              </tc-button>
+            </div>
+          </form>
+        </tc-card>
+      }
+
+    </aside>
+  </div>
+</div>

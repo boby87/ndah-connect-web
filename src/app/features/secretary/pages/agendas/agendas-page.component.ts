@@ -4,7 +4,6 @@ import { BadgeComponent } from '../../../../shared/components/ui/badge/badge.com
 import { ButtonComponent } from '../../../../shared/components/ui/button/button.component';
 import { CardComponent } from '../../../../shared/components/ui/card/card.component';
 import { EmptyStateComponent } from '../../../../shared/components/ui/empty-state/empty-state.component';
-import { InputComponent } from '../../../../shared/components/ui/input/input.component';
 import { TextareaComponent } from '../../../../shared/components/ui/textarea/textarea.component';
 import { LocationPickerComponent } from '../../../../shared/components/ui/location-picker/location-picker.component';
 import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
@@ -46,7 +45,6 @@ const STATUS_LABELS: Record<AgendaDraftStatus, string> = {
     ButtonComponent,
     CardComponent,
     EmptyStateComponent,
-    InputComponent,
     TextareaComponent,
     LocationPickerComponent,
     DateFormatPipe,

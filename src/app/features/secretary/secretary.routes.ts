@@ -17,6 +17,12 @@ export const SECRETARY_ROUTES: Routes = [
         title: 'Secrétariat · Tableau de bord',
       },
       {
+        path: 'sessions',
+        loadComponent: () =>
+          import('./pages/sessions/sessions-page.component').then((m) => m.SessionsPageComponent),
+        title: 'Secrétariat · Planification des séances',
+      },
+      {
         path: 'agendas',
         loadComponent: () =>
           import('./pages/agendas/agendas-page.component').then((m) => m.AgendasPageComponent),
