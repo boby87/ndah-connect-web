@@ -1,0 +1,88 @@
+<div class="tc-notif-page">
+  <div class="tc-notif-page__header">
+    <div class="tc-notif-page__title-row">
+      <h1 class="tc-notif-page__title">Notifications</h1>
+      <div class="tc-notif-page__actions">
+        @if (hasUnread()) {
+          <button type="button" class="tc-notif-page__action-btn" (click)="markAllRead()">
+            <tc-icon name="check-square" [size]="15" />
+            Tout marquer comme lu
+          </button>
+        }
+        @if (hasRead() && activeTab() === 'all') {
+          <button type="button" class="tc-notif-page__action-btn tc-notif-page__action-btn--danger" (click)="deleteAllRead()">
+            <tc-icon name="trash-2" [size]="15" />
+            Supprimer les lues
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="tc-notif-page__tabs" role="tablist">
+      <button
+        type="button"
+        role="tab"
+        class="tc-notif-page__tab"
+        [class.tc-notif-page__tab--active]="activeTab() === 'all'"
+        (click)="setTab('all')"
+      >
+        Toutes
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="tc-notif-page__tab"
+        [class.tc-notif-page__tab--active]="activeTab() === 'unread'"
+        (click)="setTab('unread')"
+      >
+        Non lues
+      </button>
+    </div>
+  </div>
+
+  <div class="tc-notif-page__content">
+    @if (isLoading() && items().length === 0) {
+      <div class="tc-notif-page__loading">
+        <tc-spinner size="md" />
+      </div>
+    } @else if (isEmpty()) {
+      <div class="tc-notif-page__empty">
+        <tc-icon name="bell" [size]="40" />
+        <p class="tc-notif-page__empty-title">Aucune notification</p>
+        <p class="tc-notif-page__empty-sub">
+          @if (activeTab() === 'unread') {
+            Toutes vos notifications ont été lues.
+          } @else {
+            Vous n'avez pas encore reçu de notifications.
+          }
+        </p>
+      </div>
+    } @else {
+      <div class="tc-notif-page__list">
+        @for (item of items(); track item.id) {
+          <tc-notification-item
+            [notification]="item"
+            (itemClick)="onItemClick($event)"
+            (itemDelete)="onItemDelete($event)"
+          />
+        }
+      </div>
+
+      @if (isLoading()) {
+        <div class="tc-notif-page__loading-more">
+          <tc-spinner size="sm" />
+        </div>
+      } @else if (hasNext()) {
+        <div class="tc-notif-page__load-more">
+          <button type="button" class="tc-notif-page__load-more-btn" (click)="loadMore()">
+            Charger plus
+          </button>
+        </div>
+      } @else {
+        <p class="tc-notif-page__end">
+          {{ total() }} notification{{ total() > 1 ? 's' : '' }} au total
+        </p>
+      }
+    }
+  </div>
+</div>

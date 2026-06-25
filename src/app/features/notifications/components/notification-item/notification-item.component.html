@@ -1,0 +1,26 @@
+<div class="tc-notif-item" [class.tc-notif-item--unread]="!notification().isRead">
+  <button type="button" class="tc-notif-item__btn" (click)="onClick()">
+    <span class="tc-notif-item__icon tc-notif-item__icon--{{ categoryClass(notification().category) }}">
+      <tc-icon [name]="iconForCategory(notification().category)" [size]="16" />
+    </span>
+
+    <span class="tc-notif-item__body">
+      <span class="tc-notif-item__title">{{ notification().title }}</span>
+      <span class="tc-notif-item__message">{{ notification().message }}</span>
+      <span class="tc-notif-item__time">{{ relativeTime(notification().createdAt) }}</span>
+    </span>
+
+    @if (!notification().isRead) {
+      <span class="tc-notif-item__dot" aria-hidden="true"></span>
+    }
+  </button>
+
+  <button
+    type="button"
+    class="tc-notif-item__delete"
+    aria-label="Supprimer cette notification"
+    (click)="onDelete($event)"
+  >
+    <tc-icon name="x" [size]="13" />
+  </button>
+</div>

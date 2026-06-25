@@ -1,0 +1,33 @@
+<div class="tc-panel">
+  <div class="tc-panel__header">
+    <h3 class="tc-panel__title">Notifications</h3>
+    @if (hasUnread()) {
+      <button type="button" class="tc-panel__mark-all" (click)="markAllRead()">
+        Tout lire
+      </button>
+    }
+  </div>
+
+  @if (isLoading()) {
+    <div class="tc-panel__state">
+      <tc-spinner size="sm" />
+    </div>
+  } @else if (isEmpty()) {
+    <div class="tc-panel__state">
+      <tc-icon name="bell" [size]="28" />
+      <p>Aucune notification</p>
+    </div>
+  } @else {
+    <div class="tc-panel__list">
+      @for (item of items(); track item.id) {
+        <tc-notification-item [notification]="item" (itemClick)="onItemClick($event)" />
+      }
+    </div>
+  }
+
+  <div class="tc-panel__footer">
+    <button type="button" class="tc-panel__view-all" (click)="viewAll()">
+      Voir toutes les notifications
+    </button>
+  </div>
+</div>

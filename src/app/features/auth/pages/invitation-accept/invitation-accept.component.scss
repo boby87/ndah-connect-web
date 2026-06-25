@@ -1,0 +1,99 @@
+.tc-invite__center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+.tc-invite__icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+
+  &--success {
+    background: #dcfce7;
+    color: #16a34a;
+  }
+
+  &--error {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+
+  &--warning {
+    background: #fef3c7;
+    color: #d97706;
+  }
+}
+
+.tc-invite__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.tc-invite__hint {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  max-width: 22rem;
+}
+
+.tc-invite__link {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--brand-700);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.tc-invite__card {
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: var(--radius-lg, 0.75rem);
+  overflow: hidden;
+}
+
+.tc-invite__card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 1rem;
+  gap: 0.5rem;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--border-subtle, #f3f4f6);
+  }
+}
+
+.tc-invite__label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.tc-invite__value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-strong);
+  text-align: right;
+}
+
+.tc-invite__badge {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-pill, 99px);
+  background: color-mix(in srgb, var(--brand-500) 15%, transparent);
+  color: var(--brand-700);
+  font-size: 0.75rem;
+}

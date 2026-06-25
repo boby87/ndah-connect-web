@@ -1,0 +1,136 @@
+<div>
+  <!-- Logo -->
+  <div class="flex justify-center mb-5">
+    <img
+      src="/assets/images/logos/logo_tontine_connect.png"
+      alt="Tontine Connect"
+      width="160"
+      style="max-width: 160px;"
+    />
+  </div>
+
+  <!-- Chargement -->
+  @if (state() === 'loading') {
+    <div class="tc-invite__center">
+      <tc-spinner size="lg" />
+      <p class="tc-invite__hint">Chargement de l'invitation…</p>
+    </div>
+  }
+
+  <!-- Erreur réseau -->
+  @if (state() === 'error') {
+    <div class="tc-invite__center">
+      <div class="tc-invite__icon tc-invite__icon--error">✕</div>
+      <h1 class="tc-invite__title">Invitation introuvable</h1>
+      <p class="tc-invite__hint">Ce lien est invalide ou a expiré.</p>
+      <a routerLink="/auth/login" class="tc-invite__link">Retour à la connexion</a>
+    </div>
+  }
+
+  <!-- Déjà acceptée -->
+  @if (state() === 'accepted') {
+    <div class="tc-invite__center">
+      <div class="tc-invite__icon tc-invite__icon--success">✓</div>
+      <h1 class="tc-invite__title">Invitation déjà acceptée</h1>
+      <p class="tc-invite__hint">Vous avez déjà rejoint la tontine <strong>{{ preview()?.tontineName }}</strong>.</p>
+      <a routerLink="/dashboard" class="tc-invite__link">Accéder au tableau de bord</a>
+    </div>
+  }
+
+  <!-- Expirée -->
+  @if (state() === 'expired') {
+    <div class="tc-invite__center">
+      <div class="tc-invite__icon tc-invite__icon--warning">!</div>
+      <h1 class="tc-invite__title">Invitation expirée</h1>
+      <p class="tc-invite__hint">
+        Cette invitation pour <strong>{{ preview()?.tontineName }}</strong> n'est plus valide.
+        Demandez au Président de vous renvoyer une invitation.
+      </p>
+      <a routerLink="/auth/login" class="tc-invite__link">Retour à la connexion</a>
+    </div>
+  }
+
+  <!-- Succès -->
+  @if (state() === 'success') {
+    <div class="tc-invite__center">
+      <div class="tc-invite__icon tc-invite__icon--success">✓</div>
+      <h1 class="tc-invite__title">Bienvenue !</h1>
+      <p class="tc-invite__hint">
+        Vous avez rejoint <strong>{{ preview()?.tontineName }}</strong> en tant que <strong>{{ roleLabel() }}</strong>.
+        Redirection…
+      </p>
+    </div>
+  }
+
+  <!-- Formulaire d'acceptation -->
+  @if (state() === 'valid' || state() === 'submitting') {
+    @if (preview(); as inv) {
+      <div class="text-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 leading-tight">Invitation reçue</h1>
+        <p class="text-sm text-gray-500 mt-1">
+          <strong>{{ inv.invitedByFullName }}</strong> vous invite à rejoindre
+        </p>
+      </div>
+
+      <!-- Carte récapitulatif -->
+      <div class="tc-invite__card">
+        <div class="tc-invite__card-row">
+          <span class="tc-invite__label">Tontine</span>
+          <span class="tc-invite__value">{{ inv.tontineName ?? '—' }}</span>
+        </div>
+        <div class="tc-invite__card-row">
+          <span class="tc-invite__label">Rôle proposé</span>
+          <span class="tc-invite__value tc-invite__badge">{{ roleLabel() }}</span>
+        </div>
+        <div class="tc-invite__card-row">
+          <span class="tc-invite__label">Invité(e) par</span>
+          <span class="tc-invite__value">{{ inv.invitedByFullName }}</span>
+        </div>
+        <div class="tc-invite__card-row">
+          <span class="tc-invite__label">Nom</span>
+          <span class="tc-invite__value">{{ inv.candidateFullName }}</span>
+        </div>
+      </div>
+
+      <form class="space-y-4 mt-5" (submit)="submit($event)">
+        @if (errorMessage()) {
+          <tc-alert kind="error">{{ errorMessage() }}</tc-alert>
+        }
+
+        @if (isAuthenticated()) {
+          <p class="text-sm text-gray-600 text-center">
+            Confirmez votre identité en entrant votre mot de passe actuel.
+          </p>
+        } @else {
+          <p class="text-sm text-gray-600 text-center">
+            Créez votre mot de passe pour activer votre compte.
+          </p>
+        }
+
+        <tc-input
+          type="password"
+          autocomplete="new-password"
+          [(value)]="password"
+          [(touched)]="passwordTouched"
+          [required]="true"
+          [error]="passwordError()"
+          placeholder="Mot de passe (min. 8 caractères)"
+          icon="lock"
+        />
+
+        <tc-button
+          type="submit"
+          variant="primary"
+          [fullWidth]="true"
+          [loading]="state() === 'submitting'"
+        >
+          Rejoindre la tontine
+        </tc-button>
+
+        <p class="text-center text-sm text-gray-600">
+          <a routerLink="/auth/login" class="hover:underline">Retour à la connexion</a>
+        </p>
+      </form>
+    }
+  }
+</div>
