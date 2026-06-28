@@ -6,6 +6,9 @@ export type NotificationCategory =
   | 'SESSION'
   | 'SANCTION'
   | 'VOTE'
+  | 'VALIDATION'
+  | 'INVITATION'
+  | 'AGENDA'
   | 'GENERAL';
 
 export interface AppNotification {

@@ -1790,6 +1790,21 @@ Le Censeur est le **garant de la discipline** au sein de la tontine. Il veille a
 | E-CE14 | Communication | Envoi d'avertissements | Menu principal |
 | E-CE15 | Historique communications | Liste des messages envoyés | Communication |
 | E-CE16 | Notification annulation | Détail d'une annulation externe | Notifications |
+| E-CE17 | Cycles / Séances | Consultation lecture seule des cycles et séances | Sidebar › Séances |
+| E-CE18 | Détail séance | Ordre du jour, présences, cotisations (lecture seule) | Liste séances |
+
+## 16.1b Accès Consultation des Séances
+
+Le Censeur dispose d'un accès **lecture seule** à la vue cycles/séances (identique à la vue Membre). Cet accès lui permet de vérifier les présences et l'ordre du jour d'une séance pour contextualiser ses décisions disciplinaires.
+
+| Élément | Détail |
+|---------|--------|
+| Entrée | Sidebar › Discipline › **Séances** |
+| Vue | Liste cycles (accordéon) → liste séances → détail séance |
+| Onglets disponibles | Ordre du jour · Présences · Cotisations |
+| Droit | Lecture seule — aucune saisie possible depuis cette vue |
+
+> Voir **Flow 24 (Flows_Membre.md)** pour la description complète de la navigation.
 
 ## 16.2 Navigation du Censeur
 

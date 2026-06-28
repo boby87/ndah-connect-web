@@ -5,7 +5,9 @@ import { CardComponent } from '../../../../shared/components/ui/card/card.compon
 import { EmptyStateComponent } from '../../../../shared/components/ui/empty-state/empty-state.component';
 import { SpinnerComponent } from '../../../../shared/components/ui/spinner/spinner.component';
 import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
+import { SecretaryContextService } from '../../services/secretary-context.service';
 import { SecretaryService } from '../../services/secretary.service';
+import { RequiresCycleComponent } from '../../components/requires-cycle/requires-cycle.component';
 import type { MinutesDraftStatus } from '../../../../shared/models/entities/minutes-draft.model';
 
 const STATUS_LABELS: Record<MinutesDraftStatus, string> = {
@@ -19,12 +21,13 @@ const STATUS_LABELS: Record<MinutesDraftStatus, string> = {
 @Component({
   selector: 'tc-minutes-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, BadgeComponent, CardComponent, EmptyStateComponent, SpinnerComponent, DateFormatPipe],
+  imports: [RouterLink, BadgeComponent, CardComponent, EmptyStateComponent, SpinnerComponent, DateFormatPipe, RequiresCycleComponent],
   templateUrl: './minutes-list.component.html',
 })
 export class MinutesListComponent {
   private readonly service = inject(SecretaryService);
 
+  protected readonly ctx = inject(SecretaryContextService);
   protected readonly STATUS_LABELS = STATUS_LABELS;
 
   readonly resource = resource({

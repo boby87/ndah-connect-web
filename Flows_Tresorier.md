@@ -2389,6 +2389,21 @@ Le Trésorier est le **gardien des finances** de la tontine. Il gère les encais
 | E-TR16 | Génération rapports | Liste des rapports | Menu principal |
 | E-TR17 | Réconciliation MoMo | Comparaison API/Système | Menu principal |
 | E-TR18 | Paiement sortant MoMo | Initiation transfert | Distribution/Prêt |
+| E-TR19 | Cycles / Séances | Consultation lecture seule des cycles et séances | Sidebar › Séances |
+| E-TR20 | Détail séance | Ordre du jour, présences, cotisations (lecture seule) | Liste séances |
+
+## 20.2 Accès Consultation des Séances
+
+Le Trésorier dispose d'un accès **lecture seule** à la vue des cycles et séances (identique à la vue Membre). Cet accès lui permet de vérifier les présences et les cotisations collectées lors d'une séance sans quitter son contexte, en complément de son propre Bilan de Séance.
+
+| Élément | Détail |
+|---------|--------|
+| Entrée | Sidebar › Trésorerie › **Séances** |
+| Vue | Liste cycles (accordéon) → liste séances → détail séance |
+| Onglets disponibles | Ordre du jour · Présences · Cotisations |
+| Droit | Lecture seule — aucune saisie possible depuis cette vue |
+
+> Voir **Flow 24 (Flows_Membre.md)** pour la description complète de la navigation.
 
 # 🔵 FLOWS COMPLETS DU TRÉSORIER (FINAL)
 ## Application de Gestion de Tontine - Cameroun

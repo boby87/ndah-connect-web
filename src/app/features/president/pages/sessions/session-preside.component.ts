@@ -21,6 +21,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
 import { SessionStatus } from '../../../../core/enums/session-status.enum';
 import { PresidentService } from '../../services/president.service';
 import { formatApiError } from '../../../../core/utils';
+import type { AgendaDraft } from '../../../../shared/models/entities/agenda-draft.model';
 
 @Component({
   selector: 'tc-session-preside',
@@ -155,6 +156,76 @@ import { formatApiError } from '../../../../core/utils';
           </div>
 
           <aside class="space-y-4">
+            @if (pendingAgendas().length > 0) {
+              <tc-card title="Ordres du jour en attente">
+                <div class="space-y-4">
+                  @for (agenda of pendingAgendas(); track agenda.id) {
+                    <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                      <div class="flex items-start justify-between gap-2 mb-2">
+                        <div>
+                          <p class="text-sm font-semibold text-gray-900">
+                            Séance #{{ agenda.sessionNumber }}
+                          </p>
+                          <p class="text-xs text-gray-500">{{ agenda.items?.length ?? 0 }} point(s)</p>
+                        </div>
+                        <tc-badge kind="warning">À approuver</tc-badge>
+                      </div>
+                      @if (agenda.items && agenda.items.length > 0) {
+                        <ol class="mb-3 space-y-1">
+                          @for (item of agenda.items; track item.id) {
+                            <li class="flex gap-2 text-xs text-gray-700">
+                              <span class="shrink-0 font-medium text-gray-400">{{ item.order }}.</span>
+                              <span>{{ item.title }}</span>
+                            </li>
+                          }
+                        </ol>
+                      }
+                      @if (requestingChangesId() === agenda.id) {
+                        <div class="space-y-2">
+                          <textarea
+                            class="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                            rows="3"
+                            placeholder="Commentaire au Secrétaire…"
+                            [value]="changesComment()"
+                            (input)="changesComment.set($any($event.target).value)"
+                          ></textarea>
+                          <div class="flex gap-2">
+                            <tc-button
+                              variant="secondary"
+                              size="sm"
+                              [loading]="agendaActing() === agenda.id"
+                              (clicked)="submitRequestChanges(agenda)">
+                              Envoyer
+                            </tc-button>
+                            <tc-button variant="ghost" size="sm" (clicked)="cancelRequestChanges()">
+                              Annuler
+                            </tc-button>
+                          </div>
+                        </div>
+                      } @else {
+                        <div class="flex gap-2">
+                          <tc-button
+                            variant="success"
+                            size="sm"
+                            [loading]="agendaActing() === agenda.id"
+                            (clicked)="approveAgenda(agenda)">
+                            ✓ Approuver
+                          </tc-button>
+                          <tc-button
+                            variant="secondary"
+                            size="sm"
+                            [disabled]="agendaActing() !== null"
+                            (clicked)="startRequestChanges(agenda.id)">
+                            ↩ Renvoyer
+                          </tc-button>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </tc-card>
+            }
+
             <tc-card title="Actions du Président">
               @switch (s.status) {
                 @case ('SCHEDULED') {
@@ -223,10 +294,21 @@ export class SessionPresideComponent {
     loader: ({ params }) => this.service.getSession(params),
   });
 
+  readonly agendasResource = resource({
+    params: () => this.id(),
+    loader: ({ params }) => this.service.getPendingAgendas(params),
+  });
+
   readonly session = computed(() => this.resource.value());
+  readonly pendingAgendas = computed(() => this.agendasResource.value() ?? []);
 
   readonly acting = signal<'open' | 'sign' | 'close' | null>(null);
+  readonly agendaActing = signal<string | null>(null);
   readonly errorMessage = signal<string | null>(null);
+
+  // Request-changes inline form
+  readonly requestingChangesId = signal<string | null>(null);
+  readonly changesComment = signal('');
 
   readonly presentCount = computed(
     () => this.session()?.attendance.filter((a) => a.status === 'PRESENT').length ?? 0,
@@ -332,6 +414,52 @@ export class SessionPresideComponent {
       this.errorMessage.set(formatApiError(e, 'Erreur.'));
     } finally {
       this.acting.set(null);
+    }
+  }
+
+  async approveAgenda(agenda: AgendaDraft): Promise<void> {
+    this.agendaActing.set(agenda.id);
+    this.errorMessage.set(null);
+    try {
+      await this.service.approveAgenda(agenda.id);
+      this.notifications.success("Ordre du jour de la Séance #" + agenda.sessionNumber + " approuvé.");
+      this.agendasResource.reload();
+    } catch (e: unknown) {
+      this.errorMessage.set(formatApiError(e, "Erreur lors de l'approbation."));
+    } finally {
+      this.agendaActing.set(null);
+    }
+  }
+
+  startRequestChanges(agendaId: string): void {
+    this.requestingChangesId.set(agendaId);
+    this.changesComment.set('');
+    this.errorMessage.set(null);
+  }
+
+  cancelRequestChanges(): void {
+    this.requestingChangesId.set(null);
+    this.changesComment.set('');
+  }
+
+  async submitRequestChanges(agenda: AgendaDraft): Promise<void> {
+    const comment = this.changesComment().trim();
+    if (!comment) {
+      this.errorMessage.set('Veuillez saisir un commentaire.');
+      return;
+    }
+    this.agendaActing.set(agenda.id);
+    this.errorMessage.set(null);
+    try {
+      await this.service.requestAgendaChanges(agenda.id, comment);
+      this.notifications.success('Modifications demandées au Secrétaire.');
+      this.requestingChangesId.set(null);
+      this.changesComment.set('');
+      this.agendasResource.reload();
+    } catch (e: unknown) {
+      this.errorMessage.set(formatApiError(e, 'Erreur.'));
+    } finally {
+      this.agendaActing.set(null);
     }
   }
 }

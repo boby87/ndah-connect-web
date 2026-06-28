@@ -1,4 +1,5 @@
 import { ContributionStatus } from '../app/core/enums/contribution-status.enum';
+import { CycleStatus } from '../app/core/enums/cycle-status.enum';
 import { LoanStatus } from '../app/core/enums/loan-status.enum';
 import { MemberStatus } from '../app/core/enums/member-status.enum';
 import { PaymentMethod } from '../app/core/enums/payment-method.enum';
@@ -118,6 +119,7 @@ export const seedCycles: Cycle[] = [
     tontineId: 'tontine-1',
     number: 2,
     startDate: '2026-01-15T00:00:00.000Z',
+    status: CycleStatus.ACTIVE,
     isActive: true,
     totalSessions: 12,
     completedSessions: 5,

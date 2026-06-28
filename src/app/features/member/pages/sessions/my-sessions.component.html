@@ -1,0 +1,119 @@
+<div class="space-y-6">
+
+  <!-- En-tête -->
+  <header class="rounded-xl border border-indigo-100 bg-gradient-to-r from-indigo-50 to-blue-50 p-6">
+    <div class="flex items-start gap-4">
+      <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-3xl">
+        📅
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Séances de la tontine</h1>
+        <p class="mt-1 text-base text-gray-600">
+          Consultez les cycles et leurs séances. Cliquez sur une séance pour voir l'ordre du jour,
+          les présences et les cotisations.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Chargement des cycles -->
+  @if (cyclesResource.isLoading()) {
+    <div class="flex justify-center py-12"><tc-spinner size="lg" /></div>
+  } @else if (cycles().length === 0) {
+    <tc-card>
+      <div class="flex flex-col items-center gap-3 py-8 text-center">
+        <span class="text-4xl">🔄</span>
+        <p class="font-semibold text-gray-700">Aucun cycle disponible</p>
+        <p class="text-sm text-gray-500">Les cycles de la tontine apparaîtront ici dès leur création.</p>
+      </div>
+    </tc-card>
+  } @else {
+    <div class="space-y-3">
+      @for (cycle of cycles(); track cycle.id) {
+        <div class="overflow-hidden rounded-xl border bg-white shadow-sm"
+             [class.border-emerald-300]="cycle.status === CycleStatus.ACTIVE"
+             [class.border-amber-300]="cycle.status === CycleStatus.CLOSURE_REQUESTED"
+             [class.border-gray-200]="cycle.status === CycleStatus.CLOSED">
+
+          <!-- En-tête cycle (cliquable) -->
+          <button
+            type="button"
+            class="flex w-full items-center justify-between px-4 py-3 text-left transition hover:bg-gray-50"
+            (click)="toggleCycle(cycle.id)"
+          >
+            <div class="flex items-center gap-3">
+              <span class="flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold"
+                    [class.bg-emerald-100]="cycle.status === CycleStatus.ACTIVE"
+                    [class.text-emerald-700]="cycle.status === CycleStatus.ACTIVE"
+                    [class.bg-amber-100]="cycle.status === CycleStatus.CLOSURE_REQUESTED"
+                    [class.text-amber-700]="cycle.status === CycleStatus.CLOSURE_REQUESTED"
+                    [class.bg-gray-100]="cycle.status === CycleStatus.CLOSED"
+                    [class.text-gray-500]="cycle.status === CycleStatus.CLOSED">
+                {{ cycle.number }}
+              </span>
+              <div>
+                <p class="font-semibold text-gray-900">{{ cycleLabel(cycle) }}</p>
+                <p class="text-xs text-gray-500">
+                  {{ cycle.completedSessions }}/{{ cycle.totalSessions }} séances terminées
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <tc-badge [kind]="cycleKind(cycle.status)">{{ CYCLE_STATUS_LABELS[cycle.status] }}</tc-badge>
+              <span class="text-gray-400 transition-transform duration-200"
+                    [class.rotate-180]="expandedCycleId() === cycle.id">▼</span>
+            </div>
+          </button>
+
+          <!-- Accordéon — séances du cycle -->
+          @if (expandedCycleId() === cycle.id) {
+            <div class="border-t border-gray-100 px-4 pb-4 pt-3">
+              @if (sessionsResource.isLoading()) {
+                <div class="flex items-center gap-2 text-sm text-gray-400 italic py-2">
+                  <tc-spinner size="sm" />
+                  Chargement des séances…
+                </div>
+              } @else if (sessions().length === 0) {
+                <p class="text-sm text-gray-400 italic py-2">Aucune séance planifiée pour ce cycle.</p>
+              } @else {
+                <div class="space-y-2">
+                  @for (s of sessions(); track s.id) {
+                    <div
+                      class="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50
+                             px-3 py-2.5 transition hover:border-indigo-200 hover:bg-indigo-50 cursor-pointer"
+                      (click)="openSession(s.id)"
+                    >
+                      <div class="min-w-0 flex-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                          <span class="text-sm font-semibold text-gray-800">Séance #{{ s.number }}</span>
+                          <tc-badge [kind]="sessionKind(s.status)">
+                            {{ SESSION_STATUS_LABELS[s.status] }}
+                          </tc-badge>
+                          @if (s.agendaApprovedAt) {
+                            <span class="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                              ODJ approuvé
+                            </span>
+                          }
+                        </div>
+                        <p class="mt-0.5 text-xs text-gray-500">
+                          {{ s.scheduledAt | tcDate: true }}
+                          @if (s.location) { · 📍 {{ s.location }} }
+                        </p>
+                        @if (s.beneficiaryFullName) {
+                          <p class="mt-0.5 text-xs text-indigo-700">
+                            🎉 Bénéficiaire : {{ s.beneficiaryFullName }}
+                          </p>
+                        }
+                      </div>
+                      <span class="ml-3 shrink-0 text-xs font-medium text-indigo-600">Voir →</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

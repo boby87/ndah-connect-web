@@ -28,6 +28,7 @@ export const SIDEBAR_MENU: MenuSection[] = [
     title: 'Trésorerie',
     items: [
       { label: 'Tableau Trésorier', icon: 'wallet', route: '/treasurer/dashboard', roles: treasurerOnly },
+      { label: 'Séances', icon: 'calendar-days', route: '/member/sessions', roles: treasurerOnly },
       { label: 'Cotisations', icon: 'coins', route: '/treasurer/contributions', roles: treasurerOnly },
       { label: 'Mobile Money', icon: 'smartphone', route: '/treasurer/mobile-money', roles: treasurerOnly },
       { label: 'Caisses', icon: 'piggy-bank', route: '/treasurer/cashboxes', roles: treasurerOnly },
@@ -44,10 +45,7 @@ export const SIDEBAR_MENU: MenuSection[] = [
     title: 'Secrétariat',
     items: [
       { label: 'Tableau Secrétaire', icon: 'clipboard', route: '/secretary/dashboard', roles: secretaryOnly },
-      { label: 'Planification séances', icon: 'calendar-days', route: '/secretary/sessions', roles: secretaryOnly },
-      { label: 'Ordres du jour', icon: 'list', route: '/secretary/agendas', roles: secretaryOnly },
-      { label: 'Convocations', icon: 'mail', route: '/secretary/convocations', roles: secretaryOnly },
-      { label: 'Procès-verbaux', icon: 'file-text', route: '/secretary/minutes', roles: secretaryOnly },
+      { label: 'Séances', icon: 'calendar-days', route: '/secretary/sessions', roles: secretaryOnly },
       { label: 'Dossiers membres', icon: 'user-plus', route: '/secretary/membership', roles: secretaryOnly },
       { label: 'Registre des membres', icon: 'address-book', route: '/secretary/members', roles: secretaryOnly },
       { label: 'Archives', icon: 'archive', route: '/secretary/archives', roles: secretaryOnly },
@@ -59,6 +57,7 @@ export const SIDEBAR_MENU: MenuSection[] = [
     title: 'Discipline (Censeur)',
     items: [
       { label: 'Tableau Censeur', icon: 'scale', route: '/censor/dashboard', roles: censorOnly },
+      { label: 'Séances', icon: 'calendar-days', route: '/member/sessions', roles: censorOnly },
       { label: 'Sanctions', icon: 'gavel', route: '/censor/sanctions', roles: censorOnly },
       { label: 'Confirmer sanctions auto', icon: 'check-square', route: '/censor/auto-confirm', roles: censorOnly },
       { label: 'Contestations', icon: 'shield', route: '/censor/contestations', roles: censorOnly },
@@ -73,6 +72,7 @@ export const SIDEBAR_MENU: MenuSection[] = [
     title: 'Audit (Commissaire aux Comptes)',
     items: [
       { label: 'Tableau Commissaire', icon: 'shield-check', route: '/auditor/dashboard', roles: auditorOnly },
+      { label: 'Séances', icon: 'calendar-days', route: '/member/sessions', roles: auditorOnly },
       { label: 'Validations financières', icon: 'check-square', route: '/auditor/validations', roles: auditorOnly },
       { label: 'Données financières', icon: 'database', route: '/auditor/financial-data', roles: auditorOnly },
       { label: 'Bilans de séance', icon: 'clipboard-check', route: '/auditor/balance-reviews', roles: auditorOnly },
@@ -110,6 +110,7 @@ export const SIDEBAR_MENU: MenuSection[] = [
     title: 'Mon espace',
     items: [
       { label: 'Mes cotisations', icon: 'wallet', route: '/member/contributions' },
+      { label: 'Séances', icon: 'calendar-days', route: '/member/sessions' },
       { label: 'Mon planning', icon: 'calendar', route: '/member/planning' },
       { label: 'Mes prêts', icon: 'banknote', route: '/member/loans' },
       { label: 'Simulateur de prêt', icon: 'calculator', route: '/member/loan-simulator' },

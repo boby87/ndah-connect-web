@@ -12,6 +12,5 @@ export const APP_CONFIG = {
   },
   session: {
     inactivityTimeoutMs: 30 * 60 * 1000,
-    refreshTokenBeforeExpiryMs: 60 * 1000,
   },
 } as const;

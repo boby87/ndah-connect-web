@@ -8,7 +8,9 @@ import { TextareaComponent } from '../../../../shared/components/ui/textarea/tex
 import { LocationPickerComponent } from '../../../../shared/components/ui/location-picker/location-picker.component';
 import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { SecretaryContextService } from '../../services/secretary-context.service';
 import { SecretaryService } from '../../services/secretary.service';
+import { RequiresCycleComponent } from '../../components/requires-cycle/requires-cycle.component';
 import type {
   AgendaDraft,
   AgendaDraftStatus,
@@ -48,12 +50,15 @@ const STATUS_LABELS: Record<AgendaDraftStatus, string> = {
     TextareaComponent,
     LocationPickerComponent,
     DateFormatPipe,
+    RequiresCycleComponent,
   ],
   templateUrl: './agendas-page.component.html',
 })
 export class AgendasPageComponent {
   private readonly service = inject(SecretaryService);
   private readonly notifications = inject(NotificationService);
+
+  protected readonly ctx = inject(SecretaryContextService);
 
   protected readonly STATUS_LABELS = STATUS_LABELS;
   protected readonly standardItems = STANDARD_ITEMS;

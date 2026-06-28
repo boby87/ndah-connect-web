@@ -2305,6 +2305,21 @@ Le Commissaire aux Comptes est le **gardien de la transparence financière** de 
 | E-CC15 | Clôture de cycle | Valider clôture | Notifications |
 | E-CC16 | Justificatifs | Visualiser les pièces | Menu principal |
 | E-CC17 | Export données | Exporter pour audit | Menu principal |
+| E-CC18 | Cycles / Séances | Consultation lecture seule des cycles et séances | Sidebar › Séances |
+| E-CC19 | Détail séance | Ordre du jour, présences, cotisations (lecture seule) | Liste séances |
+
+## 19.1b Accès Consultation des Séances
+
+Le Commissaire aux Comptes dispose d'un accès **lecture seule** à la vue cycles/séances (identique à la vue Membre). Cet accès lui permet de croiser les présences et les cotisations collectées avec les bilans de séance qu'il contrôle, sans avoir besoin de demander ces informations au Trésorier.
+
+| Élément | Détail |
+|---------|--------|
+| Entrée | Sidebar › Audit › **Séances** |
+| Vue | Liste cycles (accordéon) → liste séances → détail séance |
+| Onglets disponibles | Ordre du jour · Présences · Cotisations |
+| Droit | Lecture seule — aucune saisie possible depuis cette vue |
+
+> Voir **Flow 24 (Flows_Membre.md)** pour la description complète de la navigation.
 
 ---
 

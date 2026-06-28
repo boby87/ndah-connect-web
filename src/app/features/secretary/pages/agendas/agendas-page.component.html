@@ -1,5 +1,9 @@
 <div class="space-y-6">
 
+  @if (ctx.contextState() !== 'ready') {
+    <tc-requires-cycle [state]="ctx.contextState()" />
+  } @else {
+
   <!-- ── En-tête de page ───────────────────────────────────────────────── -->
   <header class="rounded-xl border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
     <div class="flex items-start gap-4">
@@ -198,4 +202,7 @@
     </aside>
 
   </div>
+
+  } <!-- end @else requires-cycle -->
+
 </div>

@@ -9,22 +9,9 @@
       <div>
         <h1 class="text-2xl font-bold text-gray-900">Planification des séances</h1>
         <p class="mt-1 text-base text-gray-600">
-          En tant que <strong>Secrétaire</strong>, vous organisez les <strong>cycles</strong>
-          (périodes annuelles ou semestrielles) et planifiez les <strong>séances</strong>
-          (réunions) qui les composent. Vous pouvez créer les séances une à une ou les
-          générer automatiquement selon une périodicité, puis les modifier au besoin.
+          Créez le <strong>cycle actif</strong> de la tontine, puis planifiez les <strong>séances</strong>
+          qui le composent. Un seul cycle peut être actif à la fois.
         </p>
-        <div class="mt-3 flex flex-wrap gap-2">
-          <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-800">
-            🔄 Cycles &amp; séances
-          </span>
-          <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
-            ⚡ Planification en lot
-          </span>
-          <span class="inline-flex items-center gap-1 rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-800">
-            ✏️ Modification SCHEDULED uniquement
-          </span>
-        </div>
       </div>
     </div>
   </header>
@@ -33,30 +20,47 @@
     <tc-alert kind="error">{{ err }}</tc-alert>
   }
 
+  <!-- ── Bandeau : clôture en attente ────────────────────────────────────── -->
+  @if (closureRequestedCycle(); as cycle) {
+    <div class="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
+      <span class="text-2xl">⏳</span>
+      <div class="flex-1">
+        <p class="font-semibold text-amber-800">Clôture du Cycle {{ cycle.number }} en attente</p>
+        <p class="mt-0.5 text-sm text-amber-700">
+          Votre demande a été envoyée au Président. La création d'un nouveau cycle sera possible
+          dès que le Président aura validé la clôture.
+        </p>
+      </div>
+    </div>
+  }
+
   <div class="grid gap-6 lg:grid-cols-3">
 
-    <!-- ── Colonne gauche : liste des cycles ─────────────────────────────── -->
+    <!-- ── Colonne gauche : cycles ───────────────────────────────────────── -->
     <div class="space-y-4 lg:col-span-2">
 
-      <!-- Entête liste cycles -->
+      <!-- En-tête liste cycles -->
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-semibold text-gray-800">Cycles de la tontine</h2>
-        <button
-          type="button"
-          class="flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5
-                 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100"
-          (click)="showCycleForm.set(!showCycleForm())"
-        >
-          @if (showCycleForm()) {
-            ✕ Annuler
-          } @else {
-            + Nouveau cycle
-          }
-        </button>
+
+        @if (!hasOpenCycle()) {
+          <button
+            type="button"
+            class="flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5
+                   text-sm font-medium text-emerald-700 transition hover:bg-emerald-100"
+            (click)="showCycleForm.set(!showCycleForm())"
+          >
+            @if (showCycleForm()) { ✕ Annuler } @else { + Nouveau cycle }
+          </button>
+        } @else {
+          <span class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs text-gray-400">
+            Clôturez le cycle actif pour en créer un nouveau
+          </span>
+        }
       </div>
 
       <!-- Formulaire création cycle -->
-      @if (showCycleForm()) {
+      @if (showCycleForm() && !hasOpenCycle()) {
         <tc-card>
           <form class="flex flex-wrap items-end gap-3" (submit)="onCreateCycle($event)">
             <div class="flex-1 space-y-1" style="min-width: 200px">
@@ -72,17 +76,11 @@
                 required
               />
             </div>
-            <tc-button
-              type="submit"
-              variant="primary"
-              [loading]="creatingCycle()"
-            >
+            <tc-button type="submit" variant="primary" [loading]="creatingCycle()">
               Créer le cycle
             </tc-button>
           </form>
-          <p class="mt-2 text-xs text-gray-400">
-            Le numéro de cycle est attribué automatiquement (cycle N+1).
-          </p>
+          <p class="mt-2 text-xs text-gray-400">Le numéro de cycle est attribué automatiquement.</p>
         </tc-card>
       }
 
@@ -91,25 +89,45 @@
         <p class="text-sm text-gray-500">Chargement des cycles…</p>
       } @else if (cycles().length === 0) {
         <tc-card>
-          <tc-empty-state
-            title="Aucun cycle"
-            icon="🔄"
-          />
+          <div class="flex flex-col items-center gap-4 py-6 text-center">
+            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-4xl">🔄</div>
+            <div>
+              <p class="font-semibold text-gray-700">Aucun cycle créé</p>
+              <p class="mt-1 text-sm text-gray-500">
+                Créez le premier cycle pour pouvoir planifier des séances, gérer les cotisations et les sanctions.
+              </p>
+            </div>
+            <button
+              type="button"
+              class="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white
+                     shadow-sm transition hover:bg-emerald-700"
+              (click)="showCycleForm.set(true)"
+            >
+              + Créer le premier cycle
+            </button>
+          </div>
         </tc-card>
       } @else {
         @for (cycle of cycles(); track cycle.id) {
-          <!-- Accordion cycle -->
-          <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+          <div class="overflow-hidden rounded-xl border bg-white shadow-sm"
+               [class.border-emerald-300]="cycle.status === CycleStatus.ACTIVE"
+               [class.border-amber-300]="cycle.status === CycleStatus.CLOSURE_REQUESTED"
+               [class.border-gray-200]="cycle.status === CycleStatus.CLOSED">
 
-            <!-- En-tête du cycle (cliquable) -->
+            <!-- En-tête cycle (cliquable) -->
             <button
               type="button"
-              class="flex w-full items-center justify-between px-4 py-3 text-left
-                     transition hover:bg-gray-50"
+              class="flex w-full items-center justify-between px-4 py-3 text-left transition hover:bg-gray-50"
               (click)="toggleCycle(cycle.id)"
             >
               <div class="flex items-center gap-3">
-                <span class="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700">
+                <span class="flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold"
+                      [class.bg-emerald-100]="cycle.status === CycleStatus.ACTIVE"
+                      [class.text-emerald-700]="cycle.status === CycleStatus.ACTIVE"
+                      [class.bg-amber-100]="cycle.status === CycleStatus.CLOSURE_REQUESTED"
+                      [class.text-amber-700]="cycle.status === CycleStatus.CLOSURE_REQUESTED"
+                      [class.bg-gray-100]="cycle.status === CycleStatus.CLOSED"
+                      [class.text-gray-500]="cycle.status === CycleStatus.CLOSED">
                   {{ cycle.number }}
                 </span>
                 <div>
@@ -120,15 +138,36 @@
                 </div>
               </div>
               <div class="flex items-center gap-2">
-                @if (cycle.isActive) {
+                @if (cycle.status === CycleStatus.ACTIVE) {
                   <tc-badge kind="success">Actif</tc-badge>
+                } @else if (cycle.status === CycleStatus.CLOSURE_REQUESTED) {
+                  <tc-badge kind="warning">Clôture demandée</tc-badge>
+                } @else {
+                  <tc-badge kind="neutral">Clôturé</tc-badge>
                 }
-                <span class="text-gray-400 transition-transform"
-                      [class.rotate-180]="expandedCycleId() === cycle.id">▼</span>
+                <span class="text-gray-400">▼</span>
               </div>
             </button>
 
-            <!-- Contenu accordéon — séances du cycle -->
+            <!-- Bouton "Demander la clôture" — cycle ACTIVE uniquement -->
+            @if (cycle.status === CycleStatus.ACTIVE) {
+              <div class="border-t border-emerald-100 bg-emerald-50 px-4 py-2.5 flex items-center justify-between gap-3">
+                <p class="text-xs text-emerald-700">
+                  Ce cycle est actif. Toutes les activités (cotisations, séances, sanctions) lui sont rattachées.
+                </p>
+                <button
+                  type="button"
+                  class="shrink-0 rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium
+                         text-amber-700 transition hover:bg-amber-50 disabled:opacity-50"
+                  [disabled]="requestingClosure()"
+                  (click)="onRequestClosure(cycle.id)"
+                >
+                  @if (requestingClosure()) { Envoi… } @else { Demander la clôture }
+                </button>
+              </div>
+            }
+
+            <!-- Accordéon — séances du cycle -->
             @if (expandedCycleId() === cycle.id) {
               <div class="border-t border-gray-100 px-4 pb-4 pt-3">
                 @if (sessionsResource.isLoading()) {
@@ -138,13 +177,12 @@
                 } @else {
                   <div class="space-y-2">
                     @for (s of sessions(); track s.id) {
-                      <div class="flex items-center justify-between rounded-lg border border-gray-100
-                                  bg-gray-50 px-3 py-2.5">
+                      <div class="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-3 py-2.5
+                                  transition hover:border-emerald-200 hover:bg-emerald-50 cursor-pointer"
+                           (click)="openSession(s.id)">
                         <div class="min-w-0 flex-1">
                           <div class="flex flex-wrap items-center gap-2">
-                            <span class="text-sm font-semibold text-gray-800">
-                              Séance #{{ s.number }}
-                            </span>
+                            <span class="text-sm font-semibold text-gray-800">Séance #{{ s.number }}</span>
                             <tc-badge [kind]="statusKind(s.status)">
                               {{ SESSION_STATUS_LABELS[s.status] }}
                             </tc-badge>
@@ -154,16 +192,19 @@
                             @if (s.location) { · 📍 {{ s.location }} }
                           </p>
                         </div>
-                        @if (s.status === SessionStatus.SCHEDULED) {
-                          <button
-                            type="button"
-                            class="ml-3 shrink-0 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1
-                                   text-xs font-medium text-blue-700 transition hover:bg-blue-100"
-                            (click)="startEdit(s)"
-                          >
-                            ✏️ Modifier
-                          </button>
-                        }
+                        <div class="ml-3 flex shrink-0 items-center gap-2">
+                          @if (s.status === SessionStatus.SCHEDULED) {
+                            <button
+                              type="button"
+                              class="rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1
+                                     text-xs font-medium text-blue-700 transition hover:bg-blue-100"
+                              (click)="$event.stopPropagation(); startEdit(s)"
+                            >
+                              ✏️ Modifier
+                            </button>
+                          }
+                          <span class="text-xs font-medium text-emerald-600">Ouvrir →</span>
+                        </div>
                       </div>
                     }
                   </div>
@@ -175,12 +216,33 @@
       }
     </div>
 
-    <!-- ── Colonne droite : formulaires ──────────────────────────────────── -->
+    <!-- ── Colonne droite : formulaires (toujours visible) ───────────────── -->
     <aside class="space-y-4">
 
-      <!-- Onglets de mode -->
+      <!-- Bannière d'état — explique pourquoi les formulaires sont désactivés -->
+      @if (!activeCycle()) {
+        <div class="rounded-xl border px-4 py-3 text-sm"
+             [class.border-amber-200]="closureRequestedCycle()"
+             [class.bg-amber-50]="closureRequestedCycle()"
+             [class.text-amber-800]="closureRequestedCycle()"
+             [class.border-gray-200]="!closureRequestedCycle()"
+             [class.bg-gray-50]="!closureRequestedCycle()"
+             [class.text-gray-600]="!closureRequestedCycle()">
+          @if (closureRequestedCycle()) {
+            ⏳ En attente de validation du Président pour clôturer le cycle.
+          } @else {
+            🔄 Créez un cycle actif pour pouvoir planifier des séances.
+          }
+        </div>
+      }
+
+      <!-- Onglets (toujours affichés) -->
       @if (formMode() !== 'edit') {
-        <div class="flex rounded-lg border border-gray-200 bg-gray-100 p-1">
+        <div class="flex rounded-lg border border-gray-200 p-1 transition"
+             [class.bg-gray-100]="activeCycle()"
+             [class.bg-gray-50]="!activeCycle()"
+             [class.opacity-50]="!activeCycle()"
+             [class.pointer-events-none]="!activeCycle()">
           <button
             type="button"
             class="flex-1 rounded-md py-1.5 text-sm font-medium transition"
@@ -206,238 +268,216 @@
         </div>
       }
 
-      <!-- ── Mode : nouvelle séance ── -->
-      @if (formMode() === 'single') {
-        <tc-card title="Nouvelle séance">
-          <form class="space-y-4" (submit)="onCreateSingle($event)">
+      <!-- Zone formulaires — désactivée visuellement si pas de cycle actif -->
+      <div class="transition" [class.opacity-50]="!activeCycle()" [class.pointer-events-none]="!activeCycle()">
 
-            <div class="space-y-1">
-              <label class="block text-sm font-medium text-gray-700">
-                Cycle <span class="text-red-500">*</span>
-              </label>
-              <select
-                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm
-                       outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
-                [value]="singleCycleId()"
-                (change)="singleCycleId.set($any($event.target).value)"
-                required
-              >
-                <option value="">— Choisir un cycle —</option>
-                @for (c of cycles(); track c.id) {
-                  <option [value]="c.id">{{ cycleLabel(c) }}</option>
-                }
-              </select>
-            </div>
+        <!-- Nouvelle séance -->
+        @if (formMode() === 'single') {
+          <tc-card title="Nouvelle séance">
+            <form class="space-y-4" (submit)="onCreateSingle($event)">
 
-            <div class="space-y-1">
-              <label class="block text-sm font-medium text-gray-700">
-                Date &amp; heure <span class="text-red-500">*</span>
-              </label>
-              <input
-                type="datetime-local"
-                class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition
-                       focus:ring-2 focus:ring-emerald-500"
-                [class.border-red-400]="!!singleDateError() && singleDateTouched()"
-                [class.border-gray-300]="!singleDateError() || !singleDateTouched()"
-                [min]="singleDateMin()"
-                [value]="singleScheduledAt()"
-                (change)="singleScheduledAt.set($any($event.target).value); singleDateTouched.set(true)"
-                required
-              />
-              @if (singleDateError() && singleDateTouched()) {
-                <p class="text-xs text-red-600">{{ singleDateError() }}</p>
-              } @else {
-                <p class="text-xs text-gray-400">Doit être dans le futur.</p>
-              }
-            </div>
-
-            <tc-location-picker
-              label="Lieu de la séance"
-              [(value)]="singleLocation"
-            />
-
-            <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
-              Créer la séance
-            </tc-button>
-          </form>
-        </tc-card>
-      }
-
-      <!-- ── Mode : planification en lot ── -->
-      @if (formMode() === 'bulk') {
-        <tc-card title="Planification de cycle">
-          <form class="space-y-4" (submit)="onCreateBulk($event)">
-
-            <div class="space-y-1">
-              <label class="block text-sm font-medium text-gray-700">
-                Cycle <span class="text-red-500">*</span>
-              </label>
-              <select
-                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm
-                       outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
-                [value]="bulkCycleId()"
-                (change)="bulkCycleId.set($any($event.target).value)"
-                required
-              >
-                <option value="">— Choisir un cycle —</option>
-                @for (c of cycles(); track c.id) {
-                  <option [value]="c.id">{{ cycleLabel(c) }}</option>
-                }
-              </select>
-            </div>
-
-            <div class="space-y-1">
-              <label class="block text-sm font-medium text-gray-700">
-                Date de la 1ʳᵉ séance <span class="text-red-500">*</span>
-              </label>
-              <input
-                type="datetime-local"
-                class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition
-                       focus:ring-2 focus:ring-emerald-500"
-                [class.border-red-400]="!!bulkDateError() && bulkDateTouched()"
-                [class.border-gray-300]="!bulkDateError() || !bulkDateTouched()"
-                [min]="singleDateMin()"
-                [value]="bulkFirstDate()"
-                (change)="bulkFirstDate.set($any($event.target).value); bulkDateTouched.set(true)"
-                required
-              />
-              @if (bulkDateError() && bulkDateTouched()) {
-                <p class="text-xs text-red-600">{{ bulkDateError() }}</p>
-              }
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
               <div class="space-y-1">
-                <label class="block text-sm font-medium text-gray-700">Nombre de séances</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="52"
-                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm
-                         outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
-                  [value]="bulkCount()"
-                  (input)="bulkCount.set(+$any($event.target).value || 1)"
-                />
-              </div>
-              <div class="space-y-1">
-                <label class="block text-sm font-medium text-gray-700">Périodicité</label>
+                <label class="block text-sm font-medium text-gray-700">
+                  Cycle <span class="text-red-500">*</span>
+                </label>
                 <select
                   class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm
                          outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
-                  [value]="bulkInterval()"
-                  (change)="bulkInterval.set($any($event.target).value)"
+                  [value]="singleCycleId()"
+                  (change)="singleCycleId.set($any($event.target).value)"
+                  required
                 >
-                  <option value="MONTHLY">Mensuelle</option>
-                  <option value="BIMONTHLY">Bimensuelle</option>
-                  <option value="WEEKLY">Hebdomadaire</option>
-                  <option value="CUSTOM">Personnalisée</option>
+                  <option value="">— Choisir un cycle —</option>
+                  @for (c of cycles(); track c.id) {
+                    @if (c.status === CycleStatus.ACTIVE) {
+                      <option [value]="c.id">{{ cycleLabel(c) }}</option>
+                    }
+                  }
                 </select>
               </div>
-            </div>
 
-            @if (bulkInterval() === 'CUSTOM') {
               <div class="space-y-1">
-                <label class="block text-sm font-medium text-gray-700">Intervalle (jours)</label>
+                <label class="block text-sm font-medium text-gray-700">
+                  Date &amp; heure <span class="text-red-500">*</span>
+                </label>
                 <input
-                  type="number"
-                  min="1"
-                  max="365"
-                  class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm
-                         outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
-                  [value]="bulkCustomDays()"
-                  (input)="bulkCustomDays.set(+$any($event.target).value || 1)"
+                  type="datetime-local"
+                  class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition focus:ring-2 focus:ring-emerald-500"
+                  [class.border-red-400]="!!singleDateError() && singleDateTouched()"
+                  [class.border-gray-300]="!singleDateError() || !singleDateTouched()"
+                  [min]="singleDateMin()"
+                  [value]="singleScheduledAt()"
+                  (change)="singleScheduledAt.set($any($event.target).value); singleDateTouched.set(true)"
+                  required
                 />
+                @if (singleDateError() && singleDateTouched()) {
+                  <p class="text-xs text-red-600">{{ singleDateError() }}</p>
+                } @else {
+                  <p class="text-xs text-gray-400">Doit être dans le futur.</p>
+                }
               </div>
-            }
 
-            <tc-location-picker
-              label="Lieu par défaut (optionnel)"
-              [(value)]="bulkDefaultLocation"
-            />
+              <tc-location-picker label="Lieu de la séance" [(value)]="singleLocation" />
 
-            <!-- Aperçu des dates générées -->
-            @if (bulkPreview().length > 0) {
-              <details class="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
-                <summary class="cursor-pointer text-sm font-medium text-emerald-700">
-                  Aperçu — {{ bulkPreview().length }} séances générées
-                </summary>
-                <ol class="mt-2 list-decimal space-y-1 pl-5 text-xs text-gray-600">
-                  @for (d of bulkPreview(); track d.toISOString()) {
-                    <li>{{ d | tcDate: true }}</li>
+              <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
+                Créer la séance
+              </tc-button>
+            </form>
+          </tc-card>
+        }
+
+        <!-- Planification en lot -->
+        @if (formMode() === 'bulk') {
+          <tc-card title="Planification de cycle">
+            <form class="space-y-4" (submit)="onCreateBulk($event)">
+
+              <div class="space-y-1">
+                <label class="block text-sm font-medium text-gray-700">
+                  Cycle <span class="text-red-500">*</span>
+                </label>
+                <select
+                  class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm
+                         outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                  [value]="bulkCycleId()"
+                  (change)="bulkCycleId.set($any($event.target).value)"
+                  required
+                >
+                  <option value="">— Choisir un cycle —</option>
+                  @for (c of cycles(); track c.id) {
+                    @if (c.status === CycleStatus.ACTIVE) {
+                      <option [value]="c.id">{{ cycleLabel(c) }}</option>
+                    }
                   }
-                </ol>
-              </details>
-            }
+                </select>
+              </div>
 
-            <tc-button
-              type="submit"
-              variant="primary"
-              [fullWidth]="true"
-              [loading]="submitting()"
-              [disabled]="bulkPreview().length === 0"
-            >
-              Planifier {{ bulkPreview().length > 0 ? bulkPreview().length + ' séances' : 'les séances' }}
-            </tc-button>
-          </form>
-        </tc-card>
-      }
+              <div class="space-y-1">
+                <label class="block text-sm font-medium text-gray-700">
+                  Date de la 1ʳᵉ séance <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="datetime-local"
+                  class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition focus:ring-2 focus:ring-emerald-500"
+                  [class.border-red-400]="!!bulkDateError() && bulkDateTouched()"
+                  [class.border-gray-300]="!bulkDateError() || !bulkDateTouched()"
+                  [min]="singleDateMin()"
+                  [value]="bulkFirstDate()"
+                  (change)="bulkFirstDate.set($any($event.target).value); bulkDateTouched.set(true)"
+                  required
+                />
+                @if (bulkDateError() && bulkDateTouched()) {
+                  <p class="text-xs text-red-600">{{ bulkDateError() }}</p>
+                }
+              </div>
 
-      <!-- ── Mode : modification séance ── -->
-      @if (formMode() === 'edit' && editingSession(); as session) {
-        <tc-card [title]="'Modifier séance #' + session.number">
-          <form class="space-y-4" (submit)="onUpdateSession($event)">
+              <div class="grid grid-cols-2 gap-3">
+                <div class="space-y-1">
+                  <label class="block text-sm font-medium text-gray-700">Nbre de séances</label>
+                  <input
+                    type="number" min="1" max="52"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm
+                           outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                    [value]="bulkCount()"
+                    (input)="bulkCount.set(+$any($event.target).value || 1)"
+                  />
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-sm font-medium text-gray-700">Périodicité</label>
+                  <select
+                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm
+                           outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                    [value]="bulkInterval()"
+                    (change)="bulkInterval.set($any($event.target).value)"
+                  >
+                    <option value="MONTHLY">Mensuelle</option>
+                    <option value="BIMONTHLY">Bimensuelle</option>
+                    <option value="WEEKLY">Hebdomadaire</option>
+                    <option value="CUSTOM">Personnalisée</option>
+                  </select>
+                </div>
+              </div>
 
-            <p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
-              ⚠️ Seules les séances <strong>PLANIFIÉES</strong> peuvent être modifiées.
-            </p>
-
-            <div class="space-y-1">
-              <label class="block text-sm font-medium text-gray-700">
-                Nouvelle date &amp; heure <span class="text-red-500">*</span>
-              </label>
-              <input
-                type="datetime-local"
-                class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition
-                       focus:ring-2 focus:ring-emerald-500"
-                [class.border-red-400]="!!editDateError() && editDateTouched()"
-                [class.border-gray-300]="!editDateError() || !editDateTouched()"
-                [min]="singleDateMin()"
-                [value]="editScheduledAt()"
-                (change)="editScheduledAt.set($any($event.target).value); editDateTouched.set(true)"
-                required
-              />
-              @if (editDateError() && editDateTouched()) {
-                <p class="text-xs text-red-600">{{ editDateError() }}</p>
+              @if (bulkInterval() === 'CUSTOM') {
+                <div class="space-y-1">
+                  <label class="block text-sm font-medium text-gray-700">Intervalle (jours)</label>
+                  <input
+                    type="number" min="1" max="365"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm
+                           outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                    [value]="bulkCustomDays()"
+                    (input)="bulkCustomDays.set(+$any($event.target).value || 1)"
+                  />
+                </div>
               }
-            </div>
 
-            <tc-location-picker
-              label="Lieu"
-              [(value)]="editLocation"
-            />
+              <tc-location-picker label="Lieu par défaut (optionnel)" [(value)]="bulkDefaultLocation" />
 
-            <div class="flex gap-2">
+              @if (bulkPreview().length > 0) {
+                <details class="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+                  <summary class="cursor-pointer text-sm font-medium text-emerald-700">
+                    Aperçu — {{ bulkPreview().length }} séances
+                  </summary>
+                  <ol class="mt-2 list-decimal space-y-1 pl-5 text-xs text-gray-600">
+                    @for (d of bulkPreview(); track d.toISOString()) {
+                      <li>{{ d | tcDate: true }}</li>
+                    }
+                  </ol>
+                </details>
+              }
+
               <tc-button
-                type="button"
-                variant="secondary"
-                [fullWidth]="true"
-                (clicked)="cancelEdit()"
+                type="submit" variant="primary" [fullWidth]="true"
+                [loading]="submitting()" [disabled]="bulkPreview().length === 0"
               >
-                Annuler
+                Planifier {{ bulkPreview().length > 0 ? bulkPreview().length + ' séances' : 'les séances' }}
               </tc-button>
-              <tc-button
-                type="submit"
-                variant="primary"
-                [fullWidth]="true"
-                [loading]="submitting()"
-              >
-                Enregistrer
-              </tc-button>
-            </div>
-          </form>
-        </tc-card>
-      }
+            </form>
+          </tc-card>
+        }
 
+        <!-- Modifier séance -->
+        @if (formMode() === 'edit' && editingSession(); as session) {
+          <tc-card [title]="'Modifier séance #' + session.number">
+            <form class="space-y-4" (submit)="onUpdateSession($event)">
+              <p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                ⚠️ Seules les séances <strong>PLANIFIÉES</strong> peuvent être modifiées.
+              </p>
+
+              <div class="space-y-1">
+                <label class="block text-sm font-medium text-gray-700">
+                  Nouvelle date &amp; heure <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="datetime-local"
+                  class="w-full rounded-lg border px-3 py-2 text-sm shadow-sm outline-none transition focus:ring-2 focus:ring-emerald-500"
+                  [class.border-red-400]="!!editDateError() && editDateTouched()"
+                  [class.border-gray-300]="!editDateError() || !editDateTouched()"
+                  [min]="singleDateMin()"
+                  [value]="editScheduledAt()"
+                  (change)="editScheduledAt.set($any($event.target).value); editDateTouched.set(true)"
+                  required
+                />
+                @if (editDateError() && editDateTouched()) {
+                  <p class="text-xs text-red-600">{{ editDateError() }}</p>
+                }
+              </div>
+
+              <tc-location-picker label="Lieu" [(value)]="editLocation" />
+
+              <div class="flex gap-2">
+                <tc-button type="button" variant="secondary" [fullWidth]="true" (clicked)="cancelEdit()">
+                  Annuler
+                </tc-button>
+                <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
+                  Enregistrer
+                </tc-button>
+              </div>
+            </form>
+          </tc-card>
+        }
+
+      </div>
     </aside>
+
   </div>
 </div>

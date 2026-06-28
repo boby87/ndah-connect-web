@@ -18,6 +18,7 @@ import type {
 import type { Cycle } from '../../../shared/models/entities/cycle.model';
 import type { Member } from '../../../shared/models/entities/member.model';
 import type { Session } from '../../../shared/models/entities/session.model';
+import type { SessionLive } from '../../../shared/models/entities/session-live.model';
 import type {
   MembershipFile,
   MembershipFileKind,
@@ -28,7 +29,6 @@ import type {
 } from '../../../shared/models/entities/minutes-draft.model';
 import type { ReportEntry } from '../../../shared/models/entities/report.model';
 import type { RsvpStatus, SessionRsvpSummary } from '../../../shared/models/entities/rsvp.model';
-import type { SessionLive } from '../../../shared/models/entities/session-live.model';
 
 export interface SecretaryDashboard {
   nextSession: {
@@ -91,6 +91,13 @@ export interface GenerateReportPayload {
   periodLabel: string;
 }
 
+export interface AgendaItemPayload {
+  title: string;
+  description?: string;
+  isStandard: boolean;
+  estimatedDurationMin?: number;
+}
+
 export interface CreateCyclePayload {
   startDate: string;
 }
@@ -122,6 +129,13 @@ export class SecretaryService {
   private readonly base = `${API_CONFIG.baseUrl}/secretary`;
 
   // ─── Cycles & Sessions planning ───────────────────────────────────────
+  async getSession(id: string): Promise<SessionLive> {
+    const response = await firstValueFrom(
+      this.http.get<ApiResponse<SessionLive>>(`${this.base}/sessions/${id}`),
+    );
+    return response.data;
+  }
+
   async getCycles(): Promise<Cycle[]> {
     const response = await firstValueFrom(
       this.http.get<ApiResponse<Cycle[]>>(`${this.base}/cycles`),
@@ -164,6 +178,13 @@ export class SecretaryService {
     return response.data;
   }
 
+  async requestCycleClosure(cycleId: string): Promise<Cycle> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<Cycle>>(`${this.base}/cycles/${cycleId}/request-closure`, {}),
+    );
+    return response.data;
+  }
+
   // ─── Dashboard ─────────────────────────────────────────────────────────
   async getDashboard(): Promise<SecretaryDashboard> {
     const response = await firstValueFrom(
@@ -183,6 +204,15 @@ export class SecretaryService {
   async getAgendas(): Promise<AgendaDraft[]> {
     const response = await firstValueFrom(
       this.http.get<ApiResponse<AgendaDraft[]>>(`${this.base}/agendas`),
+    );
+    return response.data;
+  }
+
+  async getAgendasBySession(sessionId: string): Promise<AgendaDraft[]> {
+    const response = await firstValueFrom(
+      this.http.get<ApiResponse<AgendaDraft[]>>(`${this.base}/agendas`, {
+        params: { sessionId },
+      }),
     );
     return response.data;
   }
@@ -208,10 +238,30 @@ export class SecretaryService {
     return response.data;
   }
 
+  async deleteAgenda(id: string): Promise<void> {
+    await firstValueFrom(this.http.delete(`${this.base}/agendas/${id}`));
+  }
+
+  async updateAgendaItems(agendaId: string, items: AgendaItemPayload[]): Promise<AgendaDraft> {
+    const response = await firstValueFrom(
+      this.http.put<ApiResponse<AgendaDraft>>(`${this.base}/agendas/${agendaId}/items`, { items }),
+    );
+    return response.data;
+  }
+
   // ─── Convocations ──────────────────────────────────────────────────────
   async getConvocations(): Promise<Convocation[]> {
     const response = await firstValueFrom(
       this.http.get<ApiResponse<Convocation[]>>(`${this.base}/convocations`),
+    );
+    return response.data;
+  }
+
+  async getConvocationsBySession(sessionId: string): Promise<Convocation[]> {
+    const response = await firstValueFrom(
+      this.http.get<ApiResponse<Convocation[]>>(`${this.base}/convocations`, {
+        params: { sessionId },
+      }),
     );
     return response.data;
   }
@@ -285,6 +335,13 @@ export class SecretaryService {
   async getMinutesDrafts(): Promise<MinutesDraft[]> {
     const response = await firstValueFrom(
       this.http.get<ApiResponse<MinutesDraft[]>>(`${this.base}/minutes`),
+    );
+    return response.data;
+  }
+
+  async getMinutesBySession(sessionId: string): Promise<MinutesDraft | null> {
+    const response = await firstValueFrom(
+      this.http.get<ApiResponse<MinutesDraft | null>>(`${this.base}/minutes/session/${sessionId}`),
     );
     return response.data;
   }

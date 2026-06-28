@@ -8,6 +8,8 @@ import { InputComponent } from '../../../../shared/components/ui/input/input.com
 import { TextareaComponent } from '../../../../shared/components/ui/textarea/textarea.component';
 import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { SecretaryContextService } from '../../services/secretary-context.service';
+import { RequiresCycleComponent } from '../../components/requires-cycle/requires-cycle.component';
 import {
   CONVOCATION_CHANNEL_LABELS,
   type Convocation,
@@ -30,12 +32,15 @@ const CHANNELS: ConvocationChannel[] = ['IN_APP', 'SMS', 'EMAIL', 'WHATSAPP'];
     InputComponent,
     TextareaComponent,
     DateFormatPipe,
+    RequiresCycleComponent,
   ],
   templateUrl: './convocations-page.component.html',
 })
 export class ConvocationsPageComponent {
   private readonly service = inject(SecretaryService);
   private readonly notifications = inject(NotificationService);
+
+  protected readonly ctx = inject(SecretaryContextService);
 
   protected readonly channels = CHANNELS;
   protected readonly CONVOCATION_CHANNEL_LABELS = CONVOCATION_CHANNEL_LABELS;

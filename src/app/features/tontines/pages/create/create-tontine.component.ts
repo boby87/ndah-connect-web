@@ -18,12 +18,52 @@ import type {
 } from '../../../../shared/models/entities/tontine.model';
 import { TontineService } from '../../services/tontine.service';
 
-const PHONE_RE = /^\+237\d{9}$/;
+const LOCAL_PHONE_RE = /^\d{5,15}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+interface Country {
+  code: string;
+  name: string;
+  dial_code: string;
+}
+
+const COUNTRIES: Country[] = [
+  { code: 'CM', name: 'Cameroun', dial_code: '+237' },
+  { code: 'NG', name: 'Nigeria', dial_code: '+234' },
+  { code: 'SN', name: 'Sénégal', dial_code: '+221' },
+  { code: 'CI', name: "Côte d'Ivoire", dial_code: '+225' },
+  { code: 'GH', name: 'Ghana', dial_code: '+233' },
+  { code: 'CD', name: 'Congo RDC', dial_code: '+243' },
+  { code: 'CG', name: 'Congo', dial_code: '+242' },
+  { code: 'GA', name: 'Gabon', dial_code: '+241' },
+  { code: 'TD', name: 'Tchad', dial_code: '+235' },
+  { code: 'CF', name: 'Centrafrique', dial_code: '+236' },
+  { code: 'GQ', name: 'Guinée Équatoriale', dial_code: '+240' },
+  { code: 'ML', name: 'Mali', dial_code: '+223' },
+  { code: 'BF', name: 'Burkina Faso', dial_code: '+226' },
+  { code: 'BJ', name: 'Bénin', dial_code: '+229' },
+  { code: 'TG', name: 'Togo', dial_code: '+228' },
+  { code: 'GN', name: 'Guinée', dial_code: '+224' },
+  { code: 'MA', name: 'Maroc', dial_code: '+212' },
+  { code: 'TN', name: 'Tunisie', dial_code: '+216' },
+  { code: 'DZ', name: 'Algérie', dial_code: '+213' },
+  { code: 'MU', name: 'Île Maurice', dial_code: '+230' },
+  { code: 'FR', name: 'France', dial_code: '+33' },
+  { code: 'BE', name: 'Belgique', dial_code: '+32' },
+  { code: 'CH', name: 'Suisse', dial_code: '+41' },
+  { code: 'CA', name: 'Canada', dial_code: '+1' },
+  { code: 'US', name: 'États-Unis', dial_code: '+1' },
+  { code: 'GB', name: 'Royaume-Uni', dial_code: '+44' },
+  { code: 'DE', name: 'Allemagne', dial_code: '+49' },
+  { code: 'ES', name: 'Espagne', dial_code: '+34' },
+  { code: 'IT', name: 'Italie', dial_code: '+39' },
+  { code: 'PT', name: 'Portugal', dial_code: '+351' },
+];
 
 interface FounderDraft {
   fullName: string;
-  phone: string;
+  countryCode: string;
+  localPhone: string;
   email: string;
   role: InvitableFounderRole;
 }
@@ -87,6 +127,7 @@ export class CreateTontineComponent {
   readonly operationsDeductionStr = signal('3');
 
   // Step 4
+  readonly countries = COUNTRIES;
   readonly founders = signal<FounderDraft[]>([]);
   readonly founderError = signal<string | null>(null);
 
@@ -169,10 +210,18 @@ export class CreateTontineComponent {
     this.step.update((s) => Math.max(1, s - 1));
   }
 
+  countryFor(code: string): Country {
+    return this.countries.find(c => c.code === code) ?? this.countries[0];
+  }
+
+  founderPhone(f: FounderDraft): string {
+    return `${this.countryFor(f.countryCode).dial_code}${f.localPhone.trim()}`;
+  }
+
   addFounder(): void {
     this.founders.update((arr) => [
       ...arr,
-      { fullName: '', phone: '+237', email: '', role: 'MEMBER' },
+      { fullName: '', countryCode: 'CM', localPhone: '', email: '', role: 'MEMBER' },
     ]);
   }
 
@@ -196,8 +245,8 @@ export class CreateTontineComponent {
         this.founderError.set(`Fondateur ${i + 1} : nom requis.`);
         return;
       }
-      if (!PHONE_RE.test(f.phone.trim())) {
-        this.founderError.set(`Fondateur ${i + 1} : téléphone invalide (format +237699...).`);
+      if (!LOCAL_PHONE_RE.test(f.localPhone.replace(/[\s\-]/g, ''))) {
+        this.founderError.set(`Fondateur ${i + 1} : numéro de téléphone invalide.`);
         return;
       }
       if (f.email.trim() && !EMAIL_RE.test(f.email.trim())) {
@@ -233,7 +282,7 @@ export class CreateTontineComponent {
       };
       const founders: FounderInvite[] = this.founders().map((f) => ({
         fullName: f.fullName.trim(),
-        phone: f.phone.trim(),
+        phone: this.founderPhone(f),
         email: f.email.trim() || undefined,
         role: f.role,
       }));

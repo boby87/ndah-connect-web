@@ -35,6 +35,9 @@ export class NotificationItemComponent {
       SESSION: 'calendar',
       SANCTION: 'gavel',
       VOTE: 'ballot',
+      VALIDATION: 'check-circle',
+      INVITATION: 'user-plus',
+      AGENDA: 'list',
       GENERAL: 'bell',
     };
     return map[cat] ?? 'bell';

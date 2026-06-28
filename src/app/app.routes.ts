@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/guards/auth.guard';
 import { noAuthGuard } from './core/auth/guards/no-auth.guard';
+import { roleRedirectGuard } from './core/auth/guards/role-redirect.guard';
 
 export const routes: Routes = [
   {
@@ -18,6 +19,7 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
+        canActivate: [roleRedirectGuard],
         loadComponent: () =>
           import('./features/member/pages/dashboard/member-dashboard.component').then(
             (m) => m.MemberDashboardComponent,
@@ -61,6 +63,14 @@ export const routes: Routes = [
             (m) => m.NotificationListPageComponent,
           ),
         title: 'Notifications · TontineConnect',
+      },
+      {
+        path: 'invitations/:token/accept',
+        loadComponent: () =>
+          import('./features/auth/pages/invitation-accept/invitation-accept.component').then(
+            (m) => m.InvitationAcceptPageComponent,
+          ),
+        title: "Accepter l'invitation · TontineConnect",
       },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],

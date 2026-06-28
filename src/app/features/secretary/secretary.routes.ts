@@ -23,6 +23,14 @@ export const SECRETARY_ROUTES: Routes = [
         title: 'Secrétariat · Planification des séances',
       },
       {
+        path: 'sessions/:id',
+        loadComponent: () =>
+          import('./pages/session-detail/session-detail-page.component').then(
+            (m) => m.SessionDetailPageComponent,
+          ),
+        title: 'Secrétariat · Séance',
+      },
+      {
         path: 'agendas',
         loadComponent: () =>
           import('./pages/agendas/agendas-page.component').then((m) => m.AgendasPageComponent),

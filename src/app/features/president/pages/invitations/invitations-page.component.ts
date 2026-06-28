@@ -23,8 +23,47 @@ import {
 import type { InvitableFounderRole } from '../../../../shared/models/entities/tontine.model';
 import { formatApiError } from '../../../../core/utils';
 
-const PHONE_RE = /^\+237\d{9}$/;
+const LOCAL_PHONE_RE = /^\d{5,15}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+interface Country {
+  code: string;
+  name: string;
+  dial_code: string;
+}
+
+const COUNTRIES: Country[] = [
+  { code: 'CM', name: 'Cameroun', dial_code: '+237' },
+  { code: 'NG', name: 'Nigeria', dial_code: '+234' },
+  { code: 'SN', name: 'Sénégal', dial_code: '+221' },
+  { code: 'CI', name: "Côte d'Ivoire", dial_code: '+225' },
+  { code: 'GH', name: 'Ghana', dial_code: '+233' },
+  { code: 'CD', name: 'Congo RDC', dial_code: '+243' },
+  { code: 'CG', name: 'Congo', dial_code: '+242' },
+  { code: 'GA', name: 'Gabon', dial_code: '+241' },
+  { code: 'TD', name: 'Tchad', dial_code: '+235' },
+  { code: 'CF', name: 'Centrafrique', dial_code: '+236' },
+  { code: 'GQ', name: 'Guinée Équatoriale', dial_code: '+240' },
+  { code: 'ML', name: 'Mali', dial_code: '+223' },
+  { code: 'BF', name: 'Burkina Faso', dial_code: '+226' },
+  { code: 'BJ', name: 'Bénin', dial_code: '+229' },
+  { code: 'TG', name: 'Togo', dial_code: '+228' },
+  { code: 'GN', name: 'Guinée', dial_code: '+224' },
+  { code: 'MA', name: 'Maroc', dial_code: '+212' },
+  { code: 'TN', name: 'Tunisie', dial_code: '+216' },
+  { code: 'DZ', name: 'Algérie', dial_code: '+213' },
+  { code: 'MU', name: 'Île Maurice', dial_code: '+230' },
+  { code: 'FR', name: 'France', dial_code: '+33' },
+  { code: 'BE', name: 'Belgique', dial_code: '+32' },
+  { code: 'CH', name: 'Suisse', dial_code: '+41' },
+  { code: 'CA', name: 'Canada', dial_code: '+1' },
+  { code: 'US', name: 'États-Unis', dial_code: '+1' },
+  { code: 'GB', name: 'Royaume-Uni', dial_code: '+44' },
+  { code: 'DE', name: 'Allemagne', dial_code: '+49' },
+  { code: 'ES', name: 'Espagne', dial_code: '+34' },
+  { code: 'IT', name: 'Italie', dial_code: '+39' },
+  { code: 'PT', name: 'Portugal', dial_code: '+351' },
+];
 
 const ROLE_LABELS: Record<InvitableFounderRole, string> = {
   MEMBER: 'Membre',
@@ -117,15 +156,50 @@ const ROLE_LABELS: Record<InvitableFounderRole, string> = {
                 [required]="true"
                 [disabled]="lockedFromLookup()"
               />
-              <tc-input
-                label="Téléphone"
-                placeholder="+237 6XX XX XX XX"
-                [(value)]="phone"
-                [(touched)]="phoneTouched"
-                [error]="phoneError()"
-                [required]="true"
-                [disabled]="lockedFromLookup()"
-              />
+              <!-- Téléphone : sélecteur pays + numéro local -->
+              <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700">
+                  Téléphone <span class="text-red-500">*</span>
+                </label>
+                <div class="flex rounded-lg border overflow-hidden transition-colors"
+                     [class]="phoneTouched() && phoneError()
+                       ? 'border-red-400'
+                       : 'border-gray-300 focus-within:border-blue-500'">
+                  <!-- Sélecteur pays -->
+                  <div class="flex items-center gap-1 px-2 bg-gray-50 border-r border-gray-300 flex-shrink-0">
+                    <img
+                      [src]="'https://flagcdn.com/w20/' + selectedCountryCode().toLowerCase() + '.png'"
+                      [alt]="selectedCountry().name"
+                      style="width: 18px; height: 12px; object-fit: cover; border-radius: 2px; flex-shrink: 0;"
+                    />
+                    <select
+                      class="bg-transparent text-gray-700 text-sm focus:outline-none cursor-pointer py-2"
+                      [disabled]="lockedFromLookup()"
+                      (change)="selectedCountryCode.set($any($event.target).value)"
+                    >
+                      @for (c of countries; track c.code) {
+                        <option [value]="c.code" [selected]="c.code === selectedCountryCode()">
+                          {{ c.code }}-{{ c.dial_code.slice(1) }}
+                        </option>
+                      }
+                    </select>
+                  </div>
+                  <!-- Numéro local -->
+                  <input
+                    type="tel"
+                    placeholder="Numéro local"
+                    class="flex-1 px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none placeholder-gray-400 min-w-0"
+                    [class.bg-gray-50]="lockedFromLookup()"
+                    [disabled]="lockedFromLookup()"
+                    [value]="localPhone()"
+                    (input)="localPhone.set($any($event.target).value)"
+                    (blur)="phoneTouched.set(true)"
+                  />
+                </div>
+                @if (phoneTouched() && phoneError()) {
+                  <p class="mt-1 text-xs text-red-600">{{ phoneError() }}</p>
+                }
+              </div>
               <tc-input
                 label="Email (optionnel)"
                 type="email"
@@ -315,11 +389,20 @@ export class InvitationsPageComponent {
       this.invitations().filter((i) => i.status === 'PENDING' || i.status === 'SENT').length,
   );
 
+  protected readonly countries = COUNTRIES;
+
   // ── Form state ──────────────────────────────────────────────────────────
   readonly fullName = signal('');
   readonly fullNameTouched = signal(false);
-  readonly phone = signal('+237');
+  readonly selectedCountryCode = signal('CM');
+  readonly selectedCountry = computed(
+    () => this.countries.find(c => c.code === this.selectedCountryCode()) ?? this.countries[0],
+  );
+  readonly localPhone = signal('');
   readonly phoneTouched = signal(false);
+  readonly fullPhone = computed(
+    () => `${this.selectedCountry().dial_code}${this.localPhone().trim()}`,
+  );
   readonly email = signal('');
   readonly emailTouched = signal(false);
   readonly proposedRole = signal<InvitableFounderRole>('MEMBER');
@@ -341,7 +424,7 @@ export class InvitationsPageComponent {
 
   readonly fullNameError = computed(() => (this.fullName().trim() ? '' : 'Nom requis.'));
   readonly phoneError = computed(() =>
-    PHONE_RE.test(this.phone().trim()) ? '' : 'Format +237 suivi de 9 chiffres.',
+    LOCAL_PHONE_RE.test(this.localPhone().replace(/[\s\-]/g, '')) ? '' : 'Numéro local invalide.',
   );
   readonly emailError = computed(() => {
     const v = this.email().trim();
@@ -352,6 +435,17 @@ export class InvitationsPageComponent {
   );
 
   // ── Recherche d'un utilisateur ────────────────────────────────────────────
+  /** Décompose un numéro international en code pays + numéro local. */
+  private parsePhone(full: string): { countryCode: string; localPhone: string } {
+    const sorted = [...COUNTRIES].sort((a, b) => b.dial_code.length - a.dial_code.length);
+    for (const c of sorted) {
+      if (full.startsWith(c.dial_code)) {
+        return { countryCode: c.code, localPhone: full.slice(c.dial_code.length) };
+      }
+    }
+    return { countryCode: 'CM', localPhone: full };
+  }
+
   /** Extrait un UUID d'une chaîne (lien collé ou UUID brut), sinon null. */
   private extractUuid(raw: string): string | null {
     const m = raw.match(
@@ -374,7 +468,9 @@ export class InvitationsPageComponent {
       const candidate: CandidateLookup = await this.service.lookupCandidate(params);
 
       this.fullName.set(`${candidate.firstName} ${candidate.lastName}`.trim());
-      this.phone.set(candidate.phone || '+237');
+      const parsed = this.parsePhone(candidate.phone || '');
+      this.selectedCountryCode.set(parsed.countryCode);
+      this.localPhone.set(parsed.localPhone);
       this.email.set(candidate.email ?? '');
       this.lockedFromLookup.set(true);
 
@@ -424,7 +520,7 @@ export class InvitationsPageComponent {
     try {
       await this.service.inviteMember({
         candidateFullName: this.fullName().trim(),
-        candidatePhone: this.phone().trim(),
+        candidatePhone: this.fullPhone(),
         candidateEmail: this.email().trim() || undefined,
         proposedRole: this.proposedRole(),
         channels: this.channels(),
@@ -479,7 +575,8 @@ export class InvitationsPageComponent {
   private resetForm(): void {
     this.fullName.set('');
     this.fullNameTouched.set(false);
-    this.phone.set('+237');
+    this.selectedCountryCode.set('CM');
+    this.localPhone.set('');
     this.phoneTouched.set(false);
     this.email.set('');
     this.emailTouched.set(false);

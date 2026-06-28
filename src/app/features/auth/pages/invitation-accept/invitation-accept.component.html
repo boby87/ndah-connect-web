@@ -23,7 +23,11 @@
       <div class="tc-invite__icon tc-invite__icon--error">✕</div>
       <h1 class="tc-invite__title">Invitation introuvable</h1>
       <p class="tc-invite__hint">Ce lien est invalide ou a expiré.</p>
-      <a routerLink="/auth/login" class="tc-invite__link">Retour à la connexion</a>
+      @if (isAuthenticated()) {
+        <a routerLink="/dashboard" class="tc-invite__link">Retour au tableau de bord</a>
+      } @else {
+        <a routerLink="/auth/login" class="tc-invite__link">Retour à la connexion</a>
+      }
     </div>
   }
 
@@ -46,7 +50,11 @@
         Cette invitation pour <strong>{{ preview()?.tontineName }}</strong> n'est plus valide.
         Demandez au Président de vous renvoyer une invitation.
       </p>
-      <a routerLink="/auth/login" class="tc-invite__link">Retour à la connexion</a>
+      @if (isAuthenticated()) {
+        <a routerLink="/dashboard" class="tc-invite__link">Retour au tableau de bord</a>
+      } @else {
+        <a routerLink="/auth/login" class="tc-invite__link">Retour à la connexion</a>
+      }
     </div>
   }
 
@@ -127,9 +135,11 @@
           Rejoindre la tontine
         </tc-button>
 
-        <p class="text-center text-sm text-gray-600">
-          <a routerLink="/auth/login" class="hover:underline">Retour à la connexion</a>
-        </p>
+        @if (!isAuthenticated()) {
+          <p class="text-center text-sm text-gray-600">
+            <a routerLink="/auth/login" class="hover:underline">Retour à la connexion</a>
+          </p>
+        }
       </form>
     }
   }

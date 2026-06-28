@@ -7,3 +7,4 @@ export * from './contribution-status.enum';
 export * from './sanction-type.enum';
 export * from './payment-method.enum';
 export * from './validation.enum';
+export * from './cycle-status.enum';

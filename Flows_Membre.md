@@ -31,8 +31,9 @@
 23. [Flow 21 : Communication avec le Bureau](#23-flow-21--communication-avec-le-bureau)
 24. [Flow 22 : Gestion du Profil](#24-flow-22--gestion-du-profil)
 25. [Flow 23 : Démission](#25-flow-23--démission)
-26. [Récapitulatif des Écrans](#26-récapitulatif-des-écrans)
-27. [Règles Métier et Notifications](#27-règles-métier-et-notifications)
+26. [Flow 24 : Consultation des Séances](#26-flow-24--consultation-des-séances)
+27. [Récapitulatif des Écrans](#27-récapitulatif-des-écrans)
+28. [Règles Métier et Notifications](#28-règles-métier-et-notifications)
 
 ---
 
@@ -2996,9 +2997,113 @@ Le Membre est le cœur de la tontine. Il cotise régulièrement, reçoit sa cagn
 
 ---
 
-# 26. RÉCAPITULATIF DES ÉCRANS
+# 26. FLOW 24 : CONSULTATION DES SÉANCES
 
-## 26.1 Liste des Écrans du Membre
+## 26.1 Description
+
+Le membre (et tout rôle du bureau) peut consulter les cycles de la tontine, les séances rattachées à chaque cycle, et le détail complet de chaque séance : ordre du jour, présences et cotisations collectées. L'accès est en **lecture seule** — aucune action de saisie n'est disponible depuis ce flow.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    FLOW: CONSULTATION DES SÉANCES                           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │  ÉCRAN : LISTE DES CYCLES (E-MB25)                                   │  │
+│  │                                                                      │  │
+│  │  ┌─────────────────────────────────────────────────────────────┐    │  │
+│  │  │ 📅 MES SÉANCES                                               │    │  │
+│  │  ├─────────────────────────────────────────────────────────────┤    │  │
+│  │  │ ▼ Cycle 3 — juin 2026                        🟢 ACTIF       │    │  │
+│  │  │   ┌────────────────────────────────────────────────────┐    │    │  │
+│  │  │   │ Séance #3 · 28/06/2026             ⏳ PLANIFIÉE   │    │    │  │
+│  │  │   │ Séance #2 · 14/06/2026             ✅ TERMINÉE    │    │    │  │
+│  │  │   │ Séance #1 · 31/05/2026             ✅ TERMINÉE    │    │    │  │
+│  │  │   └────────────────────────────────────────────────────┘    │    │  │
+│  │  │                                                              │    │  │
+│  │  │ ► Cycle 2 — janvier 2026                    🔒 CLÔTURÉ      │    │  │
+│  │  │ ► Cycle 1 — juillet 2025                    🔒 CLÔTURÉ      │    │  │
+│  │  └─────────────────────────────────────────────────────────────┘    │  │
+│  │                                                                      │  │
+│  │  ℹ️  Aucun cycle : message "Aucun cycle disponible pour             │  │
+│  │      cette tontine" (état vide)                                      │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                           │ clic séance                                     │
+│                           ▼                                                 │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │  ÉCRAN : DÉTAIL SÉANCE (E-MB26)                                      │  │
+│  │                                                                      │  │
+│  │  ┌─────────────────────────────────────────────────────────────┐    │  │
+│  │  │ ← Retour          SÉANCE #2 — 14/06/2026                    │    │  │
+│  │  ├─────────────────────────────────────────────────────────────┤    │  │
+│  │  │  Cycle 3 · Tontine ABC · ✅ TERMINÉE                        │    │  │
+│  │  │  Lieu : Domicile NKOA · 14h00 → 16h30                       │    │  │
+│  │  ├─────────────────────────────────────────────────────────────┤    │  │
+│  │  │  [ Ordre du jour ]  [ Présences ]  [ Cotisations ]          │    │  │
+│  │  └─────────────────────────────────────────────────────────────┘    │  │
+│  │                                                                      │  │
+│  │  ── Onglet ORDRE DU JOUR ────────────────────────────────────────   │  │
+│  │  │  1. Ouverture et appel                                       │    │  │
+│  │  │  2. Lecture du PV précédent                                  │    │  │
+│  │  │  3. Collecte des cotisations                                 │    │  │
+│  │  │  4. Distribution de la cagnotte — NKOA Paul                 │    │  │
+│  │  │  5. Questions diverses                                       │    │  │
+│  │  │  6. Clôture                                                  │    │  │
+│  │  │                                                              │    │  │
+│  │  ── Onglet PRÉSENCES ────────────────────────────────────────── │    │  │
+│  │  │  ┌──────────┬──────────┬──────────┬──────────┐              │    │  │
+│  │  │  │ ✅ 10    │ ⏰ 2     │ 🟡 1     │ ❌ 1     │              │    │  │
+│  │  │  │ Présents │ En ret.  │ Excusés  │ Absents  │              │    │  │
+│  │  │  └──────────┴──────────┴──────────┴──────────┘              │    │  │
+│  │  │  • NKOA Paul          ✅ Présent                             │    │  │
+│  │  │  • BIYA Marie         ✅ Présente                            │    │  │
+│  │  │  • FOKA Jean          ⏰ En retard                           │    │  │
+│  │  │  • MANGA Claire       🟡 Excusée                             │    │  │
+│  │  │  • TAMBA René         ❌ Absent                              │    │  │
+│  │  │  ...                                                         │    │  │
+│  │  │                                                              │    │  │
+│  │  ── Onglet COTISATIONS ──────────────────────────────────────── │    │  │
+│  │  │  Total attendu : 700 000 XAF                                 │    │  │
+│  │  │  Total collecté : 650 000 XAF (92,9%)                        │    │  │
+│  │  │  ──────────────────────────────────────────────────────      │    │  │
+│  │  │  • NKOA Paul    50 000 XAF  ✅ Payée                         │    │  │
+│  │  │  • BIYA Marie   50 000 XAF  ✅ Payée                         │    │  │
+│  │  │  • TAMBA René   50 000 XAF  ❌ Non payée                     │    │  │
+│  │  │  ...                                                         │    │  │
+│  │  └─────────────────────────────────────────────────────────────┘    │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## 26.2 Règles Métier
+
+| Règle | Description |
+|-------|-------------|
+| RM-CS01 | Accès disponible pour tous les rôles : Membre, Président, Secrétaire, Trésorier, Censeur, Commissaire |
+| RM-CS02 | Vue en lecture seule — aucune saisie ni action depuis ces écrans |
+| RM-CS03 | Les cycles sont triés du plus récent au plus ancien |
+| RM-CS04 | Si aucun cycle n'existe (membre sans tontine), afficher l'état vide sans erreur |
+| RM-CS05 | Les séances sont chargées à l'ouverture d'un cycle (accordéon) |
+| RM-CS06 | L'onglet Ordre du Jour affiche les points dans l'ordre de saisie |
+| RM-CS07 | L'onglet Présences affiche un résumé chiffré + la liste individuelle |
+| RM-CS08 | L'onglet Cotisations affiche le total attendu, collecté et le détail par membre |
+
+## 26.3 Points d'Entrée
+
+| Plateforme | Entrée |
+|-----------|--------|
+| Web — Membre | Sidebar › Mon espace › Séances |
+| Web — Trésorier | Sidebar › Trésorerie › Séances |
+| Web — Censeur | Sidebar › Discipline › Séances |
+| Web — Commissaire | Sidebar › Audit › Séances |
+| Mobile | Barre d'onglets › Séances |
+
+---
+
+# 27. RÉCAPITULATIF DES ÉCRANS
+
+## 27.1 Liste des Écrans du Membre
 
 | # | Écran | Description | Accès |
 |---|-------|-------------|-------|
@@ -3026,12 +3131,14 @@ Le Membre est le cœur de la tontine. Il cotise régulièrement, reçoit sa cagn
 | E-MB22 | Messagerie | Contacter le Bureau | Menu principal |
 | E-MB23 | Mon profil | Modifier ses informations | Menu principal |
 | E-MB24 | Démission | Quitter la tontine | Paramètres |
+| E-MB25 | Cycles / Séances | Liste des cycles et séances par cycle | Menu Séances |
+| E-MB26 | Détail séance | Ordre du jour, présences, cotisations d'une séance | Liste séances |
 
 ---
 
-# 27. RÈGLES MÉTIER ET NOTIFICATIONS
+# 28. RÈGLES MÉTIER ET NOTIFICATIONS
 
-## 27.1 Notifications Reçues par le Membre
+## 28.1 Notifications Reçues par le Membre
 
 | Événement | Canaux | Priorité |
 |-----------|--------|----------|
@@ -3054,7 +3161,7 @@ Le Membre est le cœur de la tontine. Il cotise régulièrement, reçoit sa cagn
 | Message du Bureau | Push | Normale |
 | Risque de radiation | Push, SMS, Email | Critique |
 
-## 27.2 Navigation du Membre
+## 28.2 Navigation du Membre
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -3123,14 +3230,14 @@ Le Membre est le cœur de la tontine. Il cotise régulièrement, reçoit sa cagn
 | Flows_Membre_TontineApp.md | Vue d'ensemble, Flows 1-6 (Inscription, Cotisations, Planning, Échange) |
 | Flows_Membre_TontineApp_Suite.md | Flows 7-11 (Prêts, Aide sociale) |
 | Flows_Membre_TontineApp_Suite2.md | Flows 12-19 (Absences, Sanctions, Présence, Vote) |
-| Flows_Membre_TontineApp_Suite3.md | Flows 20-23 (Documents, Communication, Profil, Démission), Récapitulatif |
+| Flows_Membre_TontineApp_Suite3.md | Flows 20-24 (Documents, Communication, Profil, Démission, Séances), Récapitulatif |
 
 ## Statistiques
 
 | Élément | Nombre |
 |---------|--------|
-| Flows principaux | 23 |
+| Flows principaux | 24 |
 | Sous-flows | 6 |
-| Écrans | 24 |
-| Règles métier | 50+ |
+| Écrans | 26 |
+| Règles métier | 58+ |
 | Types de notifications | 18 |

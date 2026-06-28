@@ -117,6 +117,23 @@ export class AuthService {
     }
   }
 
+  async initializeAuth(): Promise<void> {
+    if (!this.tokens.isAuthenticated()) return;
+    try {
+      const response = await firstValueFrom(
+        this.http.get<ApiResponse<User>>(`${API_CONFIG.baseUrl}${API_ENDPOINTS.auth.me}`),
+      );
+      this.userSignal.set(response.data);
+      this.storage.set(STORAGE_KEYS.currentUser, response.data);
+    } catch {
+      // Token invalide (ex: DB recréée après redémarrage) — efface sans naviguer
+      this.tokens.clearTokens();
+      this.storage.remove(STORAGE_KEYS.currentUser);
+      this.storage.remove(STORAGE_KEYS.currentTontineId);
+      this.userSignal.set(null);
+    }
+  }
+
   logout(redirectToLogin = true): void {
     this.ws.disconnect();
     this.tokens.clearTokens();

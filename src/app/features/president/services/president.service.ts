@@ -43,6 +43,7 @@ import type {
   ValidationDecision,
 } from '../../../shared/models/entities/validation.model';
 import type { Vote, VoteAudience, VoteScope } from '../../../shared/models/entities/vote.model';
+import type { AgendaDraft } from '../../../shared/models/entities/agenda-draft.model';
 
 export interface DecisionPayload {
   decision: DecisionType;
@@ -441,6 +442,26 @@ export class PresidentService {
     return response.data;
   }
 
+  // ─── Clôture de cycle (demande Secrétaire → validation Président) ──────
+  async getCyclesPendingClosure(): Promise<import('../../../shared/models/entities/cycle.model').Cycle[]> {
+    const response = await firstValueFrom(
+      this.http.get<ApiResponse<import('../../../shared/models/entities/cycle.model').Cycle[]>>(
+        `${this.base}/cycles/pending-closure`,
+      ),
+    );
+    return response.data;
+  }
+
+  async closeCycle(cycleId: string): Promise<import('../../../shared/models/entities/cycle.model').Cycle> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<import('../../../shared/models/entities/cycle.model').Cycle>>(
+        `${this.base}/cycles/${cycleId}/close`,
+        {},
+      ),
+    );
+    return response.data;
+  }
+
   // ─── Cycle Close (Flow 8) ──────────────────────────────────────────────
   async getCycleClose(): Promise<CycleClose> {
     const response = await firstValueFrom(
@@ -554,6 +575,31 @@ export class PresidentService {
   async getReport(id: string): Promise<ReportEntry> {
     const response = await firstValueFrom(
       this.http.get<ApiResponse<ReportEntry>>(`${this.base}/reports/${id}`),
+    );
+    return response.data;
+  }
+
+  // ─── Agendas (approbation ODJ) ─────────────────────────────────────────
+  async getPendingAgendas(sessionId?: string): Promise<AgendaDraft[]> {
+    const params: Record<string, string> = sessionId ? { sessionId } : {};
+    const response = await firstValueFrom(
+      this.http.get<ApiResponse<AgendaDraft[]>>(`${this.base}/agendas`, { params }),
+    );
+    return response.data;
+  }
+
+  async approveAgenda(id: string): Promise<AgendaDraft> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<AgendaDraft>>(`${this.base}/agendas/${id}/approve`, {}),
+    );
+    return response.data;
+  }
+
+  async requestAgendaChanges(id: string, comment: string): Promise<AgendaDraft> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<AgendaDraft>>(`${this.base}/agendas/${id}/request-changes`, {
+        comment,
+      }),
     );
     return response.data;
   }

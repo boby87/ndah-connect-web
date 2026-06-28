@@ -52,6 +52,20 @@ export const MEMBER_ROUTES: Routes = [
     title: 'Simulateur de prêt · TontineConnect',
   },
   {
+    path: 'sessions',
+    loadComponent: () =>
+      import('./pages/sessions/my-sessions.component').then((m) => m.MySessionsComponent),
+    title: 'Séances · TontineConnect',
+  },
+  {
+    path: 'sessions/:id',
+    loadComponent: () =>
+      import('./pages/session-detail/my-session-detail.component').then(
+        (m) => m.MySessionDetailComponent,
+      ),
+    title: 'Séance · TontineConnect',
+  },
+  {
     path: 'create-tontine',
     loadComponent: () =>
       import('../tontines/pages/create/create-tontine.component').then(

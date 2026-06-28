@@ -1,0 +1,210 @@
+<div class="space-y-6">
+
+  <a routerLink="/member/sessions"
+     class="inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline">
+    ← Retour aux séances
+  </a>
+
+  @if (sessionResource.isLoading()) {
+    <div class="flex justify-center py-12"><tc-spinner size="lg" /></div>
+  } @else if (session(); as s) {
+
+    <!-- En-tête séance -->
+    <tc-card>
+      <div class="flex items-start justify-between gap-4 flex-wrap">
+        <div class="min-w-0 flex-1">
+          <div class="flex flex-wrap items-center gap-2">
+            <h1 class="text-xl font-bold text-gray-900">Séance #{{ s.number }}</h1>
+            <tc-badge [kind]="badgeKind(s.status)">{{ s.status }}</tc-badge>
+            @if (s.cycleStatus) {
+              <span class="text-xs text-gray-400">Cycle {{ s.cycleNumber }}</span>
+            }
+          </div>
+          <p class="text-sm text-gray-500 mt-1">
+            {{ s.scheduledAt | tcDate: true }}
+            @if (s.location) { · 📍 {{ s.location }} }
+          </p>
+          @if (s.beneficiaryFullName) {
+            <p class="text-sm text-indigo-700 font-medium mt-2">
+              🎉 Bénéficiaire de la cagnotte : {{ s.beneficiaryFullName }}
+            </p>
+          }
+        </div>
+        @if (s.agendaApprovedAt) {
+          <div class="text-right text-xs text-gray-400 shrink-0">
+            <p>ODJ approuvé le</p>
+            <p class="font-medium text-gray-600">{{ s.agendaApprovedAt | tcDate: false }}</p>
+          </div>
+        }
+      </div>
+    </tc-card>
+
+    <!-- Onglets -->
+    <div class="flex gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1">
+      <button type="button"
+        class="flex-1 rounded-md py-2 text-sm font-medium transition"
+        [class.bg-white]="activeTab() === 'agenda'"
+        [class.text-gray-900]="activeTab() === 'agenda'"
+        [class.shadow-sm]="activeTab() === 'agenda'"
+        [class.text-gray-500]="activeTab() !== 'agenda'"
+        (click)="activeTab.set('agenda')">
+        📋 Ordre du jour
+      </button>
+      <button type="button"
+        class="flex-1 rounded-md py-2 text-sm font-medium transition"
+        [class.bg-white]="activeTab() === 'attendance'"
+        [class.text-gray-900]="activeTab() === 'attendance'"
+        [class.shadow-sm]="activeTab() === 'attendance'"
+        [class.text-gray-500]="activeTab() !== 'attendance'"
+        (click)="activeTab.set('attendance')">
+        👥 Présences
+        @if (s.attendance.length > 0) {
+          <span class="ml-1 text-xs text-gray-400">({{ presentCount() + lateCount() }}/{{ s.attendance.length }})</span>
+        }
+      </button>
+      <button type="button"
+        class="flex-1 rounded-md py-2 text-sm font-medium transition"
+        [class.bg-white]="activeTab() === 'contributions'"
+        [class.text-gray-900]="activeTab() === 'contributions'"
+        [class.shadow-sm]="activeTab() === 'contributions'"
+        [class.text-gray-500]="activeTab() !== 'contributions'"
+        (click)="activeTab.set('contributions')">
+        💰 Cotisations
+        @if (s.contributions.length > 0) {
+          <span class="ml-1 text-xs text-gray-400">({{ totalPaid() | xaf }})</span>
+        }
+      </button>
+    </div>
+
+    <!-- ── Onglet : Ordre du jour ────────────────────────────────────────── -->
+    @if (activeTab() === 'agenda') {
+      <tc-card title="Ordre du jour">
+        @if (!s.agendaApprovedAt) {
+          <p class="text-sm text-gray-500 italic">
+            L'ordre du jour n'a pas encore été approuvé par le Président.
+          </p>
+        } @else if (s.agenda.length === 0) {
+          <p class="text-sm text-gray-500">Aucun point à l'ordre du jour.</p>
+        } @else {
+          <ol class="space-y-4">
+            @for (item of s.agenda; track item.id; let idx = $index) {
+              <li class="flex gap-4">
+                <span class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 text-indigo-700
+                             text-sm font-bold flex items-center justify-center">
+                  {{ idx + 1 }}
+                </span>
+                <div class="flex-1 min-w-0 pt-1">
+                  <p class="font-medium text-gray-900 leading-snug">{{ item.title }}</p>
+                  @if (item.description) {
+                    <p class="text-sm text-gray-500 mt-0.5">{{ item.description }}</p>
+                  }
+                  @if (item.estimatedDurationMin) {
+                    <p class="text-xs text-gray-400 mt-1">⏱ {{ item.estimatedDurationMin }} min estimées</p>
+                  }
+                </div>
+              </li>
+            }
+          </ol>
+        }
+      </tc-card>
+    }
+
+    <!-- ── Onglet : Présences ────────────────────────────────────────────── -->
+    @if (activeTab() === 'attendance') {
+      <tc-card title="Feuille de présence">
+        @if (s.attendance.length === 0) {
+          <p class="text-sm text-gray-500 italic">
+            Les présences ne sont enregistrées qu'à partir du début de la séance.
+          </p>
+        } @else {
+          <!-- Résumé -->
+          <div class="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div class="rounded-lg bg-green-50 p-3 text-center">
+              <p class="text-2xl font-bold text-green-700">{{ presentCount() }}</p>
+              <p class="text-xs text-green-600">Présents</p>
+            </div>
+            <div class="rounded-lg bg-amber-50 p-3 text-center">
+              <p class="text-2xl font-bold text-amber-700">{{ lateCount() }}</p>
+              <p class="text-xs text-amber-600">En retard</p>
+            </div>
+            <div class="rounded-lg bg-blue-50 p-3 text-center">
+              <p class="text-2xl font-bold text-blue-700">{{ excusedCount() }}</p>
+              <p class="text-xs text-blue-600">Excusés</p>
+            </div>
+            <div class="rounded-lg bg-red-50 p-3 text-center">
+              <p class="text-2xl font-bold text-red-700">{{ absentCount() }}</p>
+              <p class="text-xs text-red-600">Absents</p>
+            </div>
+          </div>
+          <!-- Liste -->
+          <ul class="divide-y divide-gray-100">
+            @for (entry of s.attendance; track entry.memberId) {
+              <li class="flex items-center justify-between py-2.5">
+                <div class="flex items-center gap-3">
+                  <div class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold text-gray-600">
+                    {{ entry.fullName.charAt(0).toUpperCase() }}
+                  </div>
+                  <span class="text-sm font-medium text-gray-900">{{ entry.fullName }}</span>
+                </div>
+                <tc-badge [kind]="attendanceBadgeKind(entry.status)">
+                  {{ ATTENDANCE_STATUS_LABELS[entry.status] }}
+                </tc-badge>
+              </li>
+            }
+          </ul>
+        }
+      </tc-card>
+    }
+
+    <!-- ── Onglet : Cotisations ──────────────────────────────────────────── -->
+    @if (activeTab() === 'contributions') {
+      <tc-card title="Cotisations">
+        @if (s.contributions.length === 0) {
+          <p class="text-sm text-gray-500 italic">
+            Les cotisations sont enregistrées pendant la séance par le Trésorier.
+          </p>
+        } @else {
+          <!-- Résumé financier -->
+          <div class="mb-4 grid grid-cols-2 gap-3 rounded-xl bg-indigo-50 p-4">
+            <div>
+              <p class="text-xs text-indigo-500">Total attendu</p>
+              <p class="text-lg font-bold text-indigo-800">{{ totalExpected() | xaf }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-emerald-500">Total collecté</p>
+              <p class="text-lg font-bold text-emerald-700">{{ totalPaid() | xaf }}</p>
+            </div>
+          </div>
+          <!-- Liste -->
+          <ul class="divide-y divide-gray-100">
+            @for (contrib of s.contributions; track contrib.memberId) {
+              <li class="flex items-center justify-between py-2.5">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold text-gray-600">
+                    {{ contrib.memberName.charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-medium text-gray-900">{{ contrib.memberName }}</p>
+                    <p class="text-xs text-gray-400">
+                      {{ contrib.paidAmount | xaf }} / {{ contrib.expectedAmount | xaf }}
+                    </p>
+                  </div>
+                </div>
+                <tc-badge [kind]="contributionBadgeKind(contrib.status)">
+                  {{ CONTRIBUTION_STATUS_LABELS[contrib.status] }}
+                </tc-badge>
+              </li>
+            }
+          </ul>
+        }
+      </tc-card>
+    }
+
+  } @else if (!sessionResource.isLoading()) {
+    <tc-card>
+      <p class="text-sm text-red-500">
+        Cette séance est introuvable ou vous n'y avez pas accès.
+      </p>
+    </tc-card>
+  }
+</div>

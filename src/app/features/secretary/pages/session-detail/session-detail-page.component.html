@@ -1,0 +1,524 @@
+<div class="space-y-4">
+
+  <!-- ── Chargement initial ─────────────────────────────────────────────────── -->
+  @if (sessionResource.isLoading()) {
+    <div class="flex items-center justify-center py-20">
+      <tc-spinner size="lg" />
+    </div>
+  } @else if (!session()) {
+    <div class="rounded-xl border border-red-100 bg-red-50 px-6 py-10 text-center">
+      <p class="text-lg font-semibold text-red-700">Séance introuvable</p>
+      <button type="button" class="mt-4 text-sm text-red-600 underline" (click)="goBack()">
+        ← Retour aux séances
+      </button>
+    </div>
+  } @else {
+
+    <!-- ── En-tête séance ──────────────────────────────────────────────────── -->
+    <header class="rounded-xl border border-emerald-100 bg-gradient-to-r from-emerald-50 to-teal-50 p-5">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border
+                   border-gray-200 bg-white text-gray-600 transition hover:bg-gray-50"
+            (click)="goBack()"
+            title="Retour"
+          >
+            ←
+          </button>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-xl font-bold text-gray-900">Séance #{{ session()!.number }}</h1>
+              <tc-badge [kind]="statusKind(session()!.status)">
+                {{ SESSION_STATUS_LABELS[session()!.status] }}
+              </tc-badge>
+            </div>
+            <p class="mt-0.5 text-sm text-gray-600">
+              {{ session()!.scheduledAt | tcDate: true }}
+              @if (session()!.location) { · 📍 {{ session()!.location }} }
+            </p>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-3 text-center text-xs">
+          <div class="rounded-lg border border-emerald-200 bg-white px-3 py-1.5">
+            <div class="font-bold text-emerald-700">{{ session()!.attendance?.length ?? 0 }}</div>
+            <div class="text-gray-500">Présents</div>
+          </div>
+          <div class="rounded-lg border border-emerald-200 bg-white px-3 py-1.5">
+            <div class="font-bold text-emerald-700">{{ session()!.totalCollected | xaf }}</div>
+            <div class="text-gray-500">Collecté</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    @if (errorMessage(); as err) {
+      <tc-alert kind="error">{{ err }}</tc-alert>
+    }
+
+    <!-- ── Navigation onglets ─────────────────────────────────────────────── -->
+    <div class="overflow-x-auto">
+      <nav class="flex gap-1 rounded-xl border border-gray-200 bg-gray-100 p-1" style="min-width: max-content">
+        @for (tab of TABS; track tab.key) {
+          <button
+            type="button"
+            class="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition"
+            [class.bg-white]="activeTab() === tab.key"
+            [class.text-gray-900]="activeTab() === tab.key"
+            [class.shadow-sm]="activeTab() === tab.key"
+            [class.text-gray-500]="activeTab() !== tab.key && tabAccess()[tab.key]"
+            [class.opacity-40]="!tabAccess()[tab.key]"
+            [class.cursor-not-allowed]="!tabAccess()[tab.key]"
+            [disabled]="!tabAccess()[tab.key]"
+            (click)="setTab(tab.key)"
+          >
+            <span>{{ tab.icon }}</span>
+            <span>{{ tab.label }}</span>
+          </button>
+        }
+      </nav>
+    </div>
+
+    <!-- ── Contenu onglet ─────────────────────────────────────────────────── -->
+
+    <!-- ── Onglet : Ordre du jour ─────────────────────────────────────────── -->
+    @if (activeTab() === 'agenda') {
+      <div class="space-y-4">
+        @if (agendasResource.isLoading()) {
+          <div class="flex justify-center py-8"><tc-spinner /></div>
+        } @else if (agendas().length === 0) {
+          <tc-card>
+            <div class="flex flex-col items-center gap-4 py-6 text-center">
+              <div class="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-3xl">📋</div>
+              <div>
+                <p class="font-semibold text-gray-700">Aucun ordre du jour</p>
+                <p class="mt-1 text-sm text-gray-500">
+                  Créez l'ordre du jour de cette séance pour le soumettre au Président.
+                </p>
+              </div>
+              @if (isSessionEditable()) {
+                <tc-button variant="primary" [loading]="submitting()" (clicked)="onCreateAgenda()">
+                  + Créer l'ODJ (points standards)
+                </tc-button>
+              }
+            </div>
+          </tc-card>
+        } @else {
+          @for (agenda of agendas(); track agenda.id) {
+            <tc-card>
+
+              <!-- En-tête de la carte -->
+              <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <h3 class="font-semibold text-gray-800">ODJ — Séance #{{ agenda.sessionNumber }}</h3>
+                    <tc-badge [kind]="agendaStatusKind(agenda.status)">
+                      {{ agendaStatusLabel(agenda.status) }}
+                    </tc-badge>
+                  </div>
+                  <p class="mt-0.5 text-xs text-gray-500">{{ agenda.scheduledAt | tcDate: true }}</p>
+                </div>
+                @if ((agenda.status === 'DRAFT' || agenda.status === 'CHANGES_REQUESTED') && editingAgendaId() !== agenda.id) {
+                  <div class="flex flex-wrap gap-2">
+                    <tc-button variant="outline" size="sm" (clicked)="startEditItems(agenda)">
+                      ✎ Modifier les points
+                    </tc-button>
+                    <tc-button
+                      variant="primary"
+                      size="sm"
+                      [loading]="acting() === agenda.id"
+                      (clicked)="onSubmitAgenda(agenda.id)"
+                    >
+                      Soumettre au Président
+                    </tc-button>
+                    <tc-button
+                      variant="danger"
+                      size="sm"
+                      [loading]="acting() === agenda.id"
+                      (clicked)="onDeleteAgenda(agenda.id)"
+                    >
+                      Supprimer
+                    </tc-button>
+                  </div>
+                }
+              </div>
+
+              <!-- Liste des points (lecture seule) -->
+              @if (editingAgendaId() !== agenda.id) {
+                @if (agenda.items?.length > 0) {
+                  <div class="mt-4 space-y-1 border-t border-gray-100 pt-3">
+                    @for (item of agenda.items; track item.id) {
+                      <div class="flex items-center gap-3 rounded-lg px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-50">
+                        <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full
+                                     bg-emerald-100 text-xs font-bold text-emerald-700">
+                          {{ $index + 1 }}
+                        </span>
+                        <span class="flex-1">{{ item.title }}</span>
+                        @if (item.estimatedDurationMin) {
+                          <span class="text-xs text-gray-400">{{ item.estimatedDurationMin }} min</span>
+                        }
+                      </div>
+                    }
+                  </div>
+                } @else if (agenda.status === 'DRAFT' || agenda.status === 'CHANGES_REQUESTED') {
+                  <p class="mt-3 text-center text-sm text-gray-400">
+                    Aucun point — cliquez « Modifier les points » pour en ajouter.
+                  </p>
+                }
+              }
+
+              <!-- Commentaire président -->
+              @if (editingAgendaId() !== agenda.id && agenda.status === 'CHANGES_REQUESTED' && agenda.presidentComment) {
+                <div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                  <strong>Commentaire du Président :</strong> {{ agenda.presidentComment }}
+                </div>
+              }
+
+              <!-- Formulaire d'édition des points -->
+              @if (editingAgendaId() === agenda.id) {
+                <div class="mt-4 space-y-3 border-t border-gray-100 pt-4">
+
+                  @if (editItems().length === 0) {
+                    <p class="rounded-lg border border-dashed border-gray-300 py-4 text-center text-sm text-gray-400">
+                      Aucun point. Cliquez « + Ajouter un point » pour commencer.
+                    </p>
+                  }
+
+                  @for (item of editItems(); track item._key; let i = $index) {
+                    <div class="flex gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3">
+
+                      <!-- Numéro -->
+                      <span class="mt-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full
+                                   bg-emerald-100 text-xs font-bold text-emerald-700">
+                        {{ i + 1 }}
+                      </span>
+
+                      <!-- Champs -->
+                      <div class="flex-1 space-y-2">
+                        <input
+                          type="text"
+                          placeholder="Titre du point *"
+                          maxlength="200"
+                          class="w-full rounded border border-gray-300 px-3 py-1.5 text-sm outline-none
+                                 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                          [value]="item.title"
+                          (input)="updateEditItem(item._key, { title: $any($event.target).value })"
+                        />
+                        <div class="flex flex-wrap items-center gap-3">
+                          <input
+                            type="number"
+                            min="1"
+                            max="999"
+                            placeholder="Durée (min)"
+                            class="w-28 rounded border border-gray-300 px-3 py-1.5 text-sm outline-none
+                                   focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                            [value]="item.estimatedDurationMin ?? ''"
+                            (input)="updateEditItem(item._key, { estimatedDurationMin: +$any($event.target).value || null })"
+                          />
+                          <label class="flex cursor-pointer items-center gap-1.5 text-xs text-gray-600">
+                            <input
+                              type="checkbox"
+                              class="rounded text-emerald-600"
+                              [checked]="item.isStandard"
+                              (change)="updateEditItem(item._key, { isStandard: $any($event.target).checked })"
+                            />
+                            Point standard
+                          </label>
+                        </div>
+                        <textarea
+                          rows="2"
+                          placeholder="Description (optionnel)"
+                          maxlength="2000"
+                          class="w-full rounded border border-gray-300 px-3 py-1.5 text-sm outline-none
+                                 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                          [value]="item.description"
+                          (input)="updateEditItem(item._key, { description: $any($event.target).value })"
+                        ></textarea>
+                      </div>
+
+                      <!-- Contrôles : déplacer / supprimer -->
+                      <div class="flex flex-col gap-1">
+                        <button
+                          type="button"
+                          class="flex h-7 w-7 items-center justify-center rounded border border-gray-200
+                                 bg-white text-gray-500 text-xs hover:bg-gray-100 disabled:opacity-30"
+                          [disabled]="i === 0"
+                          (click)="moveEditItem(item._key, 'up')"
+                          title="Monter"
+                        >↑</button>
+                        <button
+                          type="button"
+                          class="flex h-7 w-7 items-center justify-center rounded border border-gray-200
+                                 bg-white text-gray-500 text-xs hover:bg-gray-100 disabled:opacity-30"
+                          [disabled]="i === editItems().length - 1"
+                          (click)="moveEditItem(item._key, 'down')"
+                          title="Descendre"
+                        >↓</button>
+                        <button
+                          type="button"
+                          class="flex h-7 w-7 items-center justify-center rounded border border-red-200
+                                 bg-white text-red-500 text-xs hover:bg-red-50"
+                          (click)="removeEditItem(item._key)"
+                          title="Supprimer ce point"
+                        >✕</button>
+                      </div>
+
+                    </div>
+                  }
+
+                  <!-- Ajouter un point -->
+                  <button
+                    type="button"
+                    class="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed
+                           border-emerald-300 py-2.5 text-sm font-medium text-emerald-600
+                           transition hover:border-emerald-400 hover:bg-emerald-50"
+                    (click)="addEditItem()"
+                  >
+                    + Ajouter un point
+                  </button>
+
+                  <!-- Enregistrer / Annuler -->
+                  <div class="flex justify-end gap-2 border-t border-gray-100 pt-3">
+                    <tc-button variant="outline" size="sm" (clicked)="cancelEditItems()">
+                      Annuler
+                    </tc-button>
+                    <tc-button variant="primary" size="sm" [loading]="submitting()" (clicked)="saveItems()">
+                      Enregistrer
+                    </tc-button>
+                  </div>
+
+                </div>
+              }
+
+            </tc-card>
+          }
+        }
+      </div>
+    }
+
+    <!-- ── Onglet : Convocation & RSVP ────────────────────────────────────── -->
+    @if (activeTab() === 'convocation') {
+      <div class="grid gap-4 lg:grid-cols-2">
+
+        <!-- Convocations envoyées -->
+        <div class="space-y-3">
+          <h2 class="text-base font-semibold text-gray-800">Convocations envoyées</h2>
+          @if (convocationsResource.isLoading()) {
+            <div class="flex justify-center py-6"><tc-spinner /></div>
+          } @else if (convocations().length === 0) {
+            <p class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-4 text-sm text-gray-500 text-center">
+              Aucune convocation pour cette séance.
+            </p>
+          } @else {
+            @for (conv of convocations(); track conv.id) {
+              <tc-card>
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex-1 min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <tc-badge [kind]="convStatusKind(conv.status)">
+                        {{ convStatusLabel(conv.status) }}
+                      </tc-badge>
+                      <span class="text-xs text-gray-500">
+                        {{ conv.channels.join(' · ') }}
+                      </span>
+                    </div>
+                    <p class="mt-1 text-sm text-gray-700 line-clamp-2">{{ conv.message }}</p>
+                    <p class="mt-1 text-xs text-gray-400">
+                      {{ conv.totalRecipients }} destinataires
+                      @if (conv.totalDelivered > 0) { · {{ conv.totalDelivered }} délivrés }
+                    </p>
+                  </div>
+                </div>
+              </tc-card>
+            }
+          }
+
+          <!-- Formulaire nouvelle convocation (SCHEDULED uniquement) -->
+          @if (isSessionEditable()) {
+            <tc-card title="Nouvelle convocation">
+              <form class="space-y-3" (submit)="onSendConvocation($event)">
+                <div class="space-y-1">
+                  <label class="block text-sm font-medium text-gray-700">Message</label>
+                  <textarea
+                    rows="3"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm outline-none
+                           focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                    [value]="convMessage()"
+                    (input)="convMessage.set($any($event.target).value)"
+                  ></textarea>
+                </div>
+
+                <div class="space-y-1">
+                  <label class="block text-sm font-medium text-gray-700">Canaux</label>
+                  <div class="flex flex-wrap gap-2">
+                    @for (ch of CHANNELS; track ch) {
+                      <label class="flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200
+                                    px-2.5 py-1.5 text-xs hover:bg-gray-50">
+                        <input
+                          type="checkbox"
+                          class="rounded text-emerald-600"
+                          [checked]="selectedChannels().includes(ch)"
+                          (change)="toggleChannel(ch, $event)"
+                        />
+                        {{ CHANNEL_LABELS[ch] }}
+                      </label>
+                    }
+                  </div>
+                </div>
+
+                <div class="space-y-1">
+                  <label class="block text-sm font-medium text-gray-700">
+                    Envoyer le (optionnel)
+                  </label>
+                  <input
+                    type="datetime-local"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm outline-none
+                           focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                    [value]="scheduleFor()"
+                    (change)="scheduleFor.set($any($event.target).value)"
+                  />
+                </div>
+
+                <label class="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    class="rounded text-emerald-600"
+                    [checked]="includeCandidates()"
+                    (change)="includeCandidates.set($any($event.target).checked)"
+                  />
+                  Inclure les candidats (PENDING)
+                </label>
+
+                <tc-button type="submit" variant="primary" [fullWidth]="true" [loading]="submitting()">
+                  Envoyer la convocation
+                </tc-button>
+              </form>
+            </tc-card>
+          }
+        </div>
+
+        <!-- RSVP summary -->
+        <div class="space-y-3">
+          <h2 class="text-base font-semibold text-gray-800">Confirmations (RSVP)</h2>
+          @if (rsvpsResource.isLoading()) {
+            <div class="flex justify-center py-6"><tc-spinner /></div>
+          } @else if (rsvps(); as summary) {
+            <tc-card>
+              <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div class="rounded-lg bg-green-50 p-3 text-center">
+                  <div class="text-xl font-bold text-green-700">{{ summary.confirmed }}</div>
+                  <div class="text-xs text-green-600">Confirmés</div>
+                </div>
+                <div class="rounded-lg bg-red-50 p-3 text-center">
+                  <div class="text-xl font-bold text-red-700">{{ summary.declined }}</div>
+                  <div class="text-xs text-red-600">Déclinés</div>
+                </div>
+                <div class="rounded-lg bg-amber-50 p-3 text-center">
+                  <div class="text-xl font-bold text-amber-700">{{ summary.tentative }}</div>
+                  <div class="text-xs text-amber-600">Incertains</div>
+                </div>
+                <div class="rounded-lg bg-gray-50 p-3 text-center">
+                  <div class="text-xl font-bold text-gray-700">{{ summary.pending }}</div>
+                  <div class="text-xs text-gray-500">Sans réponse</div>
+                </div>
+              </div>
+
+              @if (summary.quorumReached) {
+                <div class="mt-3 flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+                  ✅ Quorum atteint ({{ summary.quorumPercent | number:'1.0-0' }}%)
+                </div>
+              } @else {
+                <div class="mt-3 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
+                  ⚠️ Quorum non atteint ({{ summary.quorumPercent | number:'1.0-0' }}%)
+                </div>
+              }
+            </tc-card>
+
+            @if (summary.rsvps.length > 0) {
+              <tc-card title="Détail par membre">
+                <div class="space-y-1">
+                  @for (rsvp of summary.rsvps; track rsvp.memberId) {
+                    <div class="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm hover:bg-gray-50">
+                      <span class="font-medium text-gray-700">{{ rsvp.memberFullName }}</span>
+                      <span class="rounded-full px-2 py-0.5 text-xs font-medium"
+                            [class.bg-green-100]="rsvp.status === 'CONFIRMED'"
+                            [class.text-green-700]="rsvp.status === 'CONFIRMED'"
+                            [class.bg-red-100]="rsvp.status === 'DECLINED'"
+                            [class.text-red-700]="rsvp.status === 'DECLINED'"
+                            [class.bg-amber-100]="rsvp.status === 'TENTATIVE'"
+                            [class.text-amber-700]="rsvp.status === 'TENTATIVE'"
+                            [class.bg-gray-100]="rsvp.status === 'PENDING'"
+                            [class.text-gray-600]="rsvp.status === 'PENDING'">
+                        {{ rsvp.status === 'CONFIRMED' ? 'Confirmé' :
+                           rsvp.status === 'DECLINED' ? 'Décliné' :
+                           rsvp.status === 'TENTATIVE' ? 'Incertain' : 'Sans réponse' }}
+                      </span>
+                    </div>
+                  }
+                </div>
+              </tc-card>
+            }
+          } @else {
+            <p class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-4 text-sm text-gray-500 text-center">
+              Aucune donnée RSVP disponible.
+            </p>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ── Onglet : Présences ─────────────────────────────────────────────── -->
+    @if (activeTab() === 'attendance') {
+      <tc-attendance-page [id]="id()" />
+    }
+
+    <!-- ── Onglet : Cotisations ───────────────────────────────────────────── -->
+    @if (activeTab() === 'contributions') {
+      <tc-card>
+        <div class="flex flex-col items-center gap-4 py-8 text-center">
+          <div class="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-4xl">💰</div>
+          <div>
+            <p class="font-semibold text-gray-700">Cotisations de la séance</p>
+            <p class="mt-1 text-sm text-gray-500">
+              Ce module affichera les cotisations et sanctions payées par chaque membre lors de cette séance.
+              Fonctionnalité en cours de développement.
+            </p>
+          </div>
+          <div class="grid grid-cols-2 gap-3 text-left">
+            <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+              <div class="text-lg font-bold text-emerald-700">{{ session()!.totalCollected | xaf }}</div>
+              <div class="text-xs text-emerald-600">Total collecté</div>
+            </div>
+            <div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+              <div class="text-lg font-bold text-blue-700">{{ session()!.totalDistributed | xaf }}</div>
+              <div class="text-xs text-blue-600">Total distribué</div>
+            </div>
+          </div>
+        </div>
+      </tc-card>
+    }
+
+    <!-- ── Onglet : Procès-verbal ─────────────────────────────────────────── -->
+    @if (activeTab() === 'minutes') {
+      @if (minutesResource.isLoading()) {
+        <div class="flex justify-center py-8"><tc-spinner /></div>
+      } @else if (minutes(); as draft) {
+        <tc-minutes-editor [id]="draft.id" />
+      } @else {
+        <tc-card>
+          <div class="flex flex-col items-center gap-4 py-8 text-center">
+            <div class="flex h-14 w-14 items-center justify-center rounded-full bg-gray-50 text-3xl">📝</div>
+            <div>
+              <p class="font-semibold text-gray-700">Aucun procès-verbal</p>
+              <p class="mt-1 text-sm text-gray-500">
+                Le PV est généré automatiquement lorsque la séance est clôturée.
+              </p>
+            </div>
+          </div>
+        </tc-card>
+      }
+    }
+
+  }
+</div>

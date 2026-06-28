@@ -6,16 +6,17 @@ import {
   resource,
   signal,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { AlertComponent } from '../../../../shared/components/ui/alert/alert.component';
 import { BadgeComponent } from '../../../../shared/components/ui/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/ui/button/button.component';
 import { CardComponent } from '../../../../shared/components/ui/card/card.component';
-import { EmptyStateComponent } from '../../../../shared/components/ui/empty-state/empty-state.component';
 import { LocationPickerComponent } from '../../../../shared/components/ui/location-picker/location-picker.component';
 import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { SecretaryService } from '../../services/secretary.service';
 import { formatApiError } from '../../../../core/utils';
+import { CYCLE_STATUS_LABELS, CycleStatus } from '../../../../core/enums/cycle-status.enum';
 import { SESSION_STATUS_LABELS, SessionStatus } from '../../../../core/enums/session-status.enum';
 import type { Cycle } from '../../../../shared/models/entities/cycle.model';
 import type { Session } from '../../../../shared/models/entities/session.model';
@@ -32,7 +33,6 @@ type Interval = 'MONTHLY' | 'BIMONTHLY' | 'WEEKLY' | 'CUSTOM';
     BadgeComponent,
     ButtonComponent,
     CardComponent,
-    EmptyStateComponent,
     LocationPickerComponent,
     DateFormatPipe,
   ],
@@ -41,19 +41,34 @@ type Interval = 'MONTHLY' | 'BIMONTHLY' | 'WEEKLY' | 'CUSTOM';
 export class SessionsPageComponent {
   private readonly service = inject(SecretaryService);
   private readonly notifications = inject(NotificationService);
+  private readonly router = inject(Router);
 
   protected readonly SESSION_STATUS_LABELS = SESSION_STATUS_LABELS;
   protected readonly SessionStatus = SessionStatus;
+  protected readonly CycleStatus = CycleStatus;
+  protected readonly CYCLE_STATUS_LABELS = CYCLE_STATUS_LABELS;
 
   // ── Resources ────────────────────────────────────────────────────────────
   readonly cyclesResource = resource({ loader: () => this.service.getCycles() });
   readonly cycles = computed(() => this.cyclesResource.value() ?? []);
 
+  readonly activeCycle = computed(() =>
+    this.cycles().find(c => c.status === CycleStatus.ACTIVE) ?? null
+  );
+  readonly closureRequestedCycle = computed(() =>
+    this.cycles().find(c => c.status === CycleStatus.CLOSURE_REQUESTED) ?? null
+  );
+  readonly hasOpenCycle = computed(() =>
+    this.activeCycle() !== null || this.closureRequestedCycle() !== null
+  );
+
+  readonly requestingClosure = signal(false);
+
   readonly selectedCycleId = signal<string>('');
 
-  readonly sessionsResource = resource({
-    loader: async (): Promise<Session[]> => {
-      const cycleId = this.selectedCycleId();
+  readonly sessionsResource = resource<Session[], string | undefined>({
+    params: () => this.selectedCycleId() || undefined,
+    loader: async ({ params: cycleId }) => {
       if (!cycleId) return [];
       return this.service.getSessionsByCycle(cycleId);
     },
@@ -168,6 +183,10 @@ export class SessionsPageComponent {
     }
   }
 
+  protected openSession(sessionId: string): void {
+    this.router.navigate(['/secretary/sessions', sessionId]);
+  }
+
   protected startEdit(session: Session): void {
     this.editingSession.set(session);
     this.editScheduledAt.set(new Date(session.scheduledAt).toISOString().slice(0, 16));
@@ -186,6 +205,20 @@ export class SessionsPageComponent {
   }
 
   // ── Actions ───────────────────────────────────────────────────────────────
+
+  async onRequestClosure(cycleId: string): Promise<void> {
+    this.requestingClosure.set(true);
+    this.errorMessage.set(null);
+    try {
+      await this.service.requestCycleClosure(cycleId);
+      this.notifications.success('Demande de clôture envoyée au Président.');
+      this.cyclesResource.reload();
+    } catch (e: unknown) {
+      this.errorMessage.set(formatApiError(e, 'Erreur lors de la demande de clôture.'));
+    } finally {
+      this.requestingClosure.set(false);
+    }
+  }
 
   async onCreateCycle(event: Event): Promise<void> {
     event.preventDefault();
