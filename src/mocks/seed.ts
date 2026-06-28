@@ -1,4 +1,5 @@
 import { ContributionStatus } from '../app/core/enums/contribution-status.enum';
+import { ContributionType } from '../app/core/enums/contribution-type.enum';
 import { CycleStatus } from '../app/core/enums/cycle-status.enum';
 import { LoanStatus } from '../app/core/enums/loan-status.enum';
 import { MemberStatus } from '../app/core/enums/member-status.enum';
@@ -277,6 +278,7 @@ export const seedContributions: Contribution[] = [
     tontineId: 'tontine-1',
     sessionId: 'session-1',
     memberId: 'member-3',
+    contributionType: ContributionType.ORDINARY,
     expectedAmount: 50000,
     paidAmount: 50000,
     status: ContributionStatus.PAID,
@@ -289,6 +291,7 @@ export const seedContributions: Contribution[] = [
     tontineId: 'tontine-1',
     sessionId: 'session-2',
     memberId: 'member-3',
+    contributionType: ContributionType.ORDINARY,
     expectedAmount: 50000,
     paidAmount: 0,
     status: ContributionStatus.PENDING,

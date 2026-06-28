@@ -12,20 +12,33 @@ import { AlertComponent } from '../../../../shared/components/ui/alert/alert.com
 import { BadgeComponent } from '../../../../shared/components/ui/badge/badge.component';
 import { ButtonComponent } from '../../../../shared/components/ui/button/button.component';
 import { CardComponent } from '../../../../shared/components/ui/card/card.component';
+import { EmptyStateComponent } from '../../../../shared/components/ui/empty-state/empty-state.component';
+import { InputComponent } from '../../../../shared/components/ui/input/input.component';
+import { TextareaComponent } from '../../../../shared/components/ui/textarea/textarea.component';
 import { SpinnerComponent } from '../../../../shared/components/ui/spinner/spinner.component';
 import { DateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 import { CurrencyXafPipe } from '../../../../shared/pipes/currency-xaf.pipe';
+import { StatusLabelPipe } from '../../../../shared/pipes/status-label.pipe';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { AuthService } from '../../../../core/auth/services/auth.service';
 import { SecretaryService, type AgendaItemPayload } from '../../services/secretary.service';
+import { TreasurerService } from '../../../treasurer/services/treasurer.service';
+import { MemberService } from '../../../member/services/member.service';
 import { AttendancePageComponent } from '../attendance/attendance-page.component';
 import { MinutesEditorComponent } from '../minutes/minutes-editor.component';
 import { SESSION_STATUS_LABELS, SessionStatus } from '../../../../core/enums/session-status.enum';
+import { UserRole } from '../../../../core/enums/user-role.enum';
+import { ContributionStatus } from '../../../../core/enums/contribution-status.enum';
+import { PaymentMethod, PAYMENT_METHOD_LABELS } from '../../../../core/enums/payment-method.enum';
 import {
   CONVOCATION_CHANNEL_LABELS,
   type ConvocationChannel,
 } from '../../../../shared/models/entities/convocation.model';
 import { formatApiError } from '../../../../core/utils';
 import type { AgendaDraft } from '../../../../shared/models/entities/agenda-draft.model';
+import type { Contribution } from '../../../../shared/models/entities/contribution.model';
+import type { MemberContributionEntry } from '../../../../shared/models/entities/member-session-view.model';
+import type { SessionFinancialReport } from '../../../../shared/models/entities/treasury.model';
 
 interface EditableItem {
   _key: string;
@@ -75,9 +88,13 @@ const CHANNELS: ConvocationChannel[] = ['IN_APP', 'SMS', 'EMAIL', 'WHATSAPP'];
     BadgeComponent,
     ButtonComponent,
     CardComponent,
+    EmptyStateComponent,
+    InputComponent,
+    TextareaComponent,
     SpinnerComponent,
     DateFormatPipe,
     CurrencyXafPipe,
+    StatusLabelPipe,
     AttendancePageComponent,
     MinutesEditorComponent,
   ],
@@ -89,12 +106,22 @@ export class SessionDetailPageComponent {
   private readonly locationService = inject(Location);
   private readonly secretaryService = inject(SecretaryService);
   private readonly notifications = inject(NotificationService);
+  private readonly auth = inject(AuthService);
+  private readonly treasurerService = inject(TreasurerService);
+  private readonly memberService = inject(MemberService);
 
   protected readonly SESSION_STATUS_LABELS = SESSION_STATUS_LABELS;
   protected readonly SessionStatus = SessionStatus;
   protected readonly CHANNELS = CHANNELS;
   protected readonly CHANNEL_LABELS = CONVOCATION_CHANNEL_LABELS;
   protected readonly TABS = TABS;
+  protected readonly PAYMENT_METHOD_LABELS = PAYMENT_METHOD_LABELS;
+  protected readonly PAYMENT_METHODS = [
+    PaymentMethod.CASH,
+    PaymentMethod.MOBILE_MONEY,
+    PaymentMethod.ORANGE_MONEY,
+    PaymentMethod.BANK_TRANSFER,
+  ];
 
   // ── Resources ──────────────────────────────────────────────────────────────
   readonly sessionResource = resource({
@@ -124,6 +151,50 @@ export class SessionDetailPageComponent {
 
   readonly membersResource = resource({
     loader: () => this.secretaryService.getMembers(),
+  });
+
+  // ── Contributions resources (lazy — chargées seulement quand l'onglet est actif) ──
+  readonly allContributionsResource = resource<
+    Contribution[],
+    { id: string; active: boolean; isTreasurer: boolean }
+  >({
+    params: () => ({
+      id: this.id(),
+      active: this.activeTab() === 'contributions',
+      isTreasurer: this.auth.hasRole(UserRole.TREASURER),
+    }),
+    loader: async ({ params }) => {
+      if (!params.active || !params.isTreasurer) return [];
+      return this.treasurerService.getContributions(params.id);
+    },
+  });
+
+  readonly myContributionResource = resource<
+    MemberContributionEntry | null,
+    { id: string; active: boolean; isTreasurer: boolean; memberId: string | null }
+  >({
+    params: () => ({
+      id: this.id(),
+      active: this.activeTab() === 'contributions',
+      isTreasurer: this.auth.hasRole(UserRole.TREASURER),
+      memberId: this.membersResource.value()?.find(m => m.userId === this.auth.user()?.id)?.id ?? null,
+    }),
+    loader: async ({ params }) => {
+      if (!params.active || params.isTreasurer) return null;
+      const view = await this.memberService.getSession(params.id);
+      return view.contributions.find(c => c.memberId === params.memberId) ?? null;
+    },
+  });
+
+  readonly reportResource = resource<
+    SessionFinancialReport | null,
+    { id: string; show: boolean }
+  >({
+    params: () => ({ id: this.id(), show: this.showReport() }),
+    loader: async ({ params }) => {
+      if (!params.show) return null;
+      return this.treasurerService.getSessionReport(params.id);
+    },
   });
 
   // ── Computed ───────────────────────────────────────────────────────────────
@@ -160,11 +231,45 @@ export class SessionDetailPageComponent {
     return st === SessionStatus.SCHEDULED;
   });
 
+  protected readonly isTreasurer = computed(() => this.auth.hasRole(UserRole.TREASURER));
+
+  protected readonly allContributions = computed(() => this.allContributionsResource.value() ?? []);
+  protected readonly totalExpected = computed(() =>
+    this.allContributions().reduce((s, c) => s + c.expectedAmount, 0),
+  );
+  protected readonly totalPaid = computed(() =>
+    this.allContributions().reduce((s, c) => s + c.paidAmount, 0),
+  );
+  protected readonly paidCount = computed(() =>
+    this.allContributions().filter(
+      c => c.status === ContributionStatus.PAID || c.status === ContributionStatus.EXEMPTED,
+    ).length,
+  );
+  protected readonly report = computed(() => this.reportResource.value());
+
   // ── UI state ───────────────────────────────────────────────────────────────
   readonly activeTab = signal<Tab>('agenda');
   readonly errorMessage = signal<string | null>(null);
   readonly submitting = signal(false);
   readonly acting = signal<string | null>(null);
+
+  // ── Contributions (Trésorier) — formulaire de paiement ───────────────────
+  readonly paying = signal<string | null>(null);
+  readonly payAmount = signal('');
+  readonly payAmountTouched = signal(false);
+  readonly payMethod = signal<PaymentMethod>(PaymentMethod.CASH);
+  readonly payReference = signal('');
+  readonly payNote = signal('');
+  readonly paySubmitting = signal(false);
+  readonly contribError = signal<string | null>(null);
+  readonly showReport = signal(false);
+
+  readonly payAmountError = computed(() => {
+    if (!this.payAmountTouched()) return '';
+    const n = Number(this.payAmount());
+    if (!Number.isFinite(n) || n <= 0) return 'Montant invalide (doit être supérieur à 0).';
+    return '';
+  });
 
   // ── Agenda edit state ─────────────────────────────────────────────────────
   readonly editingAgendaId = signal<string | null>(null);
@@ -179,6 +284,61 @@ export class SessionDetailPageComponent {
   readonly selectedChannels = signal<ConvocationChannel[]>(['IN_APP', 'SMS']);
   readonly scheduleFor = signal('');
   readonly includeCandidates = signal(false);
+
+  // ── Contributions helpers ──────────────────────────────────────────────────
+  protected memberName(memberId: string): string {
+    const m = this.membersResource.value()?.find(m => m.id === memberId);
+    return m ? `${m.firstName} ${m.lastName}` : '—';
+  }
+
+  protected payMethodLabel(method: string | undefined): string {
+    if (!method) return '';
+    return PAYMENT_METHOD_LABELS[method as PaymentMethod] ?? method;
+  }
+
+  protected contribStatusKind(status: ContributionStatus): 'neutral' | 'info' | 'warning' | 'success' {
+    if (status === ContributionStatus.PAID) return 'success';
+    if (status === ContributionStatus.PARTIAL || status === ContributionStatus.LATE) return 'warning';
+    if (status === ContributionStatus.EXEMPTED) return 'info';
+    return 'neutral';
+  }
+
+  protected openPay(c: Contribution): void {
+    this.paying.set(c.id);
+    this.payAmount.set(String(c.expectedAmount - c.paidAmount));
+    this.payAmountTouched.set(false);
+    this.contribError.set(null);
+  }
+
+  protected cancelPay(): void {
+    this.paying.set(null);
+    this.payAmountTouched.set(false);
+    this.contribError.set(null);
+  }
+
+  async onPay(event: Event, c: Contribution): Promise<void> {
+    event.preventDefault();
+    this.payAmountTouched.set(true);
+    if (this.payAmountError()) return;
+    this.paySubmitting.set(true);
+    this.contribError.set(null);
+    try {
+      await this.treasurerService.payContribution(c.id, {
+        amount: Number(this.payAmount()),
+        paymentMethod: this.payMethod(),
+        reference: this.payReference().trim() || undefined,
+        note: this.payNote().trim() || undefined,
+      });
+      this.notifications.success('Paiement enregistré.');
+      this.paying.set(null);
+      this.payAmount.set('');
+      this.allContributionsResource.reload();
+    } catch (e: unknown) {
+      this.contribError.set(formatApiError(e, "Erreur lors de l'encaissement."));
+    } finally {
+      this.paySubmitting.set(false);
+    }
+  }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   protected setTab(tab: Tab): void {

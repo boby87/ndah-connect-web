@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { API_CONFIG } from '../../../core/config/api.config';
 import type { ApiResponse } from '../../../core/api/models/api-response.model';
 import type { PaymentMethod } from '../../../core/enums/payment-method.enum';
+import type { ContributionType } from '../../../core/enums/contribution-type.enum';
 import type { Contribution } from '../../../shared/models/entities/contribution.model';
 import type {
   ExtraordinaryContribution,
@@ -39,6 +40,16 @@ export interface TreasurerDashboard {
 }
 
 export interface PayContributionPayload {
+  amount: number;
+  paymentMethod: PaymentMethod;
+  reference?: string;
+  note?: string;
+}
+
+export interface RecordContributionPayload {
+  memberId: string;
+  contributionType: ContributionType;
+  sessionId: string;
   amount: number;
   paymentMethod: PaymentMethod;
   reference?: string;
@@ -96,10 +107,19 @@ export class TreasurerService {
   }
 
   // ─── Contributions ─────────────────────────────────────────────────────
-  async getContributions(sessionId?: string): Promise<Contribution[]> {
-    const params: Record<string, string> = sessionId ? { sessionId } : {};
+  async getContributions(sessionId?: string, type?: ContributionType): Promise<Contribution[]> {
+    const params: Record<string, string> = {};
+    if (sessionId) params['sessionId'] = sessionId;
+    if (type) params['type'] = type;
     const response = await firstValueFrom(
       this.http.get<ApiResponse<Contribution[]>>(`${this.base}/contributions`, { params }),
+    );
+    return response.data;
+  }
+
+  async recordContribution(payload: RecordContributionPayload): Promise<Contribution> {
+    const response = await firstValueFrom(
+      this.http.post<ApiResponse<Contribution>>(`${this.base}/contributions/record`, payload),
     );
     return response.data;
   }

@@ -1,5 +1,6 @@
 import { HttpResponse, http } from 'msw';
 import { ContributionStatus } from '../../app/core/enums/contribution-status.enum';
+import { ContributionType } from '../../app/core/enums/contribution-type.enum';
 import { LoanStatus } from '../../app/core/enums/loan-status.enum';
 import { PaymentMethod } from '../../app/core/enums/payment-method.enum';
 import { SanctionStatus } from '../../app/core/enums/sanction-type.enum';
@@ -125,10 +126,58 @@ export const treasurerHandlers = [
     if (!isAuthorized(request)) return new HttpResponse(null, { status: 401 });
     const url = new URL(request.url);
     const sessionId = url.searchParams.get('sessionId');
-    const list = sessionId
-      ? db.contributions.filter((c) => c.sessionId === sessionId)
-      : db.contributions;
+    const type = url.searchParams.get('type') as ContributionType | null;
+    let list = sessionId ? db.contributions.filter((c) => c.sessionId === sessionId) : db.contributions;
+    if (type) list = list.filter((c) => c.contributionType === type);
     return HttpResponse.json(wrap(list));
+  }),
+
+  http.post(`${base}/treasurer/contributions/record`, async ({ request }) => {
+    if (!isAuthorized(request)) return new HttpResponse(null, { status: 401 });
+    const body = (await request.json()) as {
+      memberId: string;
+      contributionType: ContributionType;
+      sessionId: string;
+      amount: number;
+      paymentMethod: PaymentMethod;
+      reference?: string;
+      note?: string;
+    };
+    if (!body.memberId || !body.sessionId || !body.amount || body.amount <= 0) {
+      return err('INVALID_PAYLOAD', 'Champs requis manquants.', 422);
+    }
+    let contribution = db.contributions.find(
+      (c) => c.sessionId === body.sessionId && c.memberId === body.memberId && c.contributionType === body.contributionType,
+    );
+    if (contribution) {
+      if (contribution.status === ContributionStatus.PAID || (contribution.status as string) === 'EXEMPTED') {
+        return err('CONTRIBUTION_ALREADY_SETTLED', 'Cette cotisation est déjà réglée.', 409);
+      }
+      contribution.paidAmount = (contribution.paidAmount ?? 0) + body.amount;
+    } else {
+      contribution = {
+        id: `contrib-${Date.now()}`,
+        tontineId: 'tontine-1',
+        sessionId: body.sessionId,
+        memberId: body.memberId,
+        contributionType: body.contributionType,
+        expectedAmount: body.amount,
+        paidAmount: body.amount,
+        status: ContributionStatus.PAID,
+        paidAt: new Date().toISOString(),
+        paymentMethod: body.paymentMethod,
+        reference: body.reference,
+      };
+      db.contributions.push(contribution);
+    }
+    contribution.expectedAmount = contribution.paidAmount;
+    contribution.status = ContributionStatus.PAID;
+    contribution.paidAt = new Date().toISOString();
+    contribution.paymentMethod = body.paymentMethod;
+    if (body.reference) contribution.reference = body.reference;
+    recordMovement('cb-1', 'IN', body.amount, 'CONTRIBUTION_IN',
+      `Cotisation ${body.contributionType} membre ${body.memberId}`, contribution.id);
+    return HttpResponse.json(wrap(contribution, 'Cotisation enregistrée.'), { status: 201 });
   }),
 
   http.post(`${base}/treasurer/contributions/:id/pay`, async ({ request, params }) => {
@@ -183,6 +232,7 @@ export const treasurerHandlers = [
         tontineId: 'tontine-1',
         sessionId,
         memberId: body.memberId,
+        contributionType: ContributionType.ORDINARY,
         expectedAmount: 50000,
         paidAmount: 50000,
         status: ContributionStatus.PAID,
